@@ -72,9 +72,7 @@ export default function Explore() {
                   <div className="bg-red-100 text-red-700 p-4 rounded-md">{error}</div>
                 ) : inspirations.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-gray-500">
-                      No inspirations found. Visit the admin page to upload data.
-                    </p>
+                    <p className="text-gray-500">No inspirations found.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">

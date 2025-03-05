@@ -3,16 +3,10 @@ export interface Inspiration {
   title: string;
   logoUrl: string;
   imageUrl: string;
-  likes: number;
-  comments: {
-    count: number;
-    items: Array<{
-      id: string;
-      author: string;
-      text: string;
-      date: string;
-    }>;
-  };
+  stars: number;
+  starredBy: string[];
+  commentIds: string[];
+  commentCount: number;
   date: string;
   description: string;
 }
@@ -20,6 +14,7 @@ export interface Inspiration {
 export interface Comment {
   id: string;
   author: string;
+  authorId: string;
   text: string;
   date: string;
   contentId: string;
@@ -41,4 +36,12 @@ export interface Program {
   description: string;
   logoText?: string;
   logoUrl?: string;
+}
+
+export interface User {
+  id: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  phoneNumber: string | null;
 }

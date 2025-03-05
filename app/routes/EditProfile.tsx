@@ -1,5 +1,5 @@
-import StaticPage from '~/components/StaticPage';
 import ProtectedRoute from '~/components/ProtectedRoute';
+import EditProfile from '~/components/EditProfile';
 
 namespace Route {
   export type MetaArgs = Record<string, unknown>;
@@ -12,7 +12,7 @@ export function meta({}: Route.MetaArgs) {
 export default function EditProfileRoute() {
   return (
     <ProtectedRoute>
-      <StaticPage title="Edit Profile" content="Edit Profile" />
+      <EditProfile />
     </ProtectedRoute>
   );
 }

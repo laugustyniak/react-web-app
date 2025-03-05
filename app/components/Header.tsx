@@ -55,18 +55,23 @@ export default function Header() {
                 Explore
               </button>
               <button
-                onClick={() => navigateTo('/account')}
+                onClick={() => navigateTo('/starred')}
                 className="text-gray-700 hover:text-indigo-600 px-3 py-2 rounded-md text-sm font-medium cursor-pointer"
               >
-                Account
+                Starred
               </button>
             </div>
           </div>
           <div className="flex items-center space-x-2">
             {user ? (
-              <Button variant="outline" onClick={handleSignOut}>
-                Sign out
-              </Button>
+              <>
+                <Button onClick={() => navigateTo('/account')} variant="outline">
+                  Account
+                </Button>
+                <Button variant="outline" onClick={handleSignOut}>
+                  Sign out
+                </Button>
+              </>
             ) : (
               <>
                 <Button variant="outline" onClick={handleSignIn}>

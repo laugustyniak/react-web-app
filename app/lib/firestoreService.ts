@@ -1,28 +1,17 @@
-import { collection, getDocs, doc, getDoc, query, orderBy, limit, where } from 'firebase/firestore';
-import { db } from './firebase';
 import type { Inspiration, Comment } from './dataTypes';
+import { getDocument, queryDocuments, getCollection } from './firestore';
+import { orderBy, limit } from 'firebase/firestore';
 
 /**
  * Fetches comments for a specific content ID
  */
 export const getCommentsByContentId = async (contentId: string): Promise<Comment[]> => {
   try {
-    const commentsCollection = collection(db, 'comments');
-    const q = query(
-      commentsCollection,
-      where('contentId', '==', contentId),
-      orderBy('date', 'desc')
+    const comments = await queryDocuments<Comment>(
+      'comments',
+      [{ field: 'contentId', operator: '==', value: contentId }],
+      { orderByField: 'date', orderDirection: 'desc' }
     );
-
-    const querySnapshot = await getDocs(q);
-
-    const comments: Comment[] = [];
-    querySnapshot.forEach(doc => {
-      comments.push({
-        id: doc.id,
-        ...(doc.data() as Omit<Comment, 'id'>),
-      });
-    });
 
     return comments;
   } catch (error) {
@@ -36,31 +25,11 @@ export const getCommentsByContentId = async (contentId: string): Promise<Comment
  */
 export const getAllInspirations = async (): Promise<Inspiration[]> => {
   try {
-    const inspirationsCollection = collection(db, 'inspirations');
-    const q = query(inspirationsCollection, orderBy('date', 'desc'));
-    const querySnapshot = await getDocs(q);
-
-    // First get all inspirations
-    const inspirationPromises = querySnapshot.docs.map(async doc => {
-      const data = doc.data() as Omit<Inspiration, 'id'>;
-      const inspirationId = doc.id;
-
-      // Fetch comments for this inspiration
-      const comments = await getCommentsByContentId(inspirationId);
-
-      return {
-        id: inspirationId,
-        ...data,
-        comments: {
-          count: comments.length,
-          items: comments,
-        },
-      };
+    const { documents } = await getCollection<Inspiration>('inspirations', {
+      queryConstraints: [orderBy('date', 'desc')],
     });
 
-    // Wait for all promises to resolve
-    const resolvedInspirations = await Promise.all(inspirationPromises);
-    return resolvedInspirations;
+    return documents;
   } catch (error) {
     console.error('Error fetching inspirations from Firestore:', error);
     throw error;
@@ -68,34 +37,30 @@ export const getAllInspirations = async (): Promise<Inspiration[]> => {
 };
 
 /**
- * Fetches a specific inspiration by ID
+ * Fetches a single inspiration by ID
  */
 export const getInspirationById = async (id: string): Promise<Inspiration | null> => {
   try {
-    const docRef = doc(db, 'inspirations', id);
-    const docSnap = await getDoc(docRef);
+    const inspiration = await getDocument<Inspiration>('inspirations', id, { useCache: true });
 
-    if (docSnap.exists()) {
-      const data = docSnap.data() as Omit<Inspiration, 'id'>;
-
-      // Fetch comments for this inspiration
-      const comments = await getCommentsByContentId(id);
-
-      return {
-        id: docSnap.id,
-        ...data,
-        comments: {
-          count: comments.length,
-          items: comments,
-        },
-      };
-    } else {
-      console.log('No such inspiration document!');
+    if (!inspiration) {
       return null;
     }
+
+    // Handle the case where the field might still be called 'likes' in the database
+    if (!inspiration.stars && 'likes' in inspiration) {
+      inspiration.stars = inspiration.likes as number;
+    }
+
+    // Ensure starredBy exists
+    if (!inspiration.starredBy) {
+      inspiration.starredBy = [];
+    }
+
+    return inspiration;
   } catch (error) {
     console.error('Error fetching inspiration by ID:', error);
-    throw error;
+    return null;
   }
 };
 
@@ -104,34 +69,60 @@ export const getInspirationById = async (id: string): Promise<Inspiration | null
  */
 export const getRecentInspirations = async (limitCount: number = 10): Promise<Inspiration[]> => {
   try {
-    const inspirationsCollection = collection(db, 'inspirations');
-    const q = query(inspirationsCollection, orderBy('date', 'desc'), limit(limitCount));
-
-    const querySnapshot = await getDocs(q);
-
-    // First get all inspirations
-    const inspirationPromises = querySnapshot.docs.map(async doc => {
-      const data = doc.data() as Omit<Inspiration, 'id'>;
-      const inspirationId = doc.id;
-
-      // Fetch comments for this inspiration
-      const comments = await getCommentsByContentId(inspirationId);
-
-      return {
-        id: inspirationId,
-        ...data,
-        comments: {
-          count: comments.length,
-          items: comments,
-        },
-      };
+    const { documents } = await getCollection<Inspiration>('inspirations', {
+      queryConstraints: [orderBy('date', 'desc'), limit(limitCount)],
     });
 
-    // Wait for all promises to resolve
-    const resolvedInspirations = await Promise.all(inspirationPromises);
-    return resolvedInspirations;
+    // Process each inspiration to ensure proper formatting
+    return documents.map(inspiration => {
+      // Handle the case where the field might still be called 'likes' in the database
+      if (!inspiration.stars && 'likes' in inspiration) {
+        inspiration.stars = inspiration.likes as number;
+      }
+
+      // Ensure starredBy exists
+      if (!inspiration.starredBy) {
+        inspiration.starredBy = [];
+      }
+
+      return inspiration;
+    });
   } catch (error) {
     console.error('Error fetching recent inspirations:', error);
     throw error;
+  }
+};
+
+/**
+ * Fetches all starred inspirations for a user
+ */
+export const getStarredInspirations = async (userId: string): Promise<Inspiration[]> => {
+  if (!userId) return [];
+
+  try {
+    // Get the user document to get the array of starred inspiration IDs
+    const user = await getDocument('users', userId);
+
+    if (!user) return [];
+
+    const starredInspirationIds = user.starredInspirations || [];
+
+    if (starredInspirationIds.length === 0) return [];
+
+    // Fetch each inspiration by ID
+    const inspirationPromises = starredInspirationIds.map(async (inspirationId: string) => {
+      const inspiration = await getInspirationById(inspirationId);
+      return inspiration;
+    });
+
+    // Filter out any null results (in case an inspiration was deleted)
+    const inspirations = (await Promise.all(inspirationPromises)).filter(
+      (inspiration): inspiration is Inspiration => inspiration !== null
+    );
+
+    return inspirations;
+  } catch (error) {
+    console.error('Error fetching starred inspirations:', error);
+    return [];
   }
 };
