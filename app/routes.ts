@@ -5,7 +5,7 @@ export default [
   route('explore', './routes/Explore.tsx'),
   route('programs/:id', './routes/Program.tsx'),
   route('starred', './routes/Starred.tsx'),
-  route('account', './routes/Account.tsx'),
+  route('account', './routes/AccountRedirect.tsx'),
   route('account/notifications', './routes/Notifications.tsx'),
   route('account/edit-profile', './routes/EditProfile.tsx'),
   route('account/change-password', './routes/ChangePassword.tsx'),

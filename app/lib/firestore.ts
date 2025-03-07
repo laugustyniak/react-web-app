@@ -9,17 +9,21 @@ import {
   deleteDoc,
   query,
   where,
-  QueryConstraint,
   writeBatch,
-  CollectionReference,
   onSnapshot,
   limit,
   orderBy,
   startAfter,
-  DocumentSnapshot,
   serverTimestamp,
 } from 'firebase/firestore';
-import type { DocumentData, WithFieldValue, Unsubscribe } from 'firebase/firestore';
+import type {
+  DocumentData,
+  WithFieldValue,
+  Unsubscribe,
+  QueryConstraint,
+  CollectionReference,
+  DocumentSnapshot,
+} from 'firebase/firestore';
 import { db } from './firebase';
 
 export type FirestoreDocument = {
