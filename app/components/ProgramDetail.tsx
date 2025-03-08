@@ -55,7 +55,7 @@ export default function ProgramDetail({
   return (
     <div className="w-full">
       <div className="mb-8 flex flex-col md:flex-row gap-8 items-center md:items-start">
-        <div className="w-48 h-48 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+        <div className="w-48 h-48 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center overflow-hidden flex-shrink-0">
           {logoUrl ? (
             <img src={logoUrl} alt={title} className="w-full h-full object-cover" />
           ) : (

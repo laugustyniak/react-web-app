@@ -5,7 +5,7 @@ namespace Route {
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: 'Explore - Insbay' }, { name: 'description', content: 'Explore' }];
+  return [{ title: 'Explore - Insbuy' }, { name: 'description', content: 'Explore' }];
 }
 
 export default function ExploreRoute() {

@@ -7,6 +7,7 @@ import {
   ScrollRestoration,
 } from 'react-router';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 import './app.css';
 
@@ -25,18 +26,31 @@ export const links = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="antialiased">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/300x300.png" sizes="32x32" />
-        <link rel="icon" href="/300x300.png" sizes="192x192" />
-        <link rel="apple-touch-icon" href="/300x300.png" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1"
+        />
+        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="format-detection" content="telephone=no" />
+        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-title" content="Insbuy" />
+        <link rel="manifest" href="/site.webmanifest" />
         <Meta />
         <Links />
       </head>
-      <body>
-        <AuthProvider>{children}</AuthProvider>
+      <body className="min-h-screen bg-background font-sans antialiased">
+        <ThemeProvider>
+          <AuthProvider>{children}</AuthProvider>
+        </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

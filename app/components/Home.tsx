@@ -4,6 +4,7 @@ import Footer from './Footer';
 import InspirationCard from './InspirationCard';
 import { getAllInspirations } from '~/lib/firestoreService';
 import type { Inspiration } from '~/lib/dataTypes';
+import { PageLayout } from './ui/layout';
 
 export default function Home() {
   const [inspirations, setInspirations] = useState<Inspiration[]>([]);
@@ -15,7 +16,6 @@ export default function Home() {
       try {
         setLoading(true);
         const data = await getAllInspirations();
-        console.log('data', data);
         setInspirations(data);
       } catch (err) {
         console.error('Failed to fetch inspirations:', err);
@@ -29,18 +29,23 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <>
       <Header />
+      <PageLayout fullHeight={false}>
+        <div className="w-full">
+          {/* <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">Home</h1>
+          </div> */}
 
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8 flex-grow">
-        <div className="px-4 py-6 sm:px-0">
-          <section>
+          <section className="w-full">
             {loading ? (
               <div className="flex justify-center items-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
               </div>
             ) : error ? (
-              <div className="bg-red-100 text-red-700 p-4 rounded-md">{error}</div>
+              <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded flex items-center gap-2">
+                {error}
+              </div>
             ) : inspirations.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-gray-500">No inspirations found.</p>
@@ -54,9 +59,8 @@ export default function Home() {
             )}
           </section>
         </div>
-      </div>
-
+      </PageLayout>
       <Footer />
-    </div>
+    </>
   );
 }

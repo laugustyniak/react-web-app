@@ -27,7 +27,7 @@ export default function ProgramCard({
     <Card className="h-full flex flex-col w-full">
       <CardHeader className="flex-1">
         <div className="flex justify-center">
-          <div className="h-48 w-48 rounded-full bg-gray-200 flex items-center justify-center mb-8 mt-4 overflow-hidden">
+          <div className="h-48 w-48 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center mb-8 mt-4 overflow-hidden">
             {logoUrl ? (
               <img src={logoUrl} alt={title} className="w-full h-full object-cover" />
             ) : (

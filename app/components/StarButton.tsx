@@ -111,7 +111,7 @@ export default function StarButton({
   return (
     <button
       onClick={toggleStar}
-      className={`flex items-center gap-1 cursor-pointer text-sm ${starred ? 'text-yellow-500' : 'text-gray-500'}`}
+      className={`flex items-center gap-1 cursor-pointer text-sm ${starred ? 'text-[#e45f56]' : 'text-gray-500'}`}
     >
       <Star className="w-5 h-5" fill={starred ? 'currentColor' : 'none'} />
       <span>{starsCount}</span>

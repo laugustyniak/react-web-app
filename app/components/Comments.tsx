@@ -225,7 +225,7 @@ function Comments({
     <>
       {/* Display first comment */}
       {firstComment && (
-        <div className="px-6 mt-[-0.8rem] mb-4">
+        <div className="px-6 mt-[-0.8rem] mb-0">
           <div className="text-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1">
@@ -246,7 +246,7 @@ function Comments({
             {commentCount > 1 && (
               <button
                 onClick={() => setShowCommentsModal(true)}
-                className="text-sm text-[#6639e1] cursor-pointer mt-1 hover:underline"
+                className="text-sm text-[#160a47] cursor-pointer mt-1 hover:underline"
               >
                 View all {commentCount} comments
               </button>

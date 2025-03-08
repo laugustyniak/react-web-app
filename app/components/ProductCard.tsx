@@ -30,7 +30,7 @@ export default function ProductCard({
         </div>
       </CardHeader>
       <CardContent className="flex-1">
-        <div className="h-40 bg-gray-200 rounded-md mb-2"></div>
+        <div className="h-40 bg-gray-200 dark:bg-gray-800 rounded-md mb-2"></div>
         <p className="text-sm">{description}</p>
       </CardContent>
       <CardFooter className="mt-auto pt-2">

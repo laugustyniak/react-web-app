@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import type { User } from '../lib/dataTypes';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { PageLayout, ContentCard } from './ui/layout';
+import Header from './Header';
+import Footer from './Footer';
 
 export default function EditProfile() {
   const [displayName, setDisplayName] = useState('');
@@ -115,20 +118,21 @@ export default function EditProfile() {
   };
 
   return (
-    <div className="flex items-center justify-center sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        <Card>
+    <>
+      <Header />
+      <PageLayout>
+        <ContentCard>
           <CardHeader>
-            <CardTitle className="text-center text-3xl font-extrabold">Edit Profile</CardTitle>
+            <CardTitle className="text-center text-2xl font-bold">Edit Profile</CardTitle>
             <CardDescription className="text-center">
               Update your profile information
             </CardDescription>
           </CardHeader>
 
           {error && (
-            <div className="px-6">
+            <div className="mb-4 mx-6">
               <div
-                className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded flex items-center gap-2"
+                className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded flex items-center gap-2"
                 role="alert"
               >
                 <AlertCircle className="h-4 w-4" />
@@ -138,9 +142,9 @@ export default function EditProfile() {
           )}
 
           {success && (
-            <div className="px-6">
+            <div className="mb-4 mx-6">
               <div
-                className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded flex items-center gap-2"
+                className="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded flex items-center gap-2"
                 role="alert"
               >
                 <CheckCircle2 className="h-4 w-4" />
@@ -149,59 +153,96 @@ export default function EditProfile() {
             </div>
           )}
 
-          <CardContent>
-            {profileLoading ? (
-              <div className="flex justify-center py-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-              </div>
-            ) : (
+          {profileLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : (
+            <CardContent>
               <form className="space-y-4" onSubmit={handleProfileUpdate}>
                 <div className="space-y-2">
+                  <label
+                    htmlFor="displayName"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Display Name
+                  </label>
                   <Input
-                    id="display-name"
+                    id="displayName"
                     name="displayName"
                     type="text"
-                    placeholder="Display Name"
+                    autoComplete="name"
                     value={displayName}
                     onChange={e => setDisplayName(e.target.value)}
+                    placeholder="Display Name"
                   />
+                </div>
 
+                <div className="space-y-2">
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Email
+                  </label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="Email"
+                    autoComplete="email"
                     value={email}
                     disabled
+                    placeholder="Email"
                   />
+                  <p className="text-xs text-gray-500">Email cannot be changed</p>
+                </div>
 
+                <div className="space-y-2">
+                  <label
+                    htmlFor="photoURL"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Profile Photo URL
+                  </label>
                   <Input
-                    id="photo-url"
+                    id="photoURL"
                     name="photoURL"
                     type="text"
-                    placeholder="Profile Photo URL"
-                    value={photoURL}
+                    value={photoURL || ''}
                     onChange={e => setPhotoURL(e.target.value)}
-                  />
-
-                  <Input
-                    id="phone-number"
-                    name="phoneNumber"
-                    type="tel"
-                    placeholder="Phone Number"
-                    value={phoneNumber}
-                    onChange={e => setPhoneNumber(e.target.value)}
+                    placeholder="Profile Photo URL"
                   />
                 </div>
 
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Updating...' : 'Update Profile'}
-                </Button>
+                <div className="space-y-2">
+                  <label
+                    htmlFor="phoneNumber"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Phone Number
+                  </label>
+                  <Input
+                    id="phoneNumber"
+                    name="phoneNumber"
+                    type="tel"
+                    autoComplete="tel"
+                    value={phoneNumber || ''}
+                    onChange={e => setPhoneNumber(e.target.value)}
+                    placeholder="Phone Number"
+                  />
+                </div>
+
+                <div className="pt-4">
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? 'Updating...' : 'Update Profile'}
+                  </Button>
+                </div>
               </form>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+            </CardContent>
+          )}
+        </ContentCard>
+      </PageLayout>
+      <Footer />
+    </>
   );
 }

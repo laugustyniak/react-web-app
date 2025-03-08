@@ -2,8 +2,11 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import { PageLayout, ContentCard } from './ui/layout';
+import Header from './Header';
+import Footer from './Footer';
 
 export default function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -46,22 +49,21 @@ export default function ChangePassword() {
   };
 
   return (
-    <div className="flex items-center justify-center sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        <Card>
+    <>
+      <Header />
+      <PageLayout>
+        <ContentCard>
           <CardHeader>
-            <CardTitle className="text-center text-3xl font-extrabold">
-              Change Your Password
-            </CardTitle>
+            <CardTitle className="text-center text-2xl font-bold">Change Your Password</CardTitle>
             <CardDescription className="text-center">
               Update your password to keep your account secure
             </CardDescription>
           </CardHeader>
 
           {error && (
-            <div className="px-6">
+            <div className="mb-4 mx-6">
               <div
-                className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded flex items-center gap-2"
+                className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded flex items-center gap-2"
                 role="alert"
               >
                 <AlertCircle className="h-4 w-4" />
@@ -71,9 +73,9 @@ export default function ChangePassword() {
           )}
 
           {success && (
-            <div className="px-6">
+            <div className="mb-4 mx-6">
               <div
-                className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded flex items-center gap-2"
+                className="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded flex items-center gap-2"
                 role="alert"
               >
                 <CheckCircle2 className="h-4 w-4" />
@@ -85,6 +87,12 @@ export default function ChangePassword() {
           <CardContent>
             <form className="space-y-4" onSubmit={handleSubmit}>
               <div className="space-y-2">
+                <label
+                  htmlFor="current-password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Current Password
+                </label>
                 <Input
                   id="current-password"
                   name="currentPassword"
@@ -95,7 +103,15 @@ export default function ChangePassword() {
                   value={currentPassword}
                   onChange={e => setCurrentPassword(e.target.value)}
                 />
+              </div>
 
+              <div className="space-y-2">
+                <label
+                  htmlFor="new-password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  New Password
+                </label>
                 <Input
                   id="new-password"
                   name="newPassword"
@@ -106,7 +122,15 @@ export default function ChangePassword() {
                   value={newPassword}
                   onChange={e => setNewPassword(e.target.value)}
                 />
+              </div>
 
+              <div className="space-y-2">
+                <label
+                  htmlFor="confirm-password"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Confirm New Password
+                </label>
                 <Input
                   id="confirm-password"
                   name="confirmPassword"
@@ -119,13 +143,16 @@ export default function ChangePassword() {
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Updating...' : 'Update Password'}
-              </Button>
+              <div className="pt-4">
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Updating...' : 'Change Password'}
+                </Button>
+              </div>
             </form>
           </CardContent>
-        </Card>
-      </div>
-    </div>
+        </ContentCard>
+      </PageLayout>
+      <Footer />
+    </>
   );
 }

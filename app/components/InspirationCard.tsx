@@ -27,34 +27,39 @@ function InspirationCard({ inspiration }: InspirationCardProps) {
 
   return (
     <>
-      <Card className="h-full flex flex-col overflow-hidden w-full">
-        <CardHeader className="pb-0">
-          <div className="flex items-center gap-3">
+      <Card className="h-full flex flex-col overflow-hidden w-full transition-all duration-200 hover:shadow-md">
+        <CardHeader className="pb-0 p-3 sm:p-6 sm:pb-0">
+          <div className="flex items-center gap-2 sm:gap-3">
             <img
               src={inspiration.logoUrl}
               alt="Logo"
-              className="w-8 h-8 rounded-full object-cover"
+              className="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover"
             />
             <div>
-              <CardTitle className="text-lg">{inspiration.title}</CardTitle>
+              <CardTitle className="text-base sm:text-lg line-clamp-1">
+                {inspiration.title}
+              </CardTitle>
               <p className="text-xs text-gray-500">{formatDate(inspiration.date)}</p>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="flex-1">
-          <div className="relative h-80 mb-4 overflow-hidden rounded-md">
+        <CardContent className="flex-1 p-3 sm:p-6 pt-3">
+          <div className="relative h-48 sm:h-64 md:h-80 mb-3 sm:mb-4 overflow-hidden rounded-md">
             <img
               src={inspiration.imageUrl}
               alt={inspiration.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+              loading="lazy"
             />
           </div>
-          <CardDescription>{inspiration.description}</CardDescription>
+          <CardDescription className="line-clamp-3 sm:line-clamp-none">
+            {inspiration.description}
+          </CardDescription>
         </CardContent>
-        <CardFooter className="flex justify-between border-t pt-4 mt-auto">
+        <CardFooter className="flex justify-between border-t pt-3 sm:pt-4 px-3 sm:px-6 mt-auto mb-1">
           <button
             onClick={toggleCommentsModal}
-            className="flex items-center gap-1 text-sm text-gray-500"
+            className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -62,7 +67,7 @@ function InspirationCard({ inspiration }: InspirationCardProps) {
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="w-5 h-5"
+              className="w-4 h-4 sm:w-5 sm:h-5"
             >
               <path
                 strokeLinecap="round"

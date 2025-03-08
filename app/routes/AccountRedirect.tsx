@@ -6,7 +6,7 @@ namespace Route {
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: 'Account - Insbay' }, { name: 'description', content: 'Account' }];
+  return [{ title: 'Account - Insbuy' }, { name: 'description', content: 'Account' }];
 }
 
 export default function AccountRedirect() {

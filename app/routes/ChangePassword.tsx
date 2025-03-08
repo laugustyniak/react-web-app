@@ -1,7 +1,6 @@
 import ChangePassword from '~/components/ChangePassword';
-import ProtectedRoute from '~/components/ProtectedRoute';
-import Header from '~/components/Header';
-import Footer from '~/components/Footer';
+import { useAuth } from '~/contexts/AuthContext';
+import { Navigate } from 'react-router';
 
 namespace Route {
   export type MetaArgs = Record<string, unknown>;
@@ -9,21 +8,17 @@ namespace Route {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: 'Change Password - Insbay' },
-    { name: 'description', content: 'Update your account password' },
+    { title: 'Change Password - Insbuy' },
+    { name: 'description', content: 'Change your Insbuy account password' },
   ];
 }
 
 export default function ChangePasswordRoute() {
-  return (
-    <ProtectedRoute>
-      <div className="flex flex-col min-h-screen h-screen bg-gray-50">
-        <Header />
-        <main className="container mx-auto flex-grow">
-          <ChangePassword />
-        </main>
-        <Footer />
-      </div>
-    </ProtectedRoute>
-  );
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/sign-in" />;
+  }
+
+  return <ChangePassword />;
 }

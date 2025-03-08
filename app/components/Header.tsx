@@ -15,13 +15,16 @@ import {
   navigationMenuTriggerStyle,
 } from '~/components/ui/navigation-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '~/components/ui/sheet';
-import { Menu } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { cn } from '~/lib/utils';
+import { ThemeToggle } from './ui/theme-toggle';
+import { useState } from 'react';
 
 export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Check if the current path matches the given path
   const isActive = (path: string) => {
@@ -59,36 +62,44 @@ export default function Header() {
 
   const navigateTo = (path: string) => {
     navigate(path);
+    setIsMenuOpen(false); // Close mobile menu when navigating
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background">
-      <div className="container flex h-16 items-center justify-between mx-auto px-4">
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 sm:h-16 items-center justify-between mx-auto px-4">
         {/* Left section - Mobile menu and logo */}
         <div className="flex items-center space-x-4">
           {/* Mobile Menu Button - Only visible on mobile */}
           <div className="md:hidden">
-            <Sheet>
+            <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" className="relative">
                   <Menu className="h-5 w-5" />
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left">
-                <SheetHeader>
+              <SheetContent side="left" className="w-[80%] sm:w-[350px] pt-10">
+                <SheetHeader className="mb-6">
                   <SheetTitle className="text-left" onClick={() => navigateTo('/')}>
                     <div className="flex items-center space-x-2">
-                      <img src="/300x300.png" alt="Insbay" className="h-8 w-8" />
-                      <span className="font-bold text-xl text-indigo-600">Insbay</span>
+                      <img src="/logo.png" alt="Insbuy" className="h-8" />
                     </div>
                   </SheetTitle>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-4 top-4"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
                 </SheetHeader>
-                <div className="flex flex-col gap-4 py-6">
+                <div className="flex flex-col gap-1 py-2">
                   <Button
                     variant="ghost"
                     className={cn(
-                      'justify-start px-2',
+                      'justify-start px-2 py-6 text-base',
                       isActive('/explore') && 'bg-accent text-accent-foreground'
                     )}
                     onClick={() => navigateTo('/explore')}
@@ -98,7 +109,7 @@ export default function Header() {
                   <Button
                     variant="ghost"
                     className={cn(
-                      'justify-start px-2',
+                      'justify-start px-2 py-6 text-base',
                       isActive('/starred') && 'bg-accent text-accent-foreground'
                     )}
                     onClick={() => navigateTo('/starred')}
@@ -107,23 +118,26 @@ export default function Header() {
                   </Button>
                   {user ? (
                     <>
+                      <div className="border-t my-2 pt-2">
+                        <p className="px-2 py-1 text-sm text-muted-foreground">Account</p>
+                      </div>
                       <Button
                         variant="ghost"
-                        className="justify-start px-2"
+                        className="justify-start px-2 py-6 text-base"
                         onClick={() => navigateTo('/account/edit-profile')}
                       >
                         Edit profile
                       </Button>
                       <Button
                         variant="ghost"
-                        className="justify-start px-2"
+                        className="justify-start px-2 py-6 text-base"
                         onClick={() => navigateTo('/account/change-password')}
                       >
                         Change password
                       </Button>
                       <Button
                         variant="ghost"
-                        className="justify-start px-2"
+                        className="justify-start px-2 py-6 text-base text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
                         onClick={handleSignOut}
                       >
                         Sign out
@@ -131,14 +145,31 @@ export default function Header() {
                     </>
                   ) : (
                     <>
-                      <Button variant="ghost" className="justify-start px-2" onClick={handleSignIn}>
+                      <div className="border-t my-2 pt-2">
+                        <p className="px-2 py-1 text-sm text-muted-foreground">Account</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        className="justify-start px-2 py-6 text-base"
+                        onClick={handleSignIn}
+                      >
                         Sign in
                       </Button>
-                      <Button variant="ghost" className="justify-start px-2" onClick={handleSignUp}>
+                      <Button
+                        variant="ghost"
+                        className="justify-start px-2 py-6 text-base"
+                        onClick={handleSignUp}
+                      >
                         Sign up
                       </Button>
                     </>
                   )}
+                  <div className="border-t mt-4 pt-4">
+                    <div className="flex items-center justify-between px-2 py-2">
+                      <span className="text-sm font-medium">Toggle theme</span>
+                      <ThemeToggle />
+                    </div>
+                  </div>
                 </div>
               </SheetContent>
             </Sheet>
@@ -149,8 +180,7 @@ export default function Header() {
             onClick={() => navigateTo('/')}
             className="flex items-center space-x-2 focus:outline-none cursor-pointer"
           >
-            <img src="/300x300.png" alt="Insbay" className="h-8 w-8" />
-            <span className="font-bold text-xl text-indigo-600">Insbay</span>
+            <img src="/logo.png" alt="Insbuy" className="h-6 sm:h-8" />
           </button>
         </div>
 
@@ -186,6 +216,8 @@ export default function Header() {
 
         {/* Right section - Auth Buttons */}
         <div className="hidden md:flex items-center gap-2">
+          <ThemeToggle />
+
           {user ? (
             <>
               <DropdownMenu>
@@ -205,11 +237,14 @@ export default function Header() {
                   >
                     Change password
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600"
+                  >
+                    Sign out
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <Button variant="outline" onClick={handleSignOut}>
-                Sign out
-              </Button>
             </>
           ) : (
             <>
@@ -221,8 +256,20 @@ export default function Header() {
           )}
         </div>
 
-        {/* Empty div for mobile to balance the layout */}
-        <div className="md:hidden w-10"></div>
+        {/* Mobile account button */}
+        <div className="md:hidden flex items-center gap-2">
+          <ThemeToggle />
+          {user && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="px-2"
+              onClick={() => navigateTo('/account/edit-profile')}
+            >
+              Account
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   );

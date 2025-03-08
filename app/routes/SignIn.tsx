@@ -5,7 +5,12 @@ namespace Route {
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: 'Sign In - Insbay' }, { name: 'description', content: 'Welcome to Insbay!' }];
+  return [
+    { title: 'Sign In - Insbuy' },
+    { name: 'description', content: 'Sign in to your Insbuy account' },
+    { name: 'og:title', content: 'Sign In - Insbuy' },
+    { name: 'og:description', content: 'Sign in to your Insbuy account' },
+  ];
 }
 
 export default function SignInRoute() {

@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import type { User } from 'firebase/auth';
 import {
   signInWithEmailAndPassword,
@@ -9,6 +10,7 @@ import {
   updatePassword,
   EmailAuthProvider,
   reauthenticateWithCredential,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import { analytics, auth, googleProvider } from '../lib/firebase';
 import { useNavigate } from 'react-router';
@@ -25,6 +27,7 @@ interface AuthContextType {
   isEmailVerified: boolean;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   reauthenticate: (password: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -36,7 +39,7 @@ export class EmailNotVerifiedError extends Error {
   }
 }
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isEmailVerified, setIsEmailVerified] = useState<boolean>(false);
@@ -139,6 +142,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
   };
 
+  const resetPassword = async (email: string) => {
+    try {
+      await sendPasswordResetEmail(auth, email);
+      analytics.then(analyticsInstance => {
+        if (analyticsInstance) {
+          logEvent(analyticsInstance, 'password_reset_email_sent');
+        }
+      });
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -150,6 +167,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     isEmailVerified,
     updatePassword: updateUserPassword,
     reauthenticate,
+    resetPassword,
   };
 
   return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;

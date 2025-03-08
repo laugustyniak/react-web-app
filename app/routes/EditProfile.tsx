@@ -1,26 +1,24 @@
-import ProtectedRoute from '~/components/ProtectedRoute';
 import EditProfile from '~/components/EditProfile';
-import Header from '~/components/Header';
-import Footer from '~/components/Footer';
+import { useAuth } from '~/contexts/AuthContext';
+import { Navigate } from 'react-router';
 
 namespace Route {
   export type MetaArgs = Record<string, unknown>;
 }
 
 export function meta({}: Route.MetaArgs) {
-  return [{ title: 'Edit Profile - Insbay' }, { name: 'description', content: 'Edit Profile' }];
+  return [
+    { title: 'Edit Profile - Insbuy' },
+    { name: 'description', content: 'Edit your Insbuy profile' },
+  ];
 }
 
 export default function EditProfileRoute() {
-  return (
-    <ProtectedRoute>
-      <div className="flex flex-col min-h-screen h-screen bg-gray-50">
-        <Header />
-        <main className="container mx-auto flex-grow">
-          <EditProfile />
-        </main>
-        <Footer />
-      </div>
-    </ProtectedRoute>
-  );
+  const { user } = useAuth();
+
+  if (!user) {
+    return <Navigate to="/sign-in" />;
+  }
+
+  return <EditProfile />;
 }
