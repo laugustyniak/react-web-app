@@ -14,7 +14,7 @@ interface ProgramDetailProps {
   logoUrl?: string;
 }
 
-export default function ProgramDetail({
+export default function ProgramDetails({
   id,
   title,
   description,

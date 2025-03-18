@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router';
 import Header from './Header';
 import Footer from './Footer';
-import ProgramDetail from './ProgramDetail';
+import ProgramDetails from './ProgramDetails';
 import { PageLayout } from './ui/layout';
 
 // Mock data - in a real app, this would come from a database or API
@@ -58,7 +58,6 @@ export default function Program() {
   const program = programsData.find(p => p.id === programId);
 
   if (!program) {
-    // If program not found, redirect to explore page
     navigate('/explore');
     return null;
   }
@@ -67,7 +66,7 @@ export default function Program() {
     <>
       <Header />
       <PageLayout fullHeight={false}>
-        <ProgramDetail
+        <ProgramDetails
           id={program.id}
           title={program.title}
           description={program.description}

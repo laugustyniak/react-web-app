@@ -83,7 +83,7 @@ export default function Header() {
                 <SheetHeader className="mb-6">
                   <SheetTitle className="text-left" onClick={() => navigateTo('/')}>
                     <div className="flex items-center space-x-2">
-                      <img src="/logo.png" alt="Insbuy" className="h-8" />
+                      <img src="/buy-it-logo.png" alt="Insbuy" className="h-8" />
                     </div>
                   </SheetTitle>
                   <Button
@@ -180,7 +180,7 @@ export default function Header() {
             onClick={() => navigateTo('/')}
             className="flex items-center space-x-2 focus:outline-none cursor-pointer"
           >
-            <img src="/logo.png" alt="Insbuy" className="h-6 sm:h-8" />
+            <img src="/buy-it-logo.png" alt="Insbuy" className="h-6 sm:h-8" />
           </button>
         </div>
 
