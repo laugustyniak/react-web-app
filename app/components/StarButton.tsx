@@ -4,22 +4,25 @@ import { useAuth } from '~/contexts/AuthContext';
 import { useNavigate } from 'react-router';
 import { getDocument, setDocument, batchWrite } from '~/lib/firestore';
 import { arrayUnion, arrayRemove } from 'firebase/firestore';
+import { trackEvent } from '~/lib/analytics';
+import { useAnalytics } from '~/contexts/AnalyticsContext';
 
 interface StarButtonProps {
-  contentId: string;
+  inspirationId: string;
   starredBy: string[];
   starsCount: number;
   onStarUpdate?: (newStarsCount: number) => void;
 }
 
 export default function StarButton({
-  contentId,
+  inspirationId,
   starredBy,
   starsCount: initialStarsCount,
   onStarUpdate,
 }: StarButtonProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const analytics = useAnalytics();
   const [starred, setStarred] = useState<boolean>(false);
   const [starsCount, setStarsCount] = useState<number>(initialStarsCount || 0);
 
@@ -58,7 +61,7 @@ export default function StarButton({
           {
             type: 'update',
             collectionName: 'inspirations',
-            documentId: contentId,
+            documentId: inspirationId,
             data: {
               starredBy: arrayRemove(user.uid),
               stars: starsCount - 1,
@@ -69,20 +72,25 @@ export default function StarButton({
             collectionName: 'users',
             documentId: user.uid,
             data: {
-              starredInspirations: arrayRemove(contentId),
+              starredInspirations: arrayRemove(inspirationId),
             },
           },
         ]);
 
         setStarsCount(starsCount - 1);
         if (onStarUpdate) onStarUpdate(starsCount - 1);
+        if (analytics) {
+          trackEvent(analytics, 'unstar_inspiration', {
+            inspiration_id: inspirationId,
+          });
+        }
       } else {
         // Use batchWrite for atomic operations
         await batchWrite([
           {
             type: 'update',
             collectionName: 'inspirations',
-            documentId: contentId,
+            documentId: inspirationId,
             data: {
               starredBy: arrayUnion(user.uid),
               stars: starsCount + 1,
@@ -93,13 +101,18 @@ export default function StarButton({
             collectionName: 'users',
             documentId: user.uid,
             data: {
-              starredInspirations: arrayUnion(contentId),
+              starredInspirations: arrayUnion(inspirationId),
             },
           },
         ]);
 
         setStarsCount(starsCount + 1);
         if (onStarUpdate) onStarUpdate(starsCount + 1);
+        if (analytics) {
+          trackEvent(analytics, 'star_inspiration', {
+            inspiration_id: inspirationId,
+          });
+        }
       }
 
       setStarred(!starred);

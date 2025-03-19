@@ -3,7 +3,7 @@ import { Button } from './ui/button';
 import { useNavigate } from 'react-router';
 
 interface ProgramCardProps {
-  id: number;
+  programId: string;
   title: string;
   description: string;
   logoText?: string;
@@ -11,7 +11,7 @@ interface ProgramCardProps {
 }
 
 export default function ProgramCard({
-  id,
+  programId,
   title,
   description,
   logoText,
@@ -20,7 +20,7 @@ export default function ProgramCard({
   const navigate = useNavigate();
 
   const handleNavigate = () => {
-    navigate(`/programs/${id}`);
+    navigate(`/programs/${programId}`);
   };
 
   return (
@@ -32,7 +32,7 @@ export default function ProgramCard({
               <img src={logoUrl} alt={title} className="w-full h-full object-cover" />
             ) : (
               <span className="text-gray-400 text-xl font-semibold">
-                {logoText || `Logo ${id}`}
+                {logoText || `Logo ${programId}`}
               </span>
             )}
           </div>

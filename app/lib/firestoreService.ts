@@ -1,4 +1,4 @@
-import type { Inspiration, Comment, Product } from './dataTypes';
+import type { Inspiration, Comment, Product, Program } from './dataTypes';
 import { getDocument, queryDocuments, getCollection } from './firestore';
 import { orderBy, limit } from 'firebase/firestore';
 
@@ -159,5 +159,33 @@ export const getProductsByIds = async (
   } catch (error) {
     console.error('Error fetching products by IDs:', error);
     return [];
+  }
+};
+
+/**
+ * Fetches all programs from Firestore
+ */
+export const getAllPrograms = async (limitCount: number = 50): Promise<Program[]> => {
+  try {
+    const { documents } = await getCollection<Program>('programs', {
+      queryConstraints: [orderBy('created_at', 'desc'), limit(limitCount)],
+    });
+    return documents;
+  } catch (error) {
+    console.error('Error fetching programs from Firestore:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches a single program by ID
+ */
+export const getProgramById = async (id: string): Promise<Program | null> => {
+  try {
+    const program = await getDocument<Program>('programs', id, { useCache: true });
+    return program;
+  } catch (error) {
+    console.error('Error fetching program by ID:', error);
+    return null;
   }
 };

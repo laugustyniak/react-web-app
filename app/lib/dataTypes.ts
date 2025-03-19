@@ -23,18 +23,18 @@ export interface Comment {
 }
 
 export interface Product {
+  product_id: string;
   title: string;
   program: string;
-  price: number;
   metadata?: {
     description_in_english?: string;
   };
-  sale_price?: number;
+  affiliate_link?: string;
   image_url?: string;
 }
 
 export interface Program {
-  id: string;
+  program_id: string;
   title: string;
   description: string;
   logoText?: string;

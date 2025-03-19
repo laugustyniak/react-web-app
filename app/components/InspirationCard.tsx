@@ -18,7 +18,6 @@ function InspirationCard({ inspiration }: InspirationCardProps) {
   useEffect(() => {
     const fetchProducts = async () => {
       if (inspiration.products?.length) {
-        console.log('inspiration.productsIds', inspiration.products);
         const fetchedProducts = await getProductsByIds(inspiration.products);
         setProducts(fetchedProducts);
       }
@@ -119,7 +118,7 @@ function InspirationCard({ inspiration }: InspirationCardProps) {
 
             <div className="flex items-center gap-2">
               <StarButton
-                contentId={inspiration.id}
+                inspirationId={inspiration.id}
                 starredBy={inspiration.starredBy || []}
                 starsCount={inspiration.stars || 0}
               />

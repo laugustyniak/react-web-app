@@ -1,29 +1,27 @@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
+import BuyNowButton from './BuyNowButton';
 
 interface ProductCardProps {
-  id: number;
+  productId: string;
   title: string;
   program: string;
   description?: string;
-  price: number;
-  promoPrice?: number;
+  affiliateLink?: string;
   imageUrl?: string;
 }
 
 export default function ProductCard({
-  id,
+  productId,
   title,
   program,
   description,
-  price = 0,
-  promoPrice,
+  affiliateLink,
   imageUrl,
 }: ProductCardProps) {
   return (
-    <Card className="h-full flex flex-col w-full">
+    <Card className="h-full flex flex-col w-full gap-4">
       <CardHeader className="pb-0">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <div>
             <CardTitle className="text-lg">{title}</CardTitle>
             <CardDescription>{program}</CardDescription>
@@ -36,11 +34,14 @@ export default function ProductCard({
         </div>
         <p className="text-sm">{description}</p>
       </CardContent>
-      {!!price && (
-        <CardFooter className="mt-auto pt-2">
+      {affiliateLink && (
+        <CardFooter>
           <div className="flex justify-between w-full">
-            <span className="font-bold">{price}</span>
-            <Button>Buy now</Button>
+            <BuyNowButton
+              affiliateLink={affiliateLink}
+              productTitle={title}
+              productId={productId}
+            />
           </div>
         </CardFooter>
       )}

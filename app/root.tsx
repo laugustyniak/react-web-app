@@ -8,6 +8,7 @@ import {
 } from 'react-router';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AnalyticsProvider } from './contexts/AnalyticsContext';
 
 import './app.css';
 
@@ -49,7 +50,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <AnalyticsProvider>{children}</AnalyticsProvider>
+          </AuthProvider>
         </ThemeProvider>
         <ScrollRestoration />
         <Scripts />
