@@ -5,8 +5,8 @@ import { Search, AlertCircle, Grid, List } from 'lucide-react';
 import Header from './Header';
 import Footer from './Footer';
 import InspirationCard from './InspirationCard';
-import { getAllInspirations } from '~/lib/firestoreService';
-import type { Inspiration } from '~/lib/dataTypes';
+import { getAllInspirations, getAllProducts } from '~/lib/firestoreService';
+import type { Inspiration, Product } from '~/lib/dataTypes';
 import ProductCard from './ProductCard';
 import ProgramCard from './ProgramCard';
 import { Button } from './ui/button';
@@ -14,6 +14,7 @@ import { PageLayout } from './ui/layout';
 
 export default function Explore() {
   const [inspirations, setInspirations] = useState<Inspiration[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<'grid' | 'list'>('grid');
@@ -33,11 +34,28 @@ export default function Explore() {
       }
     };
 
+    const fetchProducts = async (limitCount: number = 50) => {
+      try {
+        const data = await getAllProducts(limitCount);
+        setProducts(data);
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+        setError('Failed to load products. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchInspirations();
+    fetchProducts(100);
   }, []);
 
   const filteredInspirations = inspirations.filter(inspiration =>
     inspiration.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredProducts = products.filter(product =>
+    product.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -159,14 +177,16 @@ export default function Explore() {
                     : 'flex flex-col space-y-3 sm:space-y-4 w-full'
                 }
               >
-                {[1, 2, 3, 4, 5, 6].map(item => (
-                  <div className="w-full" key={item}>
+                {filteredProducts.map((item, index) => (
+                  <div className="w-full" key={index}>
                     <ProductCard
-                      id={item}
-                      title={`Product ${item}`}
-                      program={`Program ${item}`}
-                      description="Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris."
-                      price="$299"
+                      id={index}
+                      title={item.title}
+                      program={item.program}
+                      description={item.metadata?.description_in_english}
+                      price={item.price}
+                      promoPrice={item.sale_price}
+                      imageUrl={item.image_url}
                     />
                   </div>
                 ))}

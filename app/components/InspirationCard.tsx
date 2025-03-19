@@ -1,9 +1,10 @@
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-import type { Inspiration } from '~/lib/dataTypes';
+import type { Inspiration, Product } from '~/lib/dataTypes';
 import Comments from './Comments';
 import StarButton from './StarButton';
 import { Link } from 'react-router';
+import { getProductsByIds } from '~/lib/firestoreService';
 
 interface InspirationCardProps {
   inspiration: Inspiration;
@@ -12,6 +13,18 @@ interface InspirationCardProps {
 function InspirationCard({ inspiration }: InspirationCardProps) {
   const [showCommentsModal, setShowCommentsModal] = useState<boolean>(false);
   const [localCommentCount, setLocalCommentCount] = useState<number>(inspiration.commentCount || 0);
+  const [products, setProducts] = useState<(Product & { id: string })[]>([]);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      if (inspiration.products?.length) {
+        console.log('inspiration.productsIds', inspiration.products);
+        const fetchedProducts = await getProductsByIds(inspiration.products);
+        setProducts(fetchedProducts);
+      }
+    };
+    fetchProducts();
+  }, [inspiration.products]);
 
   const toggleCommentsModal = useCallback(() => {
     setShowCommentsModal(!showCommentsModal);
@@ -57,6 +70,30 @@ function InspirationCard({ inspiration }: InspirationCardProps) {
             <CardDescription className="line-clamp-3 sm:line-clamp-none">
               {inspiration.description}
             </CardDescription>
+            {products.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium mb-2">Products</h4>
+                <div
+                  className={`grid ${products.length === 1 ? 'grid-cols-1' : 'grid-cols-2'} gap-2`}
+                >
+                  {products.map(product => (
+                    <div key={product.id} className="flex items-center gap-2">
+                      {product.image_url && (
+                        <img
+                          src={product.image_url}
+                          alt={product.title}
+                          className="w-12 h-12 rounded-md object-cover"
+                        />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium line-clamp-1">{product.title}</p>
+                        <p className="text-xs text-gray-500 line-clamp-1">{product.program}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="flex justify-between border-t pt-3 sm:pt-4 px-3 sm:px-6 mt-auto mb-1">
             <button

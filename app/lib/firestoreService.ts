@@ -1,4 +1,4 @@
-import type { Inspiration, Comment } from './dataTypes';
+import type { Inspiration, Comment, Product } from './dataTypes';
 import { getDocument, queryDocuments, getCollection } from './firestore';
 import { orderBy, limit } from 'firebase/firestore';
 
@@ -123,6 +123,41 @@ export const getStarredInspirations = async (userId: string): Promise<Inspiratio
     return inspirations;
   } catch (error) {
     console.error('Error fetching starred inspirations:', error);
+    return [];
+  }
+};
+
+/**
+ * Fetches all products from Firestore
+ */
+export const getAllProducts = async (limitCount: number = 50): Promise<Product[]> => {
+  try {
+    const { documents } = await getCollection<Product>('products', {
+      queryConstraints: [orderBy('created_at', 'desc'), limit(limitCount)],
+    });
+    return documents;
+  } catch (error) {
+    console.error('Error fetching products from Firestore:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches products by their IDs from Firestore
+ */
+export const getProductsByIds = async (
+  productIds: string[]
+): Promise<(Product & { id: string })[]> => {
+  try {
+    const products = await Promise.all(
+      productIds.map(async id => {
+        const product = await getDocument<Product>('products', id, { useCache: true });
+        return product;
+      })
+    );
+    return products.filter((product): product is Product & { id: string } => product !== null);
+  } catch (error) {
+    console.error('Error fetching products by IDs:', error);
     return [];
   }
 };

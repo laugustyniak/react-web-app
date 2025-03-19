@@ -3,6 +3,7 @@ export interface Inspiration {
   title: string;
   logoUrl: string;
   imageUrl: string;
+  products: string[];
   stars: number;
   starredBy: string[];
   commentIds: string[];
@@ -22,12 +23,14 @@ export interface Comment {
 }
 
 export interface Product {
-  id: string;
   title: string;
   program: string;
-  description: string;
-  price: string;
-  imageUrl: string;
+  price: number;
+  metadata?: {
+    description_in_english?: string;
+  };
+  sale_price?: number;
+  image_url?: string;
 }
 
 export interface Program {
