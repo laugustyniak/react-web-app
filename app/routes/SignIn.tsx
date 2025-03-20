@@ -6,10 +6,10 @@ namespace Route {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: 'Sign In - Insbuy' },
-    { name: 'description', content: 'Sign in to your Insbuy account' },
-    { name: 'og:title', content: 'Sign In - Insbuy' },
-    { name: 'og:description', content: 'Sign in to your Insbuy account' },
+    { title: 'Sign In - Buy It' },
+    { name: 'description', content: 'Sign in to your Buy It account' },
+    { name: 'og:title', content: 'Sign In - Buy It' },
+    { name: 'og:description', content: 'Sign in to your Buy It account' },
   ];
 }
 

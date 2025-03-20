@@ -8,8 +8,8 @@ namespace Route {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: 'Edit Profile - Insbuy' },
-    { name: 'description', content: 'Edit your Insbuy profile' },
+    { title: 'Edit Profile - Buy It' },
+    { name: 'description', content: 'Edit your Buy It profile' },
   ];
 }
 

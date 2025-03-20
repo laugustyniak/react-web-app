@@ -6,8 +6,8 @@ namespace Route {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: 'Program - Insbuy' },
-    { name: 'description', content: 'View program details on Insbuy' },
+    { title: 'Program - Buy It' },
+    { name: 'description', content: 'View program details on Buy It' },
   ];
 }
 

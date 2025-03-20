@@ -1,4 +1,11 @@
-import { Outlet, isRouteErrorResponse, Links, Scripts, ScrollRestoration } from 'react-router';
+import {
+  Outlet,
+  isRouteErrorResponse,
+  Links,
+  Scripts,
+  ScrollRestoration,
+  Meta,
+} from 'react-router';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { AnalyticsProvider } from './contexts/AnalyticsContext';
@@ -58,7 +65,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="shortcut icon" href="/favicon.ico" />
         <meta name="apple-mobile-web-app-title" content="Insbuy" />
-        <meta name="description" content="Discover and shop products you'll love" />
+        <Meta />
         <Links />
       </head>
       <body className={cn('min-h-screen bg-background antialiased', fontSans.variable)}>

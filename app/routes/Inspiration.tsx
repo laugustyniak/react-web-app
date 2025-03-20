@@ -9,15 +9,15 @@ namespace Route {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: 'Inspiration - Insbuy' },
-    { name: 'description', content: 'Welcome to Insbuy!' },
-    { property: 'og:title', content: 'Inspiration - Insbuy' },
-    { property: 'og:description', content: 'Welcome to Insbuy!' },
+    { title: 'Inspiration - Buy It' },
+    { name: 'description', content: 'Welcome to Buy It!' },
+    { property: 'og:title', content: 'Inspiration - Buy It' },
+    { property: 'og:description', content: 'Welcome to Buy It!' },
     { property: 'og:type', content: 'article' },
     { property: 'og:image', content: '' },
     { name: 'twitter:card', content: 'summary_large_image' },
-    { name: 'twitter:title', content: 'Inspiration - Insbuy' },
-    { name: 'twitter:description', content: 'Welcome to Insbuy!' },
+    { name: 'twitter:title', content: 'Inspiration - Buy It' },
+    { name: 'twitter:description', content: 'Welcome to Buy It!' },
     { name: 'twitter:image', content: '' },
   ];
 }
@@ -29,8 +29,8 @@ export default function InspirationRoute() {
     const updateMeta = async () => {
       try {
         const inspiration = id ? await getInspirationById(id) : null;
-        const title = inspiration?.title ? `${inspiration.title} - Insbuy` : 'Inspiration - Insbuy';
-        const description = inspiration?.description || 'Welcome to Insbuy!';
+        const title = inspiration?.title ? `${inspiration.title} - Buy It` : 'Inspiration - Buy It';
+        const description = inspiration?.description || 'Welcome to Buy It!';
         const imageUrl = inspiration?.imageUrl || '';
 
         document.title = title;
@@ -45,7 +45,7 @@ export default function InspirationRoute() {
           ?.setAttribute('content', description);
         document.querySelector('meta[name="twitter:image"]')?.setAttribute('content', imageUrl);
       } catch (error) {
-        document.title = 'Inspiration - Insbuy';
+        document.title = 'Inspiration - Buy It';
       }
     };
 

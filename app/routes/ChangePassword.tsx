@@ -8,8 +8,8 @@ namespace Route {
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: 'Change Password - Insbuy' },
-    { name: 'description', content: 'Change your Insbuy account password' },
+    { title: 'Change Password - Buy It' },
+    { name: 'description', content: 'Change your Buy It account password' },
   ];
 }
 
