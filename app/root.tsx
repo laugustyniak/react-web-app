@@ -1,33 +1,48 @@
-import {
-  isRouteErrorResponse,
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-} from 'react-router';
-import { AuthProvider } from './contexts/AuthContext';
+import { Outlet, isRouteErrorResponse, Links, Scripts, ScrollRestoration } from 'react-router';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { AnalyticsProvider } from './contexts/AnalyticsContext';
+import React, { lazy, Suspense } from 'react';
+import { cn } from './lib/utils';
 
 import './app.css';
 
+// Define default font
+const fontSans = {
+  variable: 'font-sans',
+};
+
+// Lazy load components for better performance
+const Header = lazy(() => import('./components/Header'));
+const Footer = lazy(() => import('./components/Footer'));
+
 export const links = () => [
-  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
   {
-    rel: 'preconnect',
-    href: 'https://fonts.gstatic.com',
-    crossOrigin: 'anonymous',
+    rel: 'apple-touch-icon',
+    sizes: '180x180',
+    href: '/apple-touch-icon.png',
   },
   {
-    rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap',
+    rel: 'icon',
+    type: 'image/png',
+    sizes: '32x32',
+    href: '/favicon-32x32.png',
+  },
+  {
+    rel: 'icon',
+    type: 'image/png',
+    sizes: '16x16',
+    href: '/favicon-16x16.png',
+  },
+  {
+    rel: 'manifest',
+    href: '/site.webmanifest',
   },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="antialiased">
+    <html lang="en" className="antialiased" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta
@@ -42,16 +57,24 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="shortcut icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-title" content="Insbuy" />
-        <link rel="manifest" href="/site.webmanifest" />
-        <Meta />
+        <meta name="description" content="Discover and shop products you'll love" />
         <Links />
       </head>
-      <body className="min-h-screen bg-background font-sans antialiased">
+      <body className={cn('min-h-screen bg-background antialiased', fontSans.variable)}>
         <ThemeProvider>
           <AuthProvider>
-            <AnalyticsProvider>{children}</AnalyticsProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Suspense fallback={<div className="h-14 sm:h-16 border-b"></div>}>
+                <Header />
+              </Suspense>
+              <div className="flex-1">
+                <AnalyticsProvider>{children}</AnalyticsProvider>
+              </div>
+              <Suspense fallback={null}>
+                <Footer />
+              </Suspense>
+            </div>
           </AuthProvider>
         </ThemeProvider>
         <ScrollRestoration />

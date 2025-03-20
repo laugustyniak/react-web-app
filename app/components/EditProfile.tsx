@@ -118,131 +118,125 @@ export default function EditProfile() {
   };
 
   return (
-    <>
-      <Header />
-      <PageLayout>
-        <ContentCard>
-          <CardHeader>
-            <CardTitle className="text-center text-2xl font-bold">Edit Profile</CardTitle>
-            <CardDescription className="text-center">
-              Update your profile information
-            </CardDescription>
-          </CardHeader>
+    <PageLayout>
+      <ContentCard>
+        <CardHeader>
+          <CardTitle className="text-center text-2xl font-bold">Edit Profile</CardTitle>
+          <CardDescription className="text-center">Update your profile information</CardDescription>
+        </CardHeader>
 
-          {error && (
-            <div className="mb-4 mx-6">
-              <div
-                className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded flex items-center gap-2"
-                role="alert"
-              >
-                <AlertCircle className="h-4 w-4" />
-                <span>{error}</span>
+        {error && (
+          <div className="mb-4 mx-6">
+            <div
+              className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-800 text-red-700 dark:text-red-400 px-4 py-3 rounded flex items-center gap-2"
+              role="alert"
+            >
+              <AlertCircle className="h-4 w-4" />
+              <span>{error}</span>
+            </div>
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-4 mx-6">
+            <div
+              className="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded flex items-center gap-2"
+              role="alert"
+            >
+              <CheckCircle2 className="h-4 w-4" />
+              <span>{success}</span>
+            </div>
+          </div>
+        )}
+
+        {profileLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : (
+          <CardContent>
+            <form className="space-y-4" onSubmit={handleProfileUpdate}>
+              <div className="space-y-2">
+                <label
+                  htmlFor="displayName"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Display Name
+                </label>
+                <Input
+                  id="displayName"
+                  name="displayName"
+                  type="text"
+                  autoComplete="name"
+                  value={displayName}
+                  onChange={e => setDisplayName(e.target.value)}
+                  placeholder="Display Name"
+                />
               </div>
-            </div>
-          )}
 
-          {success && (
-            <div className="mb-4 mx-6">
-              <div
-                className="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-800 text-green-700 dark:text-green-400 px-4 py-3 rounded flex items-center gap-2"
-                role="alert"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                <span>{success}</span>
+              <div className="space-y-2">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Email
+                </label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  disabled
+                  placeholder="Email"
+                />
+                <p className="text-xs text-gray-500">Email cannot be changed</p>
               </div>
-            </div>
-          )}
 
-          {profileLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-          ) : (
-            <CardContent>
-              <form className="space-y-4" onSubmit={handleProfileUpdate}>
-                <div className="space-y-2">
-                  <label
-                    htmlFor="displayName"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Display Name
-                  </label>
-                  <Input
-                    id="displayName"
-                    name="displayName"
-                    type="text"
-                    autoComplete="name"
-                    value={displayName}
-                    onChange={e => setDisplayName(e.target.value)}
-                    placeholder="Display Name"
-                  />
-                </div>
+              <div className="space-y-2">
+                <label
+                  htmlFor="photoURL"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Profile Photo URL
+                </label>
+                <Input
+                  id="photoURL"
+                  name="photoURL"
+                  type="text"
+                  value={photoURL || ''}
+                  onChange={e => setPhotoURL(e.target.value)}
+                  placeholder="Profile Photo URL"
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Email
-                  </label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    disabled
-                    placeholder="Email"
-                  />
-                  <p className="text-xs text-gray-500">Email cannot be changed</p>
-                </div>
+              <div className="space-y-2">
+                <label
+                  htmlFor="phoneNumber"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Phone Number
+                </label>
+                <Input
+                  id="phoneNumber"
+                  name="phoneNumber"
+                  type="tel"
+                  autoComplete="tel"
+                  value={phoneNumber || ''}
+                  onChange={e => setPhoneNumber(e.target.value)}
+                  placeholder="Phone Number"
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <label
-                    htmlFor="photoURL"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Profile Photo URL
-                  </label>
-                  <Input
-                    id="photoURL"
-                    name="photoURL"
-                    type="text"
-                    value={photoURL || ''}
-                    onChange={e => setPhotoURL(e.target.value)}
-                    placeholder="Profile Photo URL"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label
-                    htmlFor="phoneNumber"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                  >
-                    Phone Number
-                  </label>
-                  <Input
-                    id="phoneNumber"
-                    name="phoneNumber"
-                    type="tel"
-                    autoComplete="tel"
-                    value={phoneNumber || ''}
-                    onChange={e => setPhoneNumber(e.target.value)}
-                    placeholder="Phone Number"
-                  />
-                </div>
-
-                <div className="pt-4">
-                  <Button type="submit" className="w-full" disabled={loading}>
-                    {loading ? 'Updating...' : 'Update Profile'}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          )}
-        </ContentCard>
-      </PageLayout>
-      <Footer />
-    </>
+              <div className="pt-4">
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Updating...' : 'Update Profile'}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        )}
+      </ContentCard>
+    </PageLayout>
   );
 }

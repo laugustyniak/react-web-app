@@ -7,10 +7,6 @@ export default function Inspiration() {
   const { id } = useParams();
 
   return (
-    <>
-      <Header />
-      <PageLayout fullHeight={false}>{id && <InspirationDetails inspirationId={id} />}</PageLayout>
-      <Footer />
-    </>
+    <PageLayout fullHeight={false}>{id && <InspirationDetails inspirationId={id} />}</PageLayout>
   );
 }

@@ -63,18 +63,14 @@ export default function Program() {
   }
 
   return (
-    <>
-      <Header />
-      <PageLayout fullHeight={false}>
-        <ProgramDetails
-          id={program.id}
-          title={program.title}
-          description={program.description}
-          logoText={program.logoText}
-          logoUrl={program.logoUrl}
-        />
-      </PageLayout>
-      <Footer />
-    </>
+    <PageLayout fullHeight={false}>
+      <ProgramDetails
+        id={program.id}
+        title={program.title}
+        description={program.description}
+        logoText={program.logoText}
+        logoUrl={program.logoUrl}
+      />
+    </PageLayout>
   );
 }
