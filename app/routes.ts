@@ -5,6 +5,7 @@ export default [
   route('explore', './routes/Explore.tsx'),
   route('inspirations/:id', './routes/Inspiration.tsx'),
   route('programs/:id', './routes/Program.tsx'),
+  route('products/:id', './routes/Product.tsx'),
   route('starred', './routes/Starred.tsx'),
   route('account', './routes/AccountRedirect.tsx'),
   route('account/edit-profile', './routes/EditProfile.tsx'),

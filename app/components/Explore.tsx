@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Input } from './ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Search, AlertCircle, Grid, List } from 'lucide-react';
-import Header from './Header';
-import Footer from './Footer';
 import InspirationCard from './InspirationCard';
 import { getAllInspirations, getAllProducts, getAllPrograms } from '~/lib/firestoreService';
 import type { Inspiration, Product, Program } from '~/lib/dataTypes';
@@ -22,10 +20,10 @@ export default function Explore() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const fetchInspirations = async () => {
+    const fetchInspirations = async (limitCount: number = 50) => {
       try {
         setLoading(true);
-        const data = await getAllInspirations();
+        const data = await getAllInspirations(limitCount);
         setInspirations(data);
       } catch (err) {
         console.error('Failed to fetch inspirations:', err);
@@ -59,7 +57,7 @@ export default function Explore() {
       }
     };
 
-    fetchInspirations();
+    fetchInspirations(100);
     fetchProducts(100);
     fetchPrograms(100);
   }, []);
@@ -165,6 +163,29 @@ export default function Explore() {
             )}
           </TabsContent>
 
+          <TabsContent value="products" className="w-full">
+            <div
+              className={
+                view === 'grid'
+                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 w-full'
+                  : 'flex flex-col space-y-3 sm:space-y-4 w-full'
+              }
+            >
+              {filteredProducts.map((item, index) => (
+                <div className="w-full" key={index}>
+                  <ProductCard
+                    productId={item.product_id}
+                    title={item.title}
+                    programTitle={item.program}
+                    description={item.metadata?.description_in_english}
+                    imageUrl={item.image_url}
+                    affiliateLink={item.affiliate_link}
+                  />
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
           <TabsContent value="programs" className="w-full">
             <div
               className={
@@ -179,23 +200,8 @@ export default function Explore() {
                     programId={item.program_id}
                     title={item.title}
                     description={item.description}
+                    logoUrl={item.logo_url}
                   />
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="products" className="w-full">
-            <div
-              className={
-                view === 'grid'
-                  ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 w-full'
-                  : 'flex flex-col space-y-3 sm:space-y-4 w-full'
-              }
-            >
-              {filteredProducts.map((item, index) => (
-                <div className="w-full" key={index}>
-                  <ProductCard product={item} />
                 </div>
               ))}
             </div>

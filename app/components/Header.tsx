@@ -77,7 +77,8 @@ function Header() {
           <SheetHeader className="mb-6">
             <SheetTitle className="text-left" onClick={() => navigateTo('/')}>
               <div className="flex items-center space-x-2">
-                <img src="/buy-it-logo.png" alt="Insbuy" className="h-8" />
+                <img src="/buy-it-logo-light.png" alt="Buy It" className="h-8 dark:hidden" />
+                <img src="/buy-it-logo-dark.png" alt="Buy It" className="h-8 hidden dark:block" />
               </div>
             </SheetTitle>
             <Button
@@ -265,7 +266,8 @@ function Header() {
             onClick={() => navigateTo('/')}
             className="flex items-center space-x-2 focus:outline-none cursor-pointer"
           >
-            <img src="/buy-it-logo.png" alt="Insbuy" className="h-6 sm:h-8" />
+            <img src="/buy-it-logo-light.png" alt="Buy It" className="h-8 dark:hidden" />
+            <img src="/buy-it-logo-dark.png" alt="Buy It" className="h-8 hidden dark:block" />
           </button>
         </div>
 

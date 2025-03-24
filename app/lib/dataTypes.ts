@@ -37,8 +37,7 @@ export interface Program {
   program_id: string;
   title: string;
   description: string;
-  logoText?: string;
-  logoUrl?: string;
+  logo_url?: string;
 }
 
 export interface User {

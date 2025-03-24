@@ -55,8 +55,8 @@ function InspirationCard({ inspiration }: InspirationCardProps) {
 
   // Memoized product item to prevent unnecessary rerenders
   const ProductItem = memo(({ product }: { product: Product & { id: string } }) => (
-    <div
-      key={product.id}
+    <Link
+      to={`/products/${product.id}`}
       className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ml-[-8px]"
     >
       {product.image_url && (
@@ -73,7 +73,7 @@ function InspirationCard({ inspiration }: InspirationCardProps) {
         <p className="text-sm font-medium line-clamp-1">{product.title}</p>
         <p className="text-xs text-gray-500 line-clamp-1">{product.program}</p>
       </div>
-    </div>
+    </Link>
   ));
 
   return (

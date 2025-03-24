@@ -1,6 +1,6 @@
 import type { Inspiration, Comment, Product, Program } from './dataTypes';
 import { getDocument, queryDocuments, getCollection } from './firestore';
-import { orderBy, limit } from 'firebase/firestore';
+import { orderBy, limit, where } from 'firebase/firestore';
 
 /**
  * Fetches comments for a specific content ID
@@ -23,10 +23,10 @@ export const getCommentsByContentId = async (contentId: string): Promise<Comment
 /**
  * Fetches all inspirations from Firestore
  */
-export const getAllInspirations = async (): Promise<Inspiration[]> => {
+export const getAllInspirations = async (limitCount: number = 50): Promise<Inspiration[]> => {
   try {
     const { documents } = await getCollection<Inspiration>('inspirations', {
-      queryConstraints: [orderBy('date', 'desc')],
+      queryConstraints: [orderBy('date', 'desc'), limit(limitCount)],
     });
 
     return documents;
@@ -159,6 +159,34 @@ export const getProductsByIds = async (
   } catch (error) {
     console.error('Error fetching products by IDs:', error);
     return [];
+  }
+};
+
+export const getProductsByProgramId = async (programId: string): Promise<Product[]> => {
+  try {
+    const { documents } = await getCollection<Product>('products', {
+      queryConstraints: [orderBy('created_at', 'desc'), where('program', '==', programId)],
+    });
+    return documents;
+  } catch (error) {
+    console.error('Error fetching products by program ID:', error);
+    return [];
+  }
+};
+
+/**
+ * Fetches a single product by ID
+ */
+export const getProductById = async (id: string): Promise<Product | null> => {
+  try {
+    const product = await getDocument<Product>('products', id, { useCache: true });
+    if (!product) {
+      return null;
+    }
+    return product;
+  } catch (error) {
+    console.error('Error fetching product by ID:', error);
+    return null;
   }
 };
 

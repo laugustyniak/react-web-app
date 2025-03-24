@@ -32,6 +32,12 @@ export const links = () => [
   {
     rel: 'icon',
     type: 'image/png',
+    sizes: '96x96',
+    href: '/favicon-96x96.png',
+  },
+  {
+    rel: 'icon',
+    type: 'image/png',
     sizes: '32x32',
     href: '/favicon-32x32.png',
   },
@@ -40,6 +46,16 @@ export const links = () => [
     type: 'image/png',
     sizes: '16x16',
     href: '/favicon-16x16.png',
+  },
+  {
+    rel: 'icon',
+    type: 'image/x-icon',
+    href: '/favicon.ico',
+  },
+  {
+    rel: 'icon',
+    type: 'image/svg+xml',
+    href: '/favicon.svg',
   },
   {
     rel: 'manifest',
@@ -61,10 +77,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="format-detection" content="telephone=no" />
-        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="shortcut icon" href="/favicon.ico" />
-        <meta name="apple-mobile-web-app-title" content="Insbuy" />
+        <meta name="apple-mobile-web-app-title" content="Buy It" />
         <Meta />
         <Links />
       </head>

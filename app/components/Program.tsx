@@ -1,62 +1,26 @@
 import { useParams, useNavigate } from 'react-router';
-import Header from './Header';
-import Footer from './Footer';
+import type { Program } from '~/lib/dataTypes';
 import ProgramDetails from './ProgramDetails';
 import { PageLayout } from './ui/layout';
-
-// Mock data - in a real app, this would come from a database or API
-const programsData = [
-  {
-    id: 1,
-    title: 'Cooking Master',
-    description: 'Learn cooking techniques from professional chefs and discover new recipes.',
-    logoText: 'CM',
-    logoUrl: undefined,
-  },
-  {
-    id: 2,
-    title: 'Home Design',
-    description: 'Transform your living space with expert interior design tips and inspiration.',
-    logoText: 'HD',
-    logoUrl: undefined,
-  },
-  {
-    id: 3,
-    title: 'Fitness Journey',
-    description: 'Get fit with personalized workout routines and nutrition advice.',
-    logoText: 'FJ',
-    logoUrl: undefined,
-  },
-  {
-    id: 4,
-    title: 'Travel Diaries',
-    description: 'Explore the world through curated travel experiences and destination guides.',
-    logoText: 'TD',
-    logoUrl: undefined,
-  },
-  {
-    id: 5,
-    title: 'Tech Innovations',
-    description: 'Stay updated with the latest technology trends and product reviews.',
-    logoText: 'TI',
-    logoUrl: undefined,
-  },
-  {
-    id: 6,
-    title: 'Fashion Forward',
-    description: 'Discover the latest fashion trends and style tips from industry experts.',
-    logoText: 'FF',
-    logoUrl: undefined,
-  },
-];
+import { getProgramById } from '~/lib/firestoreService';
+import { useEffect } from 'react';
+import { useState } from 'react';
 
 export default function Program() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const programId = parseInt(id || '1');
-  const program = programsData.find(p => p.id === programId);
+  const [program, setProgram] = useState<Program | null>(null);
 
+  useEffect(() => {
+    const fetchProgram = async (id: string) => {
+      const program = await getProgramById(id);
+      setProgram(program);
+    };
+    if (id) {
+      fetchProgram(id);
+    }
+  }, [id]);
   if (!program) {
     navigate('/explore');
     return null;
@@ -65,11 +29,10 @@ export default function Program() {
   return (
     <PageLayout fullHeight={false}>
       <ProgramDetails
-        id={program.id}
+        programId={program.program_id}
         title={program.title}
         description={program.description}
-        logoText={program.logoText}
-        logoUrl={program.logoUrl}
+        logoUrl={program.logo_url}
       />
     </PageLayout>
   );

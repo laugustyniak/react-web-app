@@ -1,13 +1,24 @@
 import { memo, useState, useCallback } from 'react';
 import { Card, CardContent, CardFooter } from './ui/card';
 import BuyItButton from './BuyItButton';
-import type { Product } from '~/lib/dataTypes';
 
 interface ProductCardProps {
-  product: Product;
+  productId: string;
+  title: string;
+  programTitle: string;
+  description?: string;
+  imageUrl?: string;
+  affiliateLink?: string;
 }
 
-function ProductCard({ product }: ProductCardProps) {
+function ProductCard({
+  productId,
+  title,
+  programTitle,
+  description,
+  imageUrl,
+  affiliateLink,
+}: ProductCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
   const handleImageLoad = useCallback(() => {
@@ -23,10 +34,10 @@ function ProductCard({ product }: ProductCardProps) {
               <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
             </div>
           )}
-          {product.image_url ? (
+          {imageUrl ? (
             <img
-              src={product.image_url}
-              alt={product.title}
+              src={imageUrl}
+              alt={title}
               className={`w-full h-full object-cover ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
               loading="lazy"
               onLoad={handleImageLoad}
@@ -37,20 +48,19 @@ function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
         </div>
-        <div className="p-3">
-          <h3 className="text-base font-semibold line-clamp-2 mb-1">{product.title}</h3>
-          <div className="flex items-center text-sm text-gray-500 mb-1">
-            <span className="line-clamp-1">{product.program}</span>
+        <div className="px-4">
+          <h3 className="text-base font-semibold line-clamp-2">{title}</h3>
+          <div className="flex items-center text-sm text-gray-500">
+            <span className="line-clamp-1">{programTitle}</span>
           </div>
         </div>
       </div>
+      <CardContent className="px-4 mt-0">
+        <p className=" text-gray-500 line-clamp-2">{description}</p>
+      </CardContent>
       <CardFooter className="p-3 pt-0 mt-auto">
-        {product.affiliate_link && (
-          <BuyItButton
-            affiliateLink={product.affiliate_link}
-            productId={product.product_id}
-            productTitle={product.title}
-          />
+        {affiliateLink && (
+          <BuyItButton affiliateLink={affiliateLink} productId={productId} productTitle={title} />
         )}
       </CardFooter>
     </Card>
