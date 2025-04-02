@@ -6,16 +6,22 @@ import StarButton from './StarButton';
 import { Link } from 'react-router';
 import { getProductsByIds } from '~/lib/firestoreService';
 import { Button } from './ui/button';
+import { Pencil, Trash2 } from 'lucide-react';
+import { useAuth } from '~/contexts/AuthContext';
 
 interface InspirationCardProps {
   inspiration: Inspiration;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
-function InspirationCard({ inspiration }: InspirationCardProps) {
+function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps) {
   const [showCommentsModal, setShowCommentsModal] = useState<boolean>(false);
   const [localCommentCount, setLocalCommentCount] = useState<number>(inspiration.commentCount || 0);
   const [products, setProducts] = useState<(Product & { id: string })[]>([]);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -53,6 +59,14 @@ function InspirationCard({ inspiration }: InspirationCardProps) {
     setIsImageLoaded(true);
   }, []);
 
+  const handleEdit = useCallback(() => {
+    onEdit?.(inspiration.id);
+  }, [onEdit, inspiration.id]);
+
+  const handleDelete = useCallback(() => {
+    onDelete?.(inspiration.id);
+  }, [onDelete, inspiration.id]);
+
   // Memoized product item to prevent unnecessary rerenders
   const ProductItem = memo(({ product }: { product: Product & { id: string } }) => (
     <Link
@@ -78,7 +92,7 @@ function InspirationCard({ inspiration }: InspirationCardProps) {
 
   return (
     <>
-      <Card className="h-full flex flex-col overflow-hidden w-full transition-all duration-300 hover:shadow-lg border-gray-200 dark:border-gray-700">
+      <Card className="h-full flex flex-col overflow-hidden w-full pb-4.5 transition-all duration-300 hover:shadow-lg border-gray-200 dark:border-gray-700">
         <CardHeader className="flex flex-row items-center gap-2">
           <img
             src={inspiration.logoUrl}
@@ -97,7 +111,7 @@ function InspirationCard({ inspiration }: InspirationCardProps) {
             <p className="text-xs text-gray-500">{formatDate(inspiration.date)}</p>
           </div>
         </CardHeader>
-        <CardContent className="px-6 py-2 flex-1 mt-[-10px]">
+        <CardContent className="px-6 py-0 flex-1 mt-[-10px]">
           <div className="relative h-52 sm:h-64 md:h-80 mb-4 overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800">
             {!isImageLoaded && (
               <div className="absolute inset-0 flex items-center justify-center">
@@ -132,10 +146,12 @@ function InspirationCard({ inspiration }: InspirationCardProps) {
             </div>
           )}
         </CardContent>
-        <CardFooter className="flex justify-between border-t pt-5 px-5 mt-auto">
-          <button
+        <CardFooter className="flex justify-between border-t pt-4 px-5 mt-0">
+          <Button
+            variant="ghost"
+            size="default"
             onClick={toggleCommentsModal}
-            className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-primary transition-colors p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="flex items-center gap-1.5 cursor-pointer text-sm text-gray-600 dark:text-gray-400 hover:text-primary transition-colors p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
             aria-label="Comments"
           >
             <svg
@@ -155,13 +171,31 @@ function InspirationCard({ inspiration }: InspirationCardProps) {
               />
             </svg>
             <span>{localCommentCount}</span>
-          </button>
+          </Button>
 
-          <StarButton
-            inspirationId={inspiration.id}
-            starredBy={inspiration.starredBy || []}
-            starsCount={inspiration.stars || 0}
-          />
+          <div className="flex items-center">
+            <StarButton
+              inspirationId={inspiration.id}
+              starredBy={inspiration.starredBy || []}
+              starsCount={inspiration.stars || 0}
+            />
+
+            {isAdmin && (
+              <div className="flex space-x-2 ml-2">
+                <Button size="sm" variant="outline" onClick={handleEdit} className="cursor-pointer">
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="cursor-pointer text-destructive"
+                  onClick={handleDelete}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </CardFooter>
       </Card>
 

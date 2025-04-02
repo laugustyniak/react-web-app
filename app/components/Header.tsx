@@ -15,7 +15,7 @@ import {
   navigationMenuTriggerStyle,
 } from '~/components/ui/navigation-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '~/components/ui/sheet';
-import { Menu, X } from 'lucide-react';
+import { Menu, Plus, X } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { ThemeToggle } from './ui/theme-toggle';
 import { useState, useCallback, memo } from 'react';
@@ -23,7 +23,7 @@ import { useState, useCallback, memo } from 'react';
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdmin } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Check if the current path matches the given path
@@ -62,6 +62,18 @@ function Header() {
     },
     [navigate]
   );
+
+  const handleAddInspiration = useCallback(() => {
+    console.log('/add-inspiration');
+  }, [navigate]);
+
+  const handleAddProgram = useCallback(() => {
+    console.log('/add-program');
+  }, [navigate]);
+
+  const handleAddProduct = useCallback(() => {
+    console.log('/add-product');
+  }, [navigate]);
 
   // Memoized mobile menu component
   const MobileMenu = useCallback(
@@ -251,6 +263,31 @@ function Header() {
     [user, isAccountPage, navigateTo, handleSignIn, handleSignOut, handleSignUp]
   );
 
+  // Memoized admin buttons
+  const AdminButtons = useCallback(
+    () => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild className="cursor-pointer">
+          <Button size="sm" variant="outline" className="cursor-pointer">
+            <Plus className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={handleAddInspiration} className="cursor-pointer">
+            Inspiration
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleAddProgram} className="cursor-pointer">
+            Program
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleAddProduct} className="cursor-pointer">
+            Product
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+    [handleAddInspiration, handleAddProgram, handleAddProduct]
+  );
+
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 sm:h-16 items-center justify-between mx-auto px-4">
@@ -279,6 +316,7 @@ function Header() {
         {/* Right section - Auth Buttons */}
         <div className="hidden md:flex items-center gap-2">
           <AuthButtons />
+          {isAdmin && <AdminButtons />}
         </div>
       </div>
     </header>

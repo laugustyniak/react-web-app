@@ -1,6 +1,9 @@
 import { memo, useState, useCallback } from 'react';
 import { Card, CardContent, CardFooter } from './ui/card';
 import BuyItButton from './BuyItButton';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from './ui/button';
+import { Pencil, Trash2 } from 'lucide-react';
 
 interface ProductCardProps {
   productId: string;
@@ -9,6 +12,8 @@ interface ProductCardProps {
   description?: string;
   imageUrl?: string;
   affiliateLink?: string;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 function ProductCard({
@@ -18,12 +23,23 @@ function ProductCard({
   description,
   imageUrl,
   affiliateLink,
+  onEdit,
+  onDelete,
 }: ProductCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const { isAdmin } = useAuth();
 
   const handleImageLoad = useCallback(() => {
     setImageLoaded(true);
   }, []);
+
+  const handleEdit = useCallback(() => {
+    onEdit?.(productId);
+  }, [onEdit, productId]);
+
+  const handleDelete = useCallback(() => {
+    onDelete?.(productId);
+  }, [onDelete, productId]);
 
   return (
     <Card className="h-full overflow-hidden flex flex-col transition-all duration-200 hover:shadow-md">
@@ -58,9 +74,24 @@ function ProductCard({
       <CardContent className="px-4 mt-0">
         <p className=" text-gray-500 line-clamp-2">{description}</p>
       </CardContent>
-      <CardFooter className="p-3 pt-0 mt-auto">
+      <CardFooter className="p-3 pt-0 mt-auto flex justify-between">
         {affiliateLink && (
           <BuyItButton affiliateLink={affiliateLink} productId={productId} productTitle={title} />
+        )}
+        {isAdmin && (
+          <div className="flex space-x-2 ml-2">
+            <Button size="sm" variant="outline" onClick={handleEdit} className="cursor-pointer">
+              <Pencil className="h-4 w-4" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="cursor-pointer text-destructive"
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         )}
       </CardFooter>
     </Card>

@@ -12,13 +12,15 @@ import {
   reauthenticateWithCredential,
   sendPasswordResetEmail,
 } from 'firebase/auth';
-import { analytics, auth, googleProvider } from '../lib/firebase';
+import { analytics, auth, googleProvider, db } from '../lib/firebase';
 import { useNavigate } from 'react-router';
 import { logEvent } from 'firebase/analytics';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  isAdmin: boolean;
   signIn: (email: string, password: string, path?: string) => Promise<void>;
   signUp: (email: string, password: string, path?: string) => Promise<void>;
   signInWithGoogle: (path?: string) => Promise<void>;
@@ -43,13 +45,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isEmailVerified, setIsEmailVerified] = useState<boolean>(false);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(user => {
+    const unsubscribe = auth.onAuthStateChanged(async user => {
       setUser(user);
       setIsEmailVerified(user?.emailVerified ?? false);
+
+      if (user) {
+        try {
+          const userDocRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+            setIsAdmin(userDoc.data()?.isAdmin || false);
+          } else {
+            setIsAdmin(false);
+          }
+        } catch (error) {
+          console.error('Error fetching admin status:', error);
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+
       setLoading(false);
     });
 
@@ -159,6 +181,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const value = {
     user,
     loading,
+    isAdmin,
     signIn,
     signUp,
     signInWithGoogle,

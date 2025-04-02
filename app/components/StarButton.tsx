@@ -82,9 +82,9 @@ function StarButton({ inspirationId, starredBy, starsCount, onStarUpdate }: Star
     <Button
       onClick={toggleStar}
       variant="ghost"
-      size="lg"
+      size="default"
       className={cn(
-        'flex gap-1 items-center text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors',
+        'flex gap-1 items-center text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors cursor-pointer',
         isStarred && 'text-[#e45f56] hover:text-[#e45f56]',
         isLoading && 'opacity-70 cursor-not-allowed'
       )}
