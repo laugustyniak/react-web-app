@@ -19,12 +19,27 @@ import { Menu, Plus, X } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { ThemeToggle } from './ui/theme-toggle';
 import { useState, useCallback, memo } from 'react';
+import {
+  CreateInspirationModal,
+  CreateProgramModal,
+  CreateProductModal,
+  EditProductModal,
+  DeleteConfirmationModal,
+} from './modals';
+import { deleteProduct, updateProduct } from '~/lib/firestoreService';
+import type { Product } from '~/lib/dataTypes';
 
 function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut, isAdmin } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isInspirationModalOpen, setIsInspirationModalOpen] = useState<boolean>(false);
+  const [isProgramModalOpen, setIsProgramModalOpen] = useState<boolean>(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState<boolean>(false);
+  const [isEditProductModalOpen, setIsEditProductModalOpen] = useState<boolean>(false);
+  const [isDeleteProductModalOpen, setIsDeleteProductModalOpen] = useState<boolean>(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   // Check if the current path matches the given path
   const isActive = useCallback(
@@ -64,16 +79,66 @@ function Header() {
   );
 
   const handleAddInspiration = useCallback(() => {
-    console.log('/add-inspiration');
-  }, [navigate]);
+    setIsInspirationModalOpen(true);
+  }, []);
 
   const handleAddProgram = useCallback(() => {
-    console.log('/add-program');
-  }, [navigate]);
+    setIsProgramModalOpen(true);
+  }, []);
 
   const handleAddProduct = useCallback(() => {
-    console.log('/add-product');
-  }, [navigate]);
+    setIsProductModalOpen(true);
+  }, []);
+
+  // Add refresh handlers
+  const handleInspirationAdd = useCallback(() => {
+    setIsInspirationModalOpen(false);
+    // Trigger a custom event that components can listen to
+    window.dispatchEvent(new CustomEvent('refreshInspirations'));
+  }, []);
+
+  const handleProgramAdd = useCallback(() => {
+    setIsProgramModalOpen(false);
+    window.dispatchEvent(new CustomEvent('refreshPrograms'));
+  }, []);
+
+  const handleProductAdd = useCallback(() => {
+    setIsProductModalOpen(false);
+    window.dispatchEvent(new CustomEvent('refreshProducts'));
+  }, []);
+
+  const handleProductEdit = useCallback((product: Product) => {
+    setSelectedProduct(product);
+    setIsEditProductModalOpen(true);
+  }, []);
+
+  const handleProductDelete = useCallback((product: Product) => {
+    setSelectedProduct(product);
+    setIsDeleteProductModalOpen(true);
+  }, []);
+
+  const handleProductDeleteConfirm = useCallback(async () => {
+    if (selectedProduct) {
+      try {
+        await deleteProduct(selectedProduct.id);
+        window.dispatchEvent(new CustomEvent('refreshProducts'));
+        setIsDeleteProductModalOpen(false);
+        setSelectedProduct(null);
+      } catch (error) {
+        console.error('Error deleting product:', error);
+      }
+    }
+  }, [selectedProduct]);
+
+  const handleProductEditSubmit = useCallback(async (id: string, data: Partial<Product>) => {
+    try {
+      await updateProduct(id, data);
+      window.dispatchEvent(new CustomEvent('refreshProducts'));
+      setIsEditProductModalOpen(false);
+    } catch (error) {
+      console.error('Error updating product:', error);
+    }
+  }, []);
 
   // Memoized mobile menu component
   const MobileMenu = useCallback(
@@ -276,11 +341,11 @@ function Header() {
           <DropdownMenuItem onClick={handleAddInspiration} className="cursor-pointer">
             Inspiration
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleAddProgram} className="cursor-pointer">
-            Program
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={handleAddProduct} className="cursor-pointer">
             Product
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleAddProgram} className="cursor-pointer">
+            Program
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -319,6 +384,39 @@ function Header() {
           {isAdmin && <AdminButtons />}
         </div>
       </div>
+
+      {/* Modals */}
+      <CreateInspirationModal
+        open={isInspirationModalOpen}
+        onOpenChange={setIsInspirationModalOpen}
+        onSuccess={handleInspirationAdd}
+      />
+      <CreateProductModal
+        open={isProductModalOpen}
+        onOpenChange={setIsProductModalOpen}
+        onSuccess={handleProductAdd}
+      />
+      <CreateProgramModal
+        open={isProgramModalOpen}
+        onOpenChange={setIsProgramModalOpen}
+        onSuccess={handleProgramAdd}
+      />
+      {selectedProduct && (
+        <>
+          <EditProductModal
+            open={isEditProductModalOpen}
+            onOpenChange={setIsEditProductModalOpen}
+            product={selectedProduct}
+            onEdit={handleProductEditSubmit}
+          />
+          <DeleteConfirmationModal
+            open={isDeleteProductModalOpen}
+            onOpenChange={setIsDeleteProductModalOpen}
+            title={selectedProduct.title}
+            onConfirm={handleProductDeleteConfirm}
+          />
+        </>
+      )}
     </header>
   );
 }

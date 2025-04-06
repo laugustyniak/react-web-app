@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import InspirationCard from './InspirationCard';
-import { getAllInspirations } from '~/lib/firestoreService';
+import { getRandomInspirations } from '~/lib/firestoreService';
 import type { Inspiration } from '~/lib/dataTypes';
 import { PageLayout } from './ui/layout';
 
@@ -9,20 +9,37 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchInspirations = async () => {
-      try {
-        setLoading(true);
-        const data = await getAllInspirations();
-        setInspirations(data);
-      } catch (err) {
-        console.error('Failed to fetch inspirations:', err);
-        setError('Failed to load inspirations. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchInspirations = async () => {
+    try {
+      setLoading(true);
+      const data = await getRandomInspirations(12);
+      setInspirations(data);
+    } catch (err) {
+      console.error('Failed to fetch inspirations:', err);
+      setError('Failed to load inspirations. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    fetchInspirations();
+
+    // Add event listener for refresh events
+    const handleInspirationRefresh = () => fetchInspirations();
+    window.addEventListener('refreshInspirations', handleInspirationRefresh);
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('refreshInspirations', handleInspirationRefresh);
+    };
+  }, []);
+
+  const handleEdit = useCallback(() => {
+    fetchInspirations();
+  }, []);
+
+  const handleDelete = useCallback(() => {
     fetchInspirations();
   }, []);
 
@@ -49,7 +66,12 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {inspirations.map(inspiration => (
-                <InspirationCard key={inspiration.id} inspiration={inspiration} />
+                <InspirationCard
+                  key={inspiration.id}
+                  inspiration={inspiration}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
               ))}
             </div>
           )}

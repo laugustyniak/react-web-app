@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Header from './Header';
 import Footer from './Footer';
 import InspirationCard from './InspirationCard';
@@ -14,27 +14,44 @@ export default function Starred() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchStarredInspirations = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const data = await getStarredInspirations(user.uid);
+      setStarredInspirations(data);
+    } catch (err) {
+      console.error('Failed to fetch starred inspirations:', err);
+      setError('Failed to load starred inspirations. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchStarredInspirations = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const data = await getStarredInspirations(user.uid);
-        setStarredInspirations(data);
-      } catch (err) {
-        console.error('Failed to fetch starred inspirations:', err);
-        setError('Failed to load starred inspirations. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchStarredInspirations();
+
+    // Add event listener for refresh events
+    const handleInspirationRefresh = () => fetchStarredInspirations();
+    window.addEventListener('refreshInspirations', handleInspirationRefresh);
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('refreshInspirations', handleInspirationRefresh);
+    };
   }, [user]);
+
+  const handleEdit = useCallback(() => {
+    fetchStarredInspirations();
+  }, []);
+
+  const handleDelete = useCallback(() => {
+    fetchStarredInspirations();
+  }, []);
 
   return (
     <PageLayout fullHeight={false}>
@@ -64,7 +81,12 @@ export default function Starred() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {starredInspirations.map(inspiration => (
-                <InspirationCard key={inspiration.id} inspiration={inspiration} />
+                <InspirationCard
+                  key={inspiration.id}
+                  inspiration={inspiration}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
               ))}
             </div>
           )}

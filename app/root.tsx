@@ -11,6 +11,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { AnalyticsProvider } from './contexts/AnalyticsContext';
 import React, { lazy, Suspense } from 'react';
 import { cn } from './lib/utils';
+import { Toaster } from 'sonner';
 
 import './app.css';
 
@@ -95,6 +96,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <Footer />
               </Suspense>
             </div>
+            <Toaster richColors position="top-right" />
           </AuthProvider>
         </ThemeProvider>
         <ScrollRestoration />

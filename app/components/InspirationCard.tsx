@@ -4,10 +4,11 @@ import type { Inspiration, Product } from '~/lib/dataTypes';
 import Comments from './Comments';
 import StarButton from './StarButton';
 import { Link } from 'react-router';
-import { getProductsByIds } from '~/lib/firestoreService';
+import { getProductsByIds, updateInspiration, deleteInspiration } from '~/lib/firestoreService';
 import { Button } from './ui/button';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '~/contexts/AuthContext';
+import { EditInspirationModal, DeleteConfirmationModal } from './modals';
 
 interface InspirationCardProps {
   inspiration: Inspiration;
@@ -20,6 +21,8 @@ function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps
   const [localCommentCount, setLocalCommentCount] = useState<number>(inspiration.commentCount || 0);
   const [products, setProducts] = useState<(Product & { id: string })[]>([]);
   const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const { isAdmin } = useAuth();
 
@@ -60,12 +63,25 @@ function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps
   }, []);
 
   const handleEdit = useCallback(() => {
-    onEdit?.(inspiration.id);
-  }, [onEdit, inspiration.id]);
+    setShowEditModal(true);
+  }, []);
 
   const handleDelete = useCallback(() => {
+    setShowDeleteModal(true);
+  }, []);
+
+  const handleEditSubmit = useCallback(
+    async (id: string, data: Partial<Inspiration>) => {
+      await updateInspiration(id, data);
+      onEdit?.(id);
+    },
+    [onEdit]
+  );
+
+  const handleDeleteConfirm = useCallback(async () => {
+    await deleteInspiration(inspiration.id);
     onDelete?.(inspiration.id);
-  }, [onDelete, inspiration.id]);
+  }, [inspiration.id, onDelete]);
 
   // Memoized product item to prevent unnecessary rerenders
   const ProductItem = memo(({ product }: { product: Product & { id: string } }) => (
@@ -94,21 +110,25 @@ function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps
     <>
       <Card className="h-full flex flex-col overflow-hidden w-full pb-4.5 transition-all duration-300 hover:shadow-lg border-gray-200 dark:border-gray-700">
         <CardHeader className="flex flex-row items-center gap-2">
-          <img
-            src={inspiration.logoUrl}
-            alt=""
-            className="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-gray-700"
-            width={36}
-            height={36}
-            loading="lazy"
-          />
+          {inspiration.imageUrl && (
+            <img
+              src={inspiration.imageUrl}
+              alt=""
+              className="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-gray-700"
+              width={36}
+              height={36}
+              loading="lazy"
+            />
+          )}
           <div className="flex-1 min-w-0">
             <Link to={`/inspirations/${inspiration.id}`} className="hover:underline">
               <CardTitle className="text-base sm:text-lg line-clamp-1">
                 {inspiration.title}
               </CardTitle>
             </Link>
-            <p className="text-xs text-gray-500">{formatDate(inspiration.date)}</p>
+            <p className="text-xs text-gray-500">
+              {inspiration.date ? formatDate(inspiration.date) : ''}
+            </p>
           </div>
         </CardHeader>
         <CardContent className="px-6 py-0 flex-1 mt-[-10px]">
@@ -209,6 +229,26 @@ function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps
           showCommentsModal={showCommentsModal}
           setShowCommentsModal={setShowCommentsModal}
           onCommentCountChange={handleCommentCountChange}
+        />
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && (
+        <EditInspirationModal
+          open={showEditModal}
+          onOpenChange={setShowEditModal}
+          inspiration={inspiration}
+          onEdit={handleEditSubmit}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <DeleteConfirmationModal
+          open={showDeleteModal}
+          onOpenChange={setShowDeleteModal}
+          title={inspiration.title}
+          onConfirm={handleDeleteConfirm}
         />
       )}
     </>

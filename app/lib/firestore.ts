@@ -109,21 +109,11 @@ export const getCollection = async <T = DocumentData>(
   hasMore: boolean;
 }> => {
   try {
-    const constraints: QueryConstraint[] = options?.queryConstraints || [];
+    const constraints: QueryConstraint[] = [...(options?.queryConstraints || [])];
 
-    // Add pagination if specified
-    if (options?.pageSize) {
-      constraints.push(limit(options.pageSize));
-
-      // Add ordering if specified or default to 'createdAt'
-      const orderByField = options?.orderByField || 'createdAt';
-      const orderDirection = options?.orderDirection || 'desc';
-      constraints.push(orderBy(orderByField, orderDirection));
-
-      // Add startAfter if we have a last document
-      if (options?.lastDoc) {
-        constraints.push(startAfter(options.lastDoc));
-      }
+    // If we have a lastDoc for pagination, add startAfter
+    if (options?.lastDoc) {
+      constraints.push(startAfter(options.lastDoc));
     }
 
     const q = query(getCollectionRef(collectionName), ...constraints);
@@ -137,7 +127,17 @@ export const getCollection = async <T = DocumentData>(
     const lastDoc =
       querySnapshot.docs.length > 0 ? querySnapshot.docs[querySnapshot.docs.length - 1] : null;
 
-    const hasMore = querySnapshot.docs.length === options?.pageSize;
+    // Determine if there are more documents to fetch
+    // Check if we got the full page size requested
+    const limitConstraint = constraints.find(c => c.type === 'limit');
+    let limitValue = null;
+
+    if (limitConstraint) {
+      // @ts-ignore: Accessing private property
+      limitValue = limitConstraint._limit;
+    }
+
+    const hasMore = limitValue ? querySnapshot.docs.length >= limitValue : false;
 
     return {
       documents,

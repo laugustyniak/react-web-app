@@ -1,15 +1,15 @@
 export interface Inspiration {
   id: string;
   title: string;
-  logoUrl: string;
+  description?: string;
   imageUrl: string;
-  products: string[];
-  stars: number;
-  starredBy: string[];
-  commentIds: string[];
-  commentCount: number;
-  date: string;
-  description: string;
+  products?: string[];
+  programs?: string[];
+  stars?: number;
+  starredBy?: string[];
+  commentIds?: string[];
+  commentCount?: number;
+  date?: string;
 }
 
 export interface Comment {
@@ -23,7 +23,7 @@ export interface Comment {
 }
 
 export interface Product {
-  product_id: string;
+  id: string;
   title: string;
   program: string;
   metadata?: {
@@ -34,7 +34,7 @@ export interface Product {
 }
 
 export interface Program {
-  program_id: string;
+  id: string;
   title: string;
   description: string;
   logo_url?: string;

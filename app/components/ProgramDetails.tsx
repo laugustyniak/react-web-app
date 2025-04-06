@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Button } from './ui/button';
 import ProductCard from './ProductCard';
 import InspirationCard from './InspirationCard';
 import { getProductsByProgramId, getRecentInspirations } from '~/lib/firestoreService';
@@ -24,35 +23,62 @@ export default function ProgramDetails({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchInspirations = async () => {
+    try {
+      setLoading(true);
+      const data = await getRecentInspirations(3);
+      setProgramInspirations(data);
+    } catch (err) {
+      console.error('Failed to fetch inspirations:', err);
+      setError('Failed to load inspirations. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProducts = async (id: string) => {
+    try {
+      const products = await getProductsByProgramId(id);
+      setProgramProducts(products);
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+      setError('Failed to load products. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchInspirations = async () => {
-      try {
-        setLoading(true);
-        const data = await getRecentInspirations(3);
-        setProgramInspirations(data);
-      } catch (err) {
-        console.error('Failed to fetch inspirations:', err);
-        setError('Failed to load inspirations. Please try again later.');
-      } finally {
-        setLoading(false);
+    fetchInspirations();
+
+    // Add event listener for product refresh
+    const handleProductRefresh = () => {
+      if (programId) {
+        fetchProducts(programId);
       }
     };
 
-    fetchInspirations();
+    window.addEventListener('refreshProducts', handleProductRefresh);
+
+    // Cleanup event listener
+    return () => {
+      window.removeEventListener('refreshProducts', handleProductRefresh);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (programId) {
+      fetchProducts(programId);
+    }
   }, [programId]);
 
-  useEffect(() => {
-    const fetchProducts = async (id: string) => {
-      try {
-        const products = await getProductsByProgramId(id);
-        setProgramProducts(products);
-      } catch (err) {
-        console.error('Failed to fetch products:', err);
-        setError('Failed to load products. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const handleProductEdit = useCallback(() => {
+    if (programId) {
+      fetchProducts(programId);
+    }
+  }, [programId]);
+
+  const handleProductDelete = useCallback(() => {
     if (programId) {
       fetchProducts(programId);
     }
@@ -111,14 +137,16 @@ export default function ProgramDetails({
           <TabsContent value="products" className="space-y-4 w-full">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
               {programProducts.map(product => (
-                <div className="w-full" key={product.product_id}>
+                <div className="w-full" key={product.id}>
                   <ProductCard
-                    productId={product.product_id}
+                    id={product.id}
                     title={product.title}
                     programTitle={title}
                     description={product.metadata?.description_in_english}
                     imageUrl={product.image_url}
                     affiliateLink={product.affiliate_link}
+                    onEdit={handleProductEdit}
+                    onDelete={handleProductDelete}
                   />
                 </div>
               ))}

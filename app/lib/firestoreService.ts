@@ -1,6 +1,14 @@
 import type { Inspiration, Comment, Product, Program } from './dataTypes';
-import { getDocument, queryDocuments, getCollection } from './firestore';
+import {
+  getDocument,
+  queryDocuments,
+  getCollection,
+  addDocument,
+  updateDocument,
+  deleteDocument,
+} from './firestore';
 import { orderBy, limit, where } from 'firebase/firestore';
+import { DocumentSnapshot } from 'firebase/firestore';
 
 /**
  * Fetches comments for a specific content ID
@@ -23,13 +31,19 @@ export const getCommentsByContentId = async (contentId: string): Promise<Comment
 /**
  * Fetches all inspirations from Firestore
  */
-export const getAllInspirations = async (limitCount: number = 50): Promise<Inspiration[]> => {
+export const getAllInspirations = async (
+  limitCount: number = 50,
+  lastDoc?: DocumentSnapshot | null
+): Promise<{
+  documents: Inspiration[];
+  lastDoc: DocumentSnapshot | null;
+  hasMore: boolean;
+}> => {
   try {
-    const { documents } = await getCollection<Inspiration>('inspirations', {
+    return await getCollection<Inspiration>('inspirations', {
       queryConstraints: [orderBy('date', 'desc'), limit(limitCount)],
+      lastDoc: lastDoc || undefined,
     });
-
-    return documents;
   } catch (error) {
     console.error('Error fetching inspirations from Firestore:', error);
     throw error;
@@ -130,12 +144,19 @@ export const getStarredInspirations = async (userId: string): Promise<Inspiratio
 /**
  * Fetches all products from Firestore
  */
-export const getAllProducts = async (limitCount: number = 50): Promise<Product[]> => {
+export const getAllProducts = async (
+  limitCount: number = 50,
+  lastDoc?: DocumentSnapshot | null
+): Promise<{
+  documents: Product[];
+  lastDoc: DocumentSnapshot | null;
+  hasMore: boolean;
+}> => {
   try {
-    const { documents } = await getCollection<Product>('products', {
+    return await getCollection<Product>('products', {
       queryConstraints: [orderBy('created_at', 'desc'), limit(limitCount)],
+      lastDoc: lastDoc || undefined,
     });
-    return documents;
   } catch (error) {
     console.error('Error fetching products from Firestore:', error);
     throw error;
@@ -193,12 +214,19 @@ export const getProductById = async (id: string): Promise<Product | null> => {
 /**
  * Fetches all programs from Firestore
  */
-export const getAllPrograms = async (limitCount: number = 50): Promise<Program[]> => {
+export const getAllPrograms = async (
+  limitCount: number = 50,
+  lastDoc?: DocumentSnapshot | null
+): Promise<{
+  documents: Program[];
+  lastDoc: DocumentSnapshot | null;
+  hasMore: boolean;
+}> => {
   try {
-    const { documents } = await getCollection<Program>('programs', {
+    return await getCollection<Program>('programs', {
       queryConstraints: [orderBy('created_at', 'desc'), limit(limitCount)],
+      lastDoc: lastDoc || undefined,
     });
-    return documents;
   } catch (error) {
     console.error('Error fetching programs from Firestore:', error);
     throw error;
@@ -215,5 +243,144 @@ export const getProgramById = async (id: string): Promise<Program | null> => {
   } catch (error) {
     console.error('Error fetching program by ID:', error);
     return null;
+  }
+};
+
+export const insertInspiration = async (inspiration: Omit<Inspiration, 'id'>): Promise<string> => {
+  try {
+    const docRef = await addDocument('inspirations', {
+      ...inspiration,
+      date: new Date().toISOString(),
+      stars: 0,
+      starredBy: [],
+      commentIds: [],
+      commentCount: 0,
+    });
+    return docRef;
+  } catch (error) {
+    console.error('Error inserting inspiration:', error);
+    throw error;
+  }
+};
+
+export const insertProgram = async (program: Omit<Program, 'id'>): Promise<string> => {
+  try {
+    const docRef = await addDocument('programs', {
+      ...program,
+      created_at: new Date().toISOString(),
+    });
+    return docRef;
+  } catch (error) {
+    console.error('Error inserting program:', error);
+    throw error;
+  }
+};
+
+export const insertProduct = async (product: Omit<Product, 'id'>): Promise<string> => {
+  try {
+    const docId = await addDocument('products', {
+      ...product,
+      created_at: new Date().toISOString(),
+    });
+    return docId;
+  } catch (error) {
+    console.error('Error inserting product:', error);
+    throw error;
+  }
+};
+
+export const updateInspiration = async (id: string, data: Partial<Inspiration>): Promise<void> => {
+  try {
+    await updateDocument('inspirations', id, data);
+  } catch (error) {
+    console.error('Error updating inspiration:', error);
+    throw error;
+  }
+};
+
+export const updateProgram = async (id: string, data: Partial<Program>): Promise<void> => {
+  try {
+    await updateDocument('programs', id, data);
+  } catch (error) {
+    console.error('Error updating program:', error);
+    throw error;
+  }
+};
+
+export const updateProduct = async (id: string, data: Partial<Product>): Promise<void> => {
+  try {
+    if (!id) {
+      throw new Error('Product ID is required for update');
+    }
+    await updateDocument('products', id, data);
+  } catch (error) {
+    console.error('Error updating product:', error);
+    throw error;
+  }
+};
+
+export const deleteInspiration = async (id: string): Promise<void> => {
+  try {
+    await deleteDocument('inspirations', id);
+  } catch (error) {
+    console.error('Error deleting inspiration:', error);
+    throw error;
+  }
+};
+
+export const deleteProgram = async (id: string): Promise<void> => {
+  try {
+    if (!id) {
+      throw new Error('Program ID is required for deletion');
+    }
+    console.log('Deleting program:', id);
+    await deleteDocument('programs', id);
+  } catch (error) {
+    console.error('Error deleting program:', error);
+    throw error;
+  }
+};
+
+export const deleteProduct = async (id: string): Promise<void> => {
+  try {
+    if (!id) {
+      throw new Error('Product ID is required for deletion');
+    }
+    await deleteDocument('products', id);
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches random inspirations from Firestore using a more efficient approach
+ */
+export const getRandomInspirations = async (limitCount: number = 12): Promise<Inspiration[]> => {
+  try {
+    // Fetch documents with a random field
+    // First, get the total count
+    const collectionRef = await getCollection<Inspiration>('inspirations', {
+      queryConstraints: [limit(200)], // Set a reasonable max limit
+    });
+
+    const total = collectionRef.documents.length;
+
+    // If we have fewer docs than requested, return them all
+    if (total <= limitCount) {
+      return collectionRef.documents;
+    }
+
+    // Choose random indices without repetition
+    const indices = new Set<number>();
+    while (indices.size < limitCount) {
+      indices.add(Math.floor(Math.random() * total));
+    }
+
+    // Get the selected documents
+    return Array.from(indices).map(i => collectionRef.documents[i]);
+  } catch (error) {
+    console.error('Error fetching random inspirations:', error);
+    throw error;
   }
 };

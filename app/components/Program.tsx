@@ -29,7 +29,7 @@ export default function Program() {
   return (
     <PageLayout fullHeight={false}>
       <ProgramDetails
-        programId={program.program_id}
+        programId={program.id}
         title={program.title}
         description={program.description}
         logoUrl={program.logo_url}

@@ -26,7 +26,7 @@ export default function Product() {
       {product && (
         <div className="flex flex-col gap-4 max-w-xl mx-auto">
           <ProductCard
-            productId={product.product_id}
+            id={product.id}
             title={product.title}
             description={product.metadata?.description_in_english}
             programTitle={product.program}

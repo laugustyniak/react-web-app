@@ -16,7 +16,7 @@ export function ThemeToggle({ className, variant = 'ghost' }: ThemeToggleProps) 
       variant={variant}
       size="icon"
       onClick={toggleTheme}
-      className={cn('rounded-full', className)}
+      className={cn('rounded-full cursor-pointer', className)}
       aria-label="Toggle theme"
       title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
     >
