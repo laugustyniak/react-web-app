@@ -110,9 +110,9 @@ function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps
     <>
       <Card className="h-full flex flex-col overflow-hidden w-full pb-4.5 transition-all duration-300 hover:shadow-lg border-gray-200 dark:border-gray-700">
         <CardHeader className="flex flex-row items-center gap-2">
-          {inspiration.imageUrl && (
+          {(inspiration.logoUrl || inspiration.imageUrl) && (
             <img
-              src={inspiration.imageUrl}
+              src={inspiration.logoUrl || inspiration.imageUrl}
               alt=""
               className="w-9 h-9 rounded-full object-cover border border-gray-200 dark:border-gray-700"
               width={36}
@@ -126,9 +126,12 @@ function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps
                 {inspiration.title}
               </CardTitle>
             </Link>
-            <p className="text-xs text-gray-500">
+            {inspiration.programTitle && (
+              <p className="text-xs text-gray-500">{inspiration.programTitle}</p>
+            )}
+            {/* <p className="text-xs text-gray-500">
               {inspiration.date ? formatDate(inspiration.date) : ''}
-            </p>
+            </p> */}
           </div>
         </CardHeader>
         <CardContent className="px-6 py-0 flex-1 mt-[-10px]">

@@ -5,12 +5,13 @@ import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
 import { Label } from '~/components/ui/label';
-import { insertInspiration } from '~/lib/firestoreService';
+import { insertInspiration, getProgramById } from '~/lib/firestoreService';
 import { toast } from 'sonner';
 import { uploadFile } from '~/lib/fileUploadService';
 import { Loader2 } from 'lucide-react';
-import { MultiCombobox } from '~/components/ui/combobox';
+import { MultiCombobox, SingleCombobox } from '~/components/ui/combobox';
 import { useProducts } from '~/hooks/useProducts';
+import { usePrograms } from '~/hooks/usePrograms';
 
 interface CreateInspirationModalProps {
   open: boolean;
@@ -26,10 +27,13 @@ export function CreateInspirationModal({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [logoUrl, setLogoUrl] = useState('');
+  const [programTitle, setProgramTitle] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [selectedProgram, setSelectedProgram] = useState('');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { programs, loading: loadingPrograms } = usePrograms();
   const { products, loading } = useProducts();
 
   // Reset form when modal opens
@@ -38,10 +42,35 @@ export function CreateInspirationModal({
       setTitle('');
       setDescription('');
       setLogoUrl('');
+      setProgramTitle('');
       setImageUrl('');
+      setSelectedProgram('');
       setSelectedProducts([]);
     }
   }, [open]);
+
+  // Fetch program logo when program is selected
+  useEffect(() => {
+    async function fetchProgramLogo() {
+      if (selectedProgram) {
+        try {
+          const program = await getProgramById(selectedProgram);
+          if (program) {
+            if (program.logo_url) {
+              setLogoUrl(program.logo_url);
+            }
+            if (program.title) {
+              setProgramTitle(program.title);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching program logo:', error);
+        }
+      }
+    }
+
+    fetchProgramLogo();
+  }, [selectedProgram]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,8 +79,10 @@ export function CreateInspirationModal({
         title,
         description,
         imageUrl,
+        logoUrl,
+        program: selectedProgram,
+        programTitle,
         products: selectedProducts,
-        programs: [],
         stars: 0,
         starredBy: [],
         commentIds: [],
@@ -93,6 +124,11 @@ export function CreateInspirationModal({
     label: product.title || product.id,
   }));
 
+  const programOptions = programs.map(program => ({
+    value: program.id,
+    label: program.title || program.id,
+  }));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -116,6 +152,16 @@ export function CreateInspirationModal({
               value={description}
               onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
               className="w-full p-2 border rounded-md"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="program">Program</Label>
+            <SingleCombobox
+              options={programOptions}
+              value={selectedProgram}
+              onChange={setSelectedProgram}
+              placeholder={loadingPrograms ? 'Loading programs...' : 'Select or enter a program...'}
+              disabled={loadingPrograms}
             />
           </div>
           <div className="space-y-2">

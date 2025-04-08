@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { FormEvent, ChangeEvent } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog';
 import { Button } from '~/components/ui/button';
@@ -8,8 +8,10 @@ import { toast } from 'sonner';
 import type { Inspiration } from '~/lib/dataTypes';
 import { uploadFile } from '~/lib/fileUploadService';
 import { Loader2 } from 'lucide-react';
-import { MultiCombobox } from '~/components/ui/combobox';
+import { MultiCombobox, SingleCombobox } from '~/components/ui/combobox';
 import { useProducts } from '~/hooks/useProducts';
+import { usePrograms } from '~/hooks/usePrograms';
+import { getProgramById } from '~/lib/firestoreService';
 
 interface EditInspirationModalProps {
   open: boolean;
@@ -27,10 +29,36 @@ export function EditInspirationModal({
   const [title, setTitle] = useState(inspiration.title);
   const [description, setDescription] = useState(inspiration.description || '');
   const [imageUrl, setImageUrl] = useState(inspiration.imageUrl);
+  const [logoUrl, setLogoUrl] = useState(inspiration.logoUrl || '');
+  const [programTitle, setProgramTitle] = useState(inspiration.programTitle || '');
+  const [selectedProgram, setSelectedProgram] = useState(inspiration.program || '');
   const [selectedProducts, setSelectedProducts] = useState<string[]>(inspiration.products || []);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { programs, loading: loadingPrograms } = usePrograms();
   const { products, loading } = useProducts();
+
+  useEffect(() => {
+    async function fetchProgramLogo() {
+      if (selectedProgram) {
+        try {
+          const program = await getProgramById(selectedProgram);
+          if (program) {
+            if (program.logo_url) {
+              setLogoUrl(program.logo_url);
+            }
+            if (program.title) {
+              setProgramTitle(program.title);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching program logo:', error);
+        }
+      }
+    }
+
+    fetchProgramLogo();
+  }, [selectedProgram]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,6 +67,9 @@ export function EditInspirationModal({
         title,
         description,
         imageUrl,
+        logoUrl,
+        programTitle,
+        program: selectedProgram,
         products: selectedProducts,
       });
       toast.success('Inspiration updated successfully');
@@ -75,6 +106,11 @@ export function EditInspirationModal({
     label: product.title || product.id,
   }));
 
+  const programOptions = programs.map(program => ({
+    value: program.id,
+    label: program.title || program.id,
+  }));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -98,6 +134,16 @@ export function EditInspirationModal({
               value={description}
               onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
               className="w-full p-2 border rounded-md"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="program">Program</Label>
+            <SingleCombobox
+              options={programOptions}
+              value={selectedProgram}
+              onChange={setSelectedProgram}
+              placeholder={loadingPrograms ? 'Loading programs...' : 'Select or enter a program...'}
+              disabled={loadingPrograms}
             />
           </div>
           <div className="space-y-2">

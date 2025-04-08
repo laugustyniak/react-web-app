@@ -2,9 +2,11 @@ export interface Inspiration {
   id: string;
   title: string;
   description?: string;
+  logoUrl?: string;
   imageUrl: string;
+  program?: string;
+  programTitle?: string;
   products?: string[];
-  programs?: string[];
   stars?: number;
   starredBy?: string[];
   commentIds?: string[];
