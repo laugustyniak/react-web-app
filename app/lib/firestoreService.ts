@@ -186,11 +186,37 @@ export const getProductsByIds = async (
 export const getProductsByProgramId = async (programId: string): Promise<Product[]> => {
   try {
     const { documents } = await getCollection<Product>('products', {
-      queryConstraints: [orderBy('created_at', 'desc'), where('program', '==', programId)],
+      queryConstraints: [where('program', '==', programId)],
     });
     return documents;
   } catch (error) {
     console.error('Error fetching products by program ID:', error);
+    return [];
+  }
+};
+
+export const getInspirationsByProgramId = async (programId: string): Promise<Inspiration[]> => {
+  try {
+    const { documents } = await getCollection<Inspiration>('inspirations', {
+      queryConstraints: [where('program', '==', programId)],
+    });
+
+    // Process each inspiration to ensure proper formatting
+    return documents.map(inspiration => {
+      // Handle the case where the field might still be called 'likes' in the database
+      if (!inspiration.stars && 'likes' in inspiration) {
+        inspiration.stars = inspiration.likes as number;
+      }
+
+      // Ensure starredBy exists
+      if (!inspiration.starredBy) {
+        inspiration.starredBy = [];
+      }
+
+      return inspiration;
+    });
+  } catch (error) {
+    console.error('Error fetching inspirations by program ID:', error);
     return [];
   }
 };

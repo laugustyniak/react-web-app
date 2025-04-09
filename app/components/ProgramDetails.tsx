@@ -2,7 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import ProductCard from './ProductCard';
 import InspirationCard from './InspirationCard';
-import { getProductsByProgramId, getRecentInspirations } from '~/lib/firestoreService';
+import {
+  getProductsByProgramId,
+  getRecentInspirations,
+  getInspirationsByProgramId,
+} from '~/lib/firestoreService';
 import type { Inspiration, Product } from '~/lib/dataTypes';
 
 interface ProgramDetailProps {
@@ -23,10 +27,10 @@ export default function ProgramDetails({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchInspirations = async () => {
+  const fetchInspirations = async (id: string) => {
     try {
       setLoading(true);
-      const data = await getRecentInspirations(3);
+      const data = await getInspirationsByProgramId(id);
       setProgramInspirations(data);
     } catch (err) {
       console.error('Failed to fetch inspirations:', err);
@@ -49,11 +53,10 @@ export default function ProgramDetails({
   };
 
   useEffect(() => {
-    fetchInspirations();
-
     // Add event listener for product refresh
     const handleProductRefresh = () => {
       if (programId) {
+        fetchInspirations(programId);
         fetchProducts(programId);
       }
     };
@@ -68,18 +71,21 @@ export default function ProgramDetails({
 
   useEffect(() => {
     if (programId) {
+      fetchInspirations(programId);
       fetchProducts(programId);
     }
   }, [programId]);
 
   const handleProductEdit = useCallback(() => {
     if (programId) {
+      fetchInspirations(programId);
       fetchProducts(programId);
     }
   }, [programId]);
 
   const handleProductDelete = useCallback(() => {
     if (programId) {
+      fetchInspirations(programId);
       fetchProducts(programId);
     }
   }, [programId]);
