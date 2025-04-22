@@ -3,7 +3,7 @@ import { PageLayout, ContentCard } from './ui/layout';
 import ProtectedRoute from './ProtectedRoute';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Upload, Move, Maximize, Minimize, Crop, Save, Trash, RotateCw, AlertTriangle, XCircle, Download, Upload as UploadIcon } from 'lucide-react';
+import { Upload, Move, Maximize, Minimize, Crop, Save, Trash, RotateCw, AlertTriangle, XCircle, Download, Upload as UploadIcon, Wand2 } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { useAuth } from '~/contexts/AuthContext';
 import { Navigate } from 'react-router';
@@ -27,6 +27,7 @@ export default function Canvas() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   
   const canvasRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -345,6 +346,51 @@ export default function Canvas() {
     }
   };
   
+  // Function to generate inspiration based on canvas
+  const generateInspiration = async () => {
+    if (!canvasRef.current || images.length === 0) return;
+    
+    try {
+      setIsGenerating(true);
+      
+      // Remove selection highlighting temporarily for clean export
+      const selectedImage = images.find(img => img.selected);
+      let tempImages = [...images];
+      
+      if (selectedImage) {
+        tempImages = images.map(img => ({ ...img, selected: false }));
+        setImages(tempImages);
+      }
+      
+      // Small delay to ensure DOM updates
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const canvas = await html2canvas(canvasRef.current, {
+        backgroundColor: null, // transparent background
+        scale: 2, // higher quality
+      });
+      
+      // Get canvas data
+      const canvasData = canvas.toDataURL('image/png');
+      
+      // Here you would typically send this data to your backend API
+      // For now, we'll just simulate a delay and show an alert
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      alert('Inspiration generated! In a real implementation, this would call your backend API to process the image and generate inspiration.');
+      
+      // Restore selection if there was one
+      if (selectedImage) {
+        setImages(images);
+      }
+    } catch (error) {
+      console.error('Failed to generate inspiration:', error);
+      alert('Failed to generate inspiration. Please try again.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+  
   return (
     <ProtectedRoute>
       <PageLayout>
@@ -414,7 +460,7 @@ export default function Canvas() {
               className="flex items-center gap-2"
             >
               <Trash size={16} />
-              Delete
+              Delete Image from Canvas
             </Button>
             
             <div className="ml-auto flex gap-2">
@@ -529,12 +575,22 @@ export default function Canvas() {
             </div>
           )}
           
-          <div className="mt-4">
-            <p className="text-sm text-gray-500">
+          <div className="mt-4 flex flex-col items-center">
+            <p className="text-sm text-gray-500 mb-4 text-center">
               Tip: Select an image and use the tools above to manipulate it. You can upload multiple images to create a collage.
               It's important to maintain the real sizes of products. The background will be automatically removed, and a new
               inspiration will be generated from your arrangement.
             </p>
+            <Button
+              variant="default"
+              size="lg"
+              onClick={generateInspiration}
+              disabled={images.length === 0 || isGenerating}
+              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
+            >
+              <Wand2 size={18} />
+              {isGenerating ? "Generating..." : "Generate Inspiration"}
+            </Button>
           </div>
         </div>
       </PageLayout>

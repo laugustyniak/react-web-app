@@ -189,17 +189,41 @@ function Header() {
               Starred
             </Button>
             {isAdmin && (
-              <Button
-                variant="ghost"
-                className={cn(
-                  'justify-start px-2 py-6 text-base',
-                  isActive('/generate-inspiration') ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-l-4 border-amber-400',
-                )}
-                onClick={() => navigateTo('/generate-inspiration')}
-              >
-                ✨ Generate Inspiration
-                <span className="ml-2 text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 rounded px-1">Internal</span>
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    'justify-start px-2 py-6 text-base',
+                    isActive('/generate-inspiration') ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-l-4 border-amber-400',
+                  )}
+                  onClick={() => navigateTo('/generate-inspiration')}
+                >
+                  ✨ Generate Inspiration
+                  <span className="ml-2 text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 rounded px-1">Internal</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    'justify-start px-2 py-6 text-base',
+                    isActive('/video-frame-extraction') ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-l-4 border-amber-400',
+                  )}
+                  onClick={() => navigateTo('/video-frame-extraction')}
+                >
+                  🎬 Extract Frames
+                  <span className="ml-2 text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 rounded px-1">Internal</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    'justify-start px-2 py-6 text-base',
+                    isActive('/product-extraction') ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-l-4 border-amber-400',
+                  )}
+                  onClick={() => navigateTo('/product-extraction')}
+                >
+                  🎥 Products
+                  <span className="ml-2 text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 rounded px-1">Internal</span>
+                </Button>
+              </>
             )}
             {user ? (
               <>
@@ -290,18 +314,44 @@ function Header() {
             </NavigationMenuLink>
           </NavigationMenuItem>
           {isAdmin && (
-            <NavigationMenuItem>
-              <NavigationMenuLink
-                className={cn(
-                  "relative flex cursor-default select-none items-center rounded-sm px-3 py-1.5 text-sm font-medium outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-                  isActive('/generate-inspiration') ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-b-2 border-amber-400',
-                )}
-                onClick={() => navigateTo('/generate-inspiration')}
-              >
-                ✨ Generate Inspiration
-                <span className="ml-2 text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 rounded px-1">Internal</span>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+            <>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  className={cn(
+                    "relative flex cursor-default select-none items-center rounded-sm px-3 py-1.5 text-sm font-medium outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+                    isActive('/generate-inspiration') ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-b-2 border-amber-400',
+                  )}
+                  onClick={() => navigateTo('/generate-inspiration')}
+                >
+                  ✨ Generate Inspiration
+                  <span className="ml-2 text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 rounded px-1">Internal</span>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  className={cn(
+                    "relative flex cursor-default select-none items-center rounded-sm px-3 py-1.5 text-sm font-medium outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+                    isActive('/video-frame-extraction') ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-b-2 border-amber-400',
+                  )}
+                  onClick={() => navigateTo('/video-frame-extraction')}
+                >
+                  🎬 Extract Frames
+                  <span className="ml-2 text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 rounded px-1">Internal</span>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuLink
+                  className={cn(
+                    "relative flex cursor-default select-none items-center rounded-sm px-3 py-1.5 text-sm font-medium outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+                    isActive('/product-extraction') ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-b-2 border-amber-400',
+                  )}
+                  onClick={() => navigateTo('/product-extraction')}
+                >
+                  🎥 Products
+                  <span className="ml-2 text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 rounded px-1">Internal</span>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            </>
           )}
         </NavigationMenuList>
       </NavigationMenu>

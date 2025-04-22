@@ -8,6 +8,8 @@ export default [
   route('products/:id', './routes/Product.tsx'),
   route('starred', './routes/Starred.tsx'),
   route('generate-inspiration', './routes/Canvas.tsx'),
+  route('video-frame-extraction', './routes/VideoFrameExtraction.tsx'),
+  route('product-extraction', './routes/ProductExtraction.tsx'),
   route('account', './routes/AccountRedirect.tsx'),
   route('account/edit-profile', './routes/EditProfile.tsx'),
   route('account/change-password', './routes/ChangePassword.tsx'),
