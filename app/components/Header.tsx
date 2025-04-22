@@ -188,6 +188,19 @@ function Header() {
             >
               Starred
             </Button>
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                className={cn(
+                  'justify-start px-2 py-6 text-base',
+                  isActive('/generate-inspiration') ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-l-4 border-amber-400',
+                )}
+                onClick={() => navigateTo('/generate-inspiration')}
+              >
+                ✨ Generate Inspiration
+                <span className="ml-2 text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 rounded px-1">Internal</span>
+              </Button>
+            )}
             {user ? (
               <>
                 <div className="border-t my-2 pt-2">
@@ -246,7 +259,7 @@ function Header() {
         </SheetContent>
       </Sheet>
     ),
-    [isMenuOpen, navigateTo, isActive, user, handleSignIn, handleSignOut, handleSignUp]
+    [isMenuOpen, navigateTo, isActive, user, handleSignIn, handleSignOut, handleSignUp, isAdmin]
   );
 
   // Memoized desktop menu items
@@ -276,10 +289,24 @@ function Header() {
               Starred
             </NavigationMenuLink>
           </NavigationMenuItem>
+          {isAdmin && (
+            <NavigationMenuItem>
+              <NavigationMenuLink
+                className={cn(
+                  "relative flex cursor-default select-none items-center rounded-sm px-3 py-1.5 text-sm font-medium outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+                  isActive('/generate-inspiration') ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300' : 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-b-2 border-amber-400',
+                )}
+                onClick={() => navigateTo('/generate-inspiration')}
+              >
+                ✨ Generate Inspiration
+                <span className="ml-2 text-xs bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 rounded px-1">Internal</span>
+              </NavigationMenuLink>
+            </NavigationMenuItem>
+          )}
         </NavigationMenuList>
       </NavigationMenu>
     ),
-    [isActive, navigateTo]
+    [isActive, navigateTo, user, isAdmin]
   );
 
   // Memoized auth buttons

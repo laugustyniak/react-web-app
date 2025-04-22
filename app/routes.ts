@@ -7,6 +7,7 @@ export default [
   route('programs/:id', './routes/Program.tsx'),
   route('products/:id', './routes/Product.tsx'),
   route('starred', './routes/Starred.tsx'),
+  route('generate-inspiration', './routes/Canvas.tsx'),
   route('account', './routes/AccountRedirect.tsx'),
   route('account/edit-profile', './routes/EditProfile.tsx'),
   route('account/change-password', './routes/ChangePassword.tsx'),

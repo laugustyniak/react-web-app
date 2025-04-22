@@ -77,7 +77,7 @@ function ProductCard({
               <img
                 src={imageUrl}
                 alt={title}
-                className={`w-full h-full object-cover ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                className={`w-full h-full ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                 loading="lazy"
                 onLoad={handleImageLoad}
               />
