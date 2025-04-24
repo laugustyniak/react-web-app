@@ -11,6 +11,8 @@ import html2canvas from 'html2canvas';
 import ProductCard from './ProductCard';
 import { getAllProducts } from '~/lib/firestoreService';
 import type { Product } from '~/lib/dataTypes';
+import InspirationResultModal from './modals/InspirationResultModal';
+import { toast } from 'sonner';
 
 interface CanvasImage {
   id: string;
@@ -31,6 +33,8 @@ export default function Canvas() {
   const [dragStartPos, setDragStartPos] = useState({ x: 0, y: 0 });
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showResultModal, setShowResultModal] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   
   // Product search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -348,6 +352,7 @@ export default function Canvas() {
   const handleClearCanvas = () => {
     if (window.confirm('Are you sure you want to clear the canvas? All images will be removed.')) {
       setImages([]);
+      toast.success('Canvas cleared successfully');
     }
   };
   
@@ -383,9 +388,11 @@ export default function Canvas() {
       if (selectedImage) {
         setImages(images);
       }
+      
+      toast.success('Canvas exported as image successfully');
     } catch (error) {
       console.error('Failed to export canvas as image:', error);
-      alert('Failed to export canvas as image. Please try again.');
+      toast.error('Failed to export canvas as image. Please try again.');
     }
   };
   
@@ -403,9 +410,10 @@ export default function Canvas() {
       
       // Clean up
       URL.revokeObjectURL(url);
+      toast.success('Canvas state exported successfully');
     } catch (error) {
       console.error('Failed to export canvas state:', error);
-      alert('Failed to export canvas state. Please try again.');
+      toast.error('Failed to export canvas state. Please try again.');
     }
   };
   
@@ -416,7 +424,7 @@ export default function Canvas() {
     
     const file = files[0];
     if (file.type !== 'application/json') {
-      alert('Please select a valid JSON file.');
+      toast.error('Please select a valid JSON file.');
       return;
     }
     
@@ -432,9 +440,10 @@ export default function Canvas() {
         }
         
         setImages(parsedImages);
+        toast.success('Canvas state imported successfully');
       } catch (error) {
         console.error('Failed to import canvas state:', error);
-        alert('Failed to import canvas state. File format is invalid.');
+        toast.error('Failed to import canvas state. File format is invalid.');
       }
     };
     
@@ -448,10 +457,18 @@ export default function Canvas() {
   
   // Function to generate inspiration based on canvas
   const generateInspiration = async () => {
-    if (!canvasRef.current || images.length === 0) return;
+    if (!canvasRef.current || images.length === 0) {
+      toast.error('Please add at least one image to the canvas');
+      return;
+    }
     
     try {
       setIsGenerating(true);
+      setGeneratedImage(null);
+      
+      toast.loading('Generating inspiration...', {
+        id: 'generate-inspiration',
+      });
       
       // Remove selection highlighting temporarily for clean export
       const selectedImage = images.find(img => img.selected);
@@ -465,27 +482,82 @@ export default function Canvas() {
       // Small delay to ensure DOM updates
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      const canvas = await html2canvas(canvasRef.current, {
+      // Create two canvases - one for the image and one for the mask
+      const imageCanvas = await html2canvas(canvasRef.current, {
         backgroundColor: null, // transparent background
         scale: 2, // higher quality
       });
       
-      // Get canvas data
-      const canvasData = canvas.toDataURL('image/png');
+      // Create mask canvas - white background with black shapes for the images
+      const maskCanvas = document.createElement('canvas');
+      maskCanvas.width = imageCanvas.width;
+      maskCanvas.height = imageCanvas.height;
+      const maskCtx = maskCanvas.getContext('2d');
       
-      // Here you would typically send this data to your backend API
-      // For now, we'll just simulate a delay and show an alert
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      if (maskCtx) {
+        // Fill with white background
+        maskCtx.fillStyle = 'white';
+        maskCtx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+        
+        // Draw black rectangles for each image
+        maskCtx.fillStyle = 'black';
+        images.forEach(img => {
+          const scale = 2; // Match the html2canvas scale
+          maskCtx.save();
+          maskCtx.translate(img.x * scale, img.y * scale);
+          maskCtx.rotate((img.rotation * Math.PI) / 180);
+          maskCtx.fillRect(
+            -(img.width * scale) / 2,
+            -(img.height * scale) / 2,
+            img.width * scale,
+            img.height * scale
+          );
+          maskCtx.restore();
+        });
+      }
+
+      // Define prompts based on the Python implementation
+      const prompt = "Create a sophisticated home decor lifestyle photo featuring elegant furniture and decorative items in a bright, airy living space. Show products in a realistic, high-end home setting with soft natural sunlight streaming through large windows. Include tasteful styling with neutral color palette, layered textures, and organic materials. Capture the products from an editorial perspective with professional composition and depth of field";
+      const negativePrompt = "text, watermarks, logos, poor quality, blurry, artificial lighting, cluttered space, oversaturated colors, distorted proportions, unrealistic shadows, cartoon style, illustration, digital art style";
       
-      alert('Inspiration generated! In a real implementation, this would call your backend API to process the image and generate inspiration.');
+      // Send the canvas data to the inpainting API
+      const response = await fetch('/api/inpaint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          base64_image: imageCanvas.toDataURL('image/png').split(',')[1], // Remove data:image/png;base64, prefix
+          base64_mask: maskCanvas.toDataURL('image/png').split(',')[1],
+          prompt,
+          negative_prompt: negativePrompt,
+          internal_model: false,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}: ${await response.text()}`);
+      }
+
+      const result = await response.json();
+      
+      // The API returns a base64 encoded image
+      setGeneratedImage(result.image);
+      setShowResultModal(true);
       
       // Restore selection if there was one
       if (selectedImage) {
         setImages(images);
       }
+      
+      toast.success('Inspiration generated successfully', {
+        id: 'generate-inspiration',
+      });
     } catch (error) {
       console.error('Failed to generate inspiration:', error);
-      alert('Failed to generate inspiration. Please try again.');
+      toast.error(`Failed to generate inspiration: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+        id: 'generate-inspiration',
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -871,6 +943,13 @@ export default function Canvas() {
             </Button>
           </div>
         </div>
+        
+        <InspirationResultModal
+          isOpen={showResultModal}
+          onClose={() => setShowResultModal(false)}
+          imageData={generatedImage}
+        />
+        
       </PageLayout>
     </ProtectedRoute>
   );
