@@ -1,5 +1,4 @@
 import Canvas from '~/components/Canvas/index';
-import { useLoaderData } from 'react-router';
 
 namespace Route {
   export type MetaArgs = Record<string, unknown>;
