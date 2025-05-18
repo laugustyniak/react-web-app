@@ -2,7 +2,7 @@ import html2canvas from 'html2canvas';
 
 /**
  * Creates a temporary container and returns an image of the element
- * while handling incompatible oklch colors.
+ * while preserving CSS styles including oklch colors.
  */
 export async function captureElementAsImage(
     element: HTMLElement
@@ -19,33 +19,44 @@ export async function captureElementAsImage(
     tempContainer.appendChild(clone);
 
     try {
-        // Add stylesheet to override problematic colors
+        // Get all stylesheets from the document
+        const styles = Array.from(document.styleSheets);
         const styleSheet = document.createElement('style');
-        styleSheet.textContent = `
-      [style*="oklch"] { color: #000000 !important; background-color: #ffffff !important; }
-      .dark [style*="oklch"] { color: #ffffff !important; background-color: #000000 !important; }
-    `;
+
+        // Extract and apply all CSS rules to ensure styles are properly captured
+        let cssRules = '';
+        styles.forEach(sheet => {
+            try {
+                // Only process same-origin stylesheets
+                if (sheet.href === null || sheet.href.startsWith(window.location.origin)) {
+                    Array.from(sheet.cssRules).forEach(rule => {
+                        cssRules += rule.cssText + '\n';
+                    });
+                }
+            } catch (e) {
+                // Skip cross-origin stylesheets that can't be accessed
+                console.log('Could not access stylesheet', e);
+            }
+        });
+
+        styleSheet.textContent = cssRules;
         document.head.appendChild(styleSheet);
 
-        // Replace all oklch colors in the clone
-        replaceColorFormats(clone);
-
-        // Use html2canvas with additional handling for oklch
+        // Use html2canvas with proper settings
         const canvas = await html2canvas(clone, {
             backgroundColor: null,
             scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            imageTimeout: 0,
             onclone: (doc) => {
-                const additionalStyle = doc.createElement('style');
-                additionalStyle.textContent = `
-          * {
-            color-scheme: light !important;
-          }
-          [style*="oklch"] { 
-            color: #000000 !important; 
-            background-color: #ffffff !important;
-          }
-        `;
-                doc.head.appendChild(additionalStyle);
+                // Copy over class attributes to maintain styling
+                const sourceElement = doc.querySelector('.dark');
+                if (sourceElement) {
+                    // If the document has a 'dark' class somewhere, copy it to the cloned document
+                    doc.documentElement.classList.add('dark');
+                }
             },
         });
 
@@ -58,16 +69,16 @@ export async function captureElementAsImage(
         document.body.removeChild(tempContainer);
         // Find and remove the style element we added
         const styleElements = document.head.querySelectorAll('style');
-        styleElements.forEach(el => {
-            if (el.textContent?.includes('oklch')) {
-                document.head.removeChild(el);
-            }
+        Array.from(styleElements).slice(-1).forEach(el => {
+            document.head.removeChild(el);
         });
     }
 }
 
 /**
  * Recursively replaces all oklch colors in style attributes
+ * Note: This function is kept for reference but is no longer used
+ * in the updated captureElementAsImage implementation
  */
 function replaceColorFormats(element: HTMLElement) {
     if (element instanceof HTMLElement) {

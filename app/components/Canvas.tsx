@@ -303,11 +303,14 @@ export default function Canvas() {
       // Use our captureElementAsImage utility that handles oklch colors properly
       const imageData = await captureElementAsImage(canvasRef.current);
       
-      // Create download link
+      // Create and trigger download (without opening in a new tab)
       const link = document.createElement('a');
       link.download = `canvas-export-${new Date().toISOString().slice(0, 10)}.png`;
       link.href = imageData || '';
+      link.style.display = 'none';
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
       
       // Restore selection if there was one
       if (selectedImage) {
@@ -387,94 +390,8 @@ export default function Canvas() {
   };
   
   // Function to generate inspiration based on canvas
-  // Utility function to recursively replace oklch colors in style attributes with rgb fallback
-  function replaceOklchColors(element: HTMLElement) {
-    const style = element.getAttribute('style');
-    if (style && style.includes('oklch')) {
-      // Replace all oklch(...) with #cccccc (or any fallback color you prefer)
-      const newStyle = style.replace(/oklch\([^)]+\)/g, '#cccccc');
-      element.setAttribute('style', newStyle);
-    }
-    Array.from(element.children).forEach(child => {
-      if (child instanceof HTMLElement) {
-        replaceOklchColors(child);
-      }
-    });
-  }
-
-  // Utility to get a base64 PNG image from the canvas DOM node
-  async function getImageFromCanvas(canvasRef: React.RefObject<HTMLDivElement>): Promise<string | null> {
-    if (!canvasRef.current) return null;
-    
-    // First create a deep clone of the canvas to avoid modifying the original
-    const clonedCanvas = canvasRef.current.cloneNode(true) as HTMLDivElement;
-    
-    // Apply styles to hide oklch colors completely in the clone
-    const tempStyles = document.createElement('style');
-    tempStyles.textContent = `
-      [class*="bg-"], [style*="background"], [style*="color"] {
-        background: #ffffff !important;
-        color: #000000 !important;
-      }
-      .dark [class*="bg-"], .dark [style*="background"], .dark [style*="color"] {
-        background: #1f1f1f !important;
-        color: #ffffff !important;
-      }
-    `;
-    document.head.appendChild(tempStyles);
-    
-    try {
-      // Apply direct style replacements to the cloned nodes
-      replaceAllColorStyles(clonedCanvas);
-      
-      // Render with html2canvas with oklch compatibility option
-      const canvas = await html2canvas(clonedCanvas, {
-        backgroundColor: null,
-        scale: 2,
-        onclone: (clone) => {
-          // Additional cleanup in the cloned document
-          const elements = clone.querySelectorAll('*');
-          elements.forEach(el => {
-            if (el instanceof HTMLElement) {
-              const style = el.getAttribute('style');
-              if (style && style.includes('oklch')) {
-                el.setAttribute('style', style.replace(/oklch\([^)]+\)/g, '#cccccc'));
-              }
-            }
-          });
-        }
-      });
-      return canvas.toDataURL('image/png');
-    } finally {
-      // Clean up
-      document.head.removeChild(tempStyles);
-    }
-  }
-  
-  // Enhanced function to replace all color styles in the cloned DOM
-  function replaceAllColorStyles(element: HTMLElement) {
-    // Process this element
-    if (element instanceof HTMLElement) {
-      // Replace inline styles
-      const style = element.getAttribute('style');
-      if (style) {
-        // Replace any color functions including oklch
-        const cleanedStyle = style.replace(/oklch\([^)]+\)/g, '#cccccc')
-          .replace(/rgb\([^)]+\)/g, '#000000')
-          .replace(/rgba\([^)]+\)/g, '#000000')
-          .replace(/hsl\([^)]+\)/g, '#000000')
-          .replace(/hsla\([^)]+\)/g, '#000000');
-        element.setAttribute('style', cleanedStyle);
-      }
-      
-      // Process all child elements recursively
-      Array.from(element.children).forEach(child => {
-        if (child instanceof HTMLElement) {
-          replaceAllColorStyles(child);
-        }
-      });
-    }
-  }
+  // We no longer need the utility functions for replacing colors as the improved
+  // captureElementAsImage in canvasUtils.ts now handles CSS styles properly
 
   const generateInspiration = async () => {
     if (!canvasRef.current || images.length === 0) {
@@ -502,7 +419,8 @@ export default function Canvas() {
       // Small delay to ensure DOM updates
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Use the captureElementAsImage utility from our lib
+      // Use the captureElementAsImage utility from our lib to get base64 image data
+      // This creates a base64 version without downloading
       const imageData = await captureElementAsImage(canvasRef.current);
       
       if (!imageData) throw new Error('Failed to capture canvas image');
