@@ -8,7 +8,10 @@
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
     "deploy": "gcloud run deploy react-web-app --source . --platform managed --allow-unauthenticated --region us-central1",
-    "shadcn": "shadcn"
+    "shadcn": "shadcn",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.6",
@@ -47,6 +50,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.29.4",
     "@react-router/dev": "^7.2.0",
     "@tailwindcss/vite": "^4.0.0",
     "@types/node": "^20",

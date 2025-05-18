@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import Header from './Header';
-import Footer from './Footer';
 import InspirationCard from './InspirationCard';
 import { getStarredInspirations } from '~/lib/firestoreService';
 import type { Inspiration } from '~/lib/dataTypes';
