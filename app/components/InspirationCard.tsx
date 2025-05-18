@@ -158,7 +158,10 @@ function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps
               height={300}
             />
           </div>
-          <CardDescription className="line-clamp-3 text-sm text-gray-700 dark:text-gray-300">
+          <CardDescription
+            className="text-sm text-gray-700 dark:text-gray-300"
+            title={inspiration.description}
+          >
             {inspiration.description}
           </CardDescription>
           {products.length > 0 && (

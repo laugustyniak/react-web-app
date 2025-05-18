@@ -95,7 +95,7 @@ function ProductCard({
           </div>
         </div>
         <CardContent className="px-4 mt-0">
-          <p className="text-gray-500 line-clamp-2">{description}</p>
+          <p className="text-gray-500">{description}</p>
         </CardContent>
         <CardFooter className="p-3 pt-0 mt-auto flex justify-between">
           {affiliateLink && (
