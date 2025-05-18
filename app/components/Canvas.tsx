@@ -14,6 +14,7 @@ import InspirationResultModal from './modals/InspirationResultModal';
 import { toast } from 'sonner';
 import { usePrograms } from '~/hooks/usePrograms';
 import ProductSearchPanel from './ProductSearchPanel';
+import { captureElementAsImage } from '~/lib/canvasUtils';
 
 interface CanvasImage {
   id: string;
@@ -287,36 +288,32 @@ export default function Canvas() {
   // Function to save canvas as image
   const saveAsImage = async () => {
     if (!canvasRef.current) return;
-
     try {
       // Remove selection highlighting temporarily for clean export
       const selectedImage = images.find(img => img.selected);
       let tempImages = [...images];
-
       if (selectedImage) {
         tempImages = images.map(img => ({ ...img, selected: false }));
         setImages(tempImages);
       }
-
+      
       // Small delay to ensure DOM updates
       await new Promise(resolve => setTimeout(resolve, 100));
-
-      const canvas = await html2canvas(canvasRef.current, {
-        backgroundColor: null, // transparent background
-        scale: 2, // higher quality
-      });
-
+      
+      // Use our captureElementAsImage utility that handles oklch colors properly
+      const imageData = await captureElementAsImage(canvasRef.current);
+      
       // Create download link
       const link = document.createElement('a');
       link.download = `canvas-export-${new Date().toISOString().slice(0, 10)}.png`;
-      link.href = canvas.toDataURL('image/png');
+      link.href = imageData || '';
       link.click();
-
+      
       // Restore selection if there was one
       if (selectedImage) {
         setImages(images);
       }
-
+      
       toast.success('Canvas exported as image successfully');
     } catch (error) {
       if (error instanceof Error) {
@@ -327,8 +324,9 @@ export default function Canvas() {
         toast.error('Failed to export canvas as image. Please try again.');
       }
     }
+    // No need for finally block as cleanup is handled by captureElementAsImage
   };
-  
+
   // Function to export canvas state
   const exportCanvasState = () => {
     try {
@@ -404,6 +402,80 @@ export default function Canvas() {
     });
   }
 
+  // Utility to get a base64 PNG image from the canvas DOM node
+  async function getImageFromCanvas(canvasRef: React.RefObject<HTMLDivElement>): Promise<string | null> {
+    if (!canvasRef.current) return null;
+    
+    // First create a deep clone of the canvas to avoid modifying the original
+    const clonedCanvas = canvasRef.current.cloneNode(true) as HTMLDivElement;
+    
+    // Apply styles to hide oklch colors completely in the clone
+    const tempStyles = document.createElement('style');
+    tempStyles.textContent = `
+      [class*="bg-"], [style*="background"], [style*="color"] {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .dark [class*="bg-"], .dark [style*="background"], .dark [style*="color"] {
+        background: #1f1f1f !important;
+        color: #ffffff !important;
+      }
+    `;
+    document.head.appendChild(tempStyles);
+    
+    try {
+      // Apply direct style replacements to the cloned nodes
+      replaceAllColorStyles(clonedCanvas);
+      
+      // Render with html2canvas with oklch compatibility option
+      const canvas = await html2canvas(clonedCanvas, {
+        backgroundColor: null,
+        scale: 2,
+        onclone: (clone) => {
+          // Additional cleanup in the cloned document
+          const elements = clone.querySelectorAll('*');
+          elements.forEach(el => {
+            if (el instanceof HTMLElement) {
+              const style = el.getAttribute('style');
+              if (style && style.includes('oklch')) {
+                el.setAttribute('style', style.replace(/oklch\([^)]+\)/g, '#cccccc'));
+              }
+            }
+          });
+        }
+      });
+      return canvas.toDataURL('image/png');
+    } finally {
+      // Clean up
+      document.head.removeChild(tempStyles);
+    }
+  }
+  
+  // Enhanced function to replace all color styles in the cloned DOM
+  function replaceAllColorStyles(element: HTMLElement) {
+    // Process this element
+    if (element instanceof HTMLElement) {
+      // Replace inline styles
+      const style = element.getAttribute('style');
+      if (style) {
+        // Replace any color functions including oklch
+        const cleanedStyle = style.replace(/oklch\([^)]+\)/g, '#cccccc')
+          .replace(/rgb\([^)]+\)/g, '#000000')
+          .replace(/rgba\([^)]+\)/g, '#000000')
+          .replace(/hsl\([^)]+\)/g, '#000000')
+          .replace(/hsla\([^)]+\)/g, '#000000');
+        element.setAttribute('style', cleanedStyle);
+      }
+      
+      // Process all child elements recursively
+      Array.from(element.children).forEach(child => {
+        if (child instanceof HTMLElement) {
+          replaceAllColorStyles(child);
+        }
+      });
+    }
+  }
+
   const generateInspiration = async () => {
     if (!canvasRef.current || images.length === 0) {
       toast.error('Please add at least one image to the canvas');
@@ -430,16 +502,10 @@ export default function Canvas() {
       // Small delay to ensure DOM updates
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Replace oklch colors on the actual DOM node before rendering
-      if (canvasRef.current) {
-        replaceOklchColors(canvasRef.current);
-      }
-
-      // Create canvas image only (no mask)
-      const imageCanvas = await html2canvas(canvasRef.current!, {
-        backgroundColor: null, // transparent background
-        scale: 2, // higher quality
-      });
+      // Use the captureElementAsImage utility from our lib
+      const imageData = await captureElementAsImage(canvasRef.current);
+      
+      if (!imageData) throw new Error('Failed to capture canvas image');
 
       // Define prompts based on the Python implementation
       const prompt = "Create a sophisticated home decor lifestyle photo featuring elegant furniture and decorative items in a bright, airy living space. Show products in a realistic, high-end home setting with soft natural sunlight streaming through large windows. Include tasteful styling with neutral color palette, layered textures, and organic materials. Capture the products from an editorial perspective with professional composition and depth of field";
@@ -452,7 +518,7 @@ export default function Canvas() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          base64_image: imageCanvas.toDataURL('image/png').split(',')[1], // Remove data:image/png;base64, prefix
+          base64_image: imageData.split(',')[1], // Remove data:image/png;base64, prefix
           prompt,
           negative_prompt: negativePrompt,
           internal_model: false,
