@@ -16,9 +16,10 @@ interface InspirationCardProps {
   inspiration: Inspiration;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onImageClick?: () => void; // Add this prop
 }
 
-function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps) {
+function InspirationCard({ inspiration, onEdit, onDelete, onImageClick }: InspirationCardProps) {
   const [showCommentsModal, setShowCommentsModal] = useState<boolean>(false);
   const [localCommentCount, setLocalCommentCount] = useState<number>(inspiration.commentCount || 0);
   const [products, setProducts] = useState<(Product & { id: string })[]>([]);
@@ -156,6 +157,8 @@ function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps
               onLoad={handleImageLoad}
               width={400}
               height={300}
+              onClick={onImageClick} // Attach click handler
+              style={{ cursor: onImageClick ? 'pointer' : undefined }}
             />
           </div>
           <CardDescription

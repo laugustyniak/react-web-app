@@ -358,15 +358,12 @@ export default function Explore() {
                   }
                 >
                   {filteredInspirations.map(inspiration => (
-                    <div
-                      className="w-full cursor-pointer"
-                      key={inspiration.id}
-                      onClick={() => setSelectedInspiration(inspiration)}
-                    >
+                    <div className="w-full" key={inspiration.id}>
                       <InspirationCard
                         inspiration={inspiration}
                         onEdit={handleInspirationEdit}
                         onDelete={handleInspirationDelete}
+                        onImageClick={() => setSelectedInspiration(inspiration)} // Only image opens modal
                       />
                     </div>
                   ))}
@@ -402,11 +399,7 @@ export default function Explore() {
                   }
                 >
                   {filteredProducts.map((item, index) => (
-                    <div
-                      className="w-full cursor-pointer"
-                      key={item.id || index}
-                      onClick={() => setSelectedProduct(item)}
-                    >
+                    <div className="w-full" key={item.id || index}>
                       <ProductCard
                         id={item.id}
                         title={item.title}
@@ -416,6 +409,7 @@ export default function Explore() {
                         affiliateLink={item.affiliate_link}
                         onEdit={handleProductEdit}
                         onDelete={handleProductDelete}
+                        onImageClick={() => setSelectedProduct(item)} // Only image opens modal
                       />
                     </div>
                   ))}

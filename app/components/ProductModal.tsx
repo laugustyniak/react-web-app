@@ -4,10 +4,12 @@ import type { Product } from '~/lib/dataTypes';
 interface ProductModalProps {
   product: Product | null;
   onClose: () => void;
+  programs?: any[]; // Accept programs as optional prop
 }
 
-export default function ProductModal({ product, onClose }: ProductModalProps) {
+export default function ProductModal({ product, onClose, programs }: ProductModalProps) {
   if (!product) return null;
+  // You can use the programs prop here if needed for similarity or display
   return (
     <Dialog open={!!product} onOpenChange={open => !open && onClose()}>
       <DialogContent className="flex items-center justify-center p-0 bg-transparent shadow-none max-w-[90vw] max-h-[90vh]">

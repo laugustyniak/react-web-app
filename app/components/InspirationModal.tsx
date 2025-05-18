@@ -4,10 +4,12 @@ import type { Inspiration } from '~/lib/dataTypes';
 interface InspirationModalProps {
   inspiration: Inspiration | null;
   onClose: () => void;
+  programs?: any[]; // Accept programs as optional prop
 }
 
-export default function InspirationModal({ inspiration, onClose }: InspirationModalProps) {
+export default function InspirationModal({ inspiration, onClose, programs }: InspirationModalProps) {
   if (!inspiration) return null;
+  // You can use the programs prop here if needed for similarity or display
   return (
     <Dialog open={!!inspiration} onOpenChange={open => !open && onClose()}>
       <DialogContent className="flex items-center justify-center p-0 bg-transparent shadow-none">
