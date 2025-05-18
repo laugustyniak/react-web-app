@@ -44,6 +44,19 @@ export function useInspirationGeneration(
 
             if (!imageData) throw new Error('Failed to capture canvas image');
 
+            // Validate the base64 string format
+            if (!imageData.startsWith('data:image/png;base64,')) {
+                throw new Error('Invalid image data format');
+            }
+
+            // Extract the base64 data by removing the prefix
+            const base64Data = imageData.split(',')[1];
+
+            // Validate that we have actual base64 data
+            if (!base64Data || base64Data.trim() === '') {
+                throw new Error('Empty image data');
+            }
+
             // Send only the canvas image to the inpainting API
             const response = await fetch('/api/inpaint', {
                 method: 'POST',
@@ -51,7 +64,7 @@ export function useInspirationGeneration(
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    base64_image: imageData.split(',')[1], // Remove data:image/png;base64, prefix
+                    base64_image: base64Data,
                     prompt,
                     negative_prompt: negativePrompt,
                     internal_model: false,
