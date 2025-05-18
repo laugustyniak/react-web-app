@@ -8,7 +8,6 @@ import { cn } from '~/lib/utils';
 import { useAuth } from '~/contexts/AuthContext';
 import { Navigate } from 'react-router';
 import html2canvas from 'html2canvas';
-import ProductCard from './ProductCard';
 import { getAllProducts } from '~/lib/firestoreService';
 import type { Product } from '~/lib/dataTypes';
 import InspirationResultModal from './modals/InspirationResultModal';

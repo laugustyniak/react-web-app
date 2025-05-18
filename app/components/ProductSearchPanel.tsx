@@ -4,6 +4,7 @@ import { Input } from './ui/input';
 import { Search } from 'lucide-react';
 import type { Product } from '~/lib/dataTypes';
 import { ContentCard } from './ui/layout';
+import { programIdToTitle } from '~/lib/programUtils';
 
 interface ProductSearchPanelProps {
   products: Product[];
@@ -24,12 +25,6 @@ export default function ProductSearchPanel({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Helper: Map program id to title
-  const programIdToTitle = (id: string) => {
-    const program = programs.find((p) => p.id === id);
-    return program ? program.title : id;
-  };
-
   // Extract unique program titles from filtered products
   const getUniquePrograms = () => {
     const searchFilteredProducts = searchQuery.trim() === ''
@@ -38,12 +33,12 @@ export default function ProductSearchPanel({
           const query = searchQuery.toLowerCase();
           return (
             product.title.toLowerCase().includes(query) ||
-            programIdToTitle(product.program).toLowerCase().includes(query) ||
+            programIdToTitle(programs, product.program).toLowerCase().includes(query) ||
             (product.metadata?.description_in_english?.toLowerCase().includes(query) || false)
           );
         });
     const uniquePrograms = Array.from(
-      new Set(searchFilteredProducts.map(product => programIdToTitle(product.program)))
+      new Set(searchFilteredProducts.map(product => programIdToTitle(programs, product.program)))
     ).filter(Boolean);
     return uniquePrograms;
   };
@@ -57,10 +52,10 @@ export default function ProductSearchPanel({
       const filtered = products.filter(product => {
         const matchesSearch = searchQuery.trim() === '' || (
           product.title.toLowerCase().includes(query) ||
-          programIdToTitle(product.program).toLowerCase().includes(query) ||
+          programIdToTitle(programs, product.program).toLowerCase().includes(query) ||
           (product.metadata?.description_in_english?.toLowerCase().includes(query) || false)
         );
-        const matchesProgram = !selectedProgram || programIdToTitle(product.program) === selectedProgram;
+        const matchesProgram = !selectedProgram || programIdToTitle(programs, product.program) === selectedProgram;
         return matchesSearch && matchesProgram;
       });
       setFilteredProducts(filtered);
@@ -157,7 +152,7 @@ export default function ProductSearchPanel({
                     )}
                   </div>
                   <p className="text-sm text-center line-clamp-1 mb-2">{product.title}</p>
-                  <p className="text-xs text-gray-500 text-center line-clamp-1 mb-2">{programIdToTitle(product.program)}</p>
+                  <p className="text-xs text-gray-500 text-center line-clamp-1 mb-2">{programIdToTitle(programs, product.program)}</p>
                   <Button
                     className="w-full bg-primary text-white"
                     size="sm"

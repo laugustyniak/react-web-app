@@ -5,11 +5,14 @@ import { getProductById } from '~/lib/firestoreService';
 import { useEffect } from 'react';
 import { useState } from 'react';
 import ProductCard from './ProductCard';
+import { usePrograms } from '../hooks/usePrograms';
+import { programIdToTitle } from '~/lib/programUtils';
 
 export default function Product() {
   const { id } = useParams();
 
   const [product, setProduct] = useState<Product | null>(null);
+  const { programs } = usePrograms();
 
   useEffect(() => {
     const fetchProduct = async (id: string) => {
@@ -29,7 +32,7 @@ export default function Product() {
             id={product.id}
             title={product.title}
             description={product.metadata?.description_in_english}
-            programTitle={product.program}
+            programTitle={programIdToTitle(programs, product.program)}
             imageUrl={product.image_url}
             affiliateLink={product.affiliate_link}
           />

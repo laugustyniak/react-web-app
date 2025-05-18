@@ -10,6 +10,7 @@ import ProgramCard from './ProgramCard';
 import { Button } from './ui/button';
 import { PageLayout } from './ui/layout';
 import { DocumentSnapshot } from 'firebase/firestore';
+import { programIdToTitle } from '~/lib/programUtils';
 
 export default function Explore() {
   const [inspirations, setInspirations] = useState<Inspiration[]>([]);
@@ -395,7 +396,7 @@ export default function Explore() {
                       <ProductCard
                         id={item.id}
                         title={item.title}
-                        programTitle={item.program}
+                        programTitle={programIdToTitle(programs, item.program)}
                         description={item.metadata?.description_in_english}
                         imageUrl={item.image_url}
                         affiliateLink={item.affiliate_link}
