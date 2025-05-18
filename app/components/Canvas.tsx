@@ -38,6 +38,10 @@ export default function Canvas() {
   const [showResultModal, setShowResultModal] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   
+  // Prompt state
+  const [prompt, setPrompt] = useState<string>("Create a sophisticated home decor lifestyle photo featuring elegant furniture and decorative items in a bright, airy living space. Show products in a realistic, high-end home setting with soft natural sunlight streaming through large windows. Include tasteful styling with neutral color palette, layered textures, and organic materials. Capture the products from an editorial perspective with professional composition and depth of field");
+  const [negativePrompt, setNegativePrompt] = useState<string>("text, watermarks, logos, poor quality, blurry, artificial lighting, cluttered space, oversaturated colors, distorted proportions, unrealistic shadows, cartoon style, illustration, digital art style");
+  
   // Product search state
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
@@ -425,9 +429,7 @@ export default function Canvas() {
       
       if (!imageData) throw new Error('Failed to capture canvas image');
 
-      // Define prompts based on the Python implementation
-      const prompt = "Create a sophisticated home decor lifestyle photo featuring elegant furniture and decorative items in a bright, airy living space. Show products in a realistic, high-end home setting with soft natural sunlight streaming through large windows. Include tasteful styling with neutral color palette, layered textures, and organic materials. Capture the products from an editorial perspective with professional composition and depth of field";
-      const negativePrompt = "text, watermarks, logos, poor quality, blurry, artificial lighting, cluttered space, oversaturated colors, distorted proportions, unrealistic shadows, cartoon style, illustration, digital art style";
+      // Use the prompts from the state
       
       // Send only the canvas image to the inpainting API (mask will be created on backend)
       const response = await fetch('/api/inpaint', {
@@ -681,12 +683,67 @@ export default function Canvas() {
             </div>
           </ContentCard>
           
-          <div className="mt-4 flex flex-col items-center">
+          <div className="mt-4 flex flex-col items-center w-full">
             <p className="text-sm text-gray-500 mb-4 text-center">
               Tip: Select an image and use the tools above to manipulate it. You can upload multiple images to create a collage.
               It's important to maintain the real sizes of products. The background will be automatically removed, and a new
               inspiration will be generated from your arrangement.
             </p>
+            
+            <div className="w-full max-w-4xl space-y-4 mb-6 px-4">
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label htmlFor="prompt" className="text-sm font-medium">
+                    Generation Prompt
+                  </label>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setPrompt("Create a sophisticated home decor lifestyle photo featuring elegant furniture and decorative items in a bright, airy living space. Show products in a realistic, high-end home setting with soft natural sunlight streaming through large windows. Include tasteful styling with neutral color palette, layered textures, and organic materials. Capture the products from an editorial perspective with professional composition and depth of field")}
+                    className="text-xs"
+                  >
+                    Reset to Default
+                  </Button>
+                </div>
+                <textarea
+                  id="prompt"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  className="w-full p-3 border rounded-md min-h-[100px] bg-white dark:bg-gray-800 text-sm"
+                  placeholder="Describe how you want the generated image to look..."
+                />
+                <p className="text-xs text-gray-500">
+                  Describe the style, setting, lighting, and mood you want for your generated image.
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label htmlFor="negativePrompt" className="text-sm font-medium">
+                    Negative Prompt (things to avoid)
+                  </label>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setNegativePrompt("text, watermarks, logos, poor quality, blurry, artificial lighting, cluttered space, oversaturated colors, distorted proportions, unrealistic shadows, cartoon style, illustration, digital art style")}
+                    className="text-xs"
+                  >
+                    Reset to Default
+                  </Button>
+                </div>
+                <textarea
+                  id="negativePrompt"
+                  value={negativePrompt}
+                  onChange={(e) => setNegativePrompt(e.target.value)}
+                  className="w-full p-3 border rounded-md min-h-[80px] bg-white dark:bg-gray-800 text-sm"
+                  placeholder="Describe elements to avoid in the generated image..."
+                />
+                <p className="text-xs text-gray-500">
+                  List unwanted elements or styles that should be avoided in the generated image.
+                </p>
+              </div>
+            </div>
+            
             <Button
               variant="default"
               size="lg"
