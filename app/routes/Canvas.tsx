@@ -1,4 +1,4 @@
-import Canvas from '~/components/Canvas';
+import Canvas from '~/components/Canvas/index';
 import { useLoaderData } from 'react-router';
 
 namespace Route {

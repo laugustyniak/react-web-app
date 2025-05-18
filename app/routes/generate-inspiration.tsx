@@ -1,5 +1,4 @@
-// This file should be moved to generate-inspiration.tsx
-import Canvas from '~/components/Canvas';
+import Canvas from '~/components/Canvas/index';
 import { useAuth } from '~/contexts/AuthContext';
 import { Navigate } from 'react-router';
 import { AlertTriangle } from 'lucide-react';
