@@ -13,6 +13,8 @@ import { getAllProducts } from '~/lib/firestoreService';
 import type { Product } from '~/lib/dataTypes';
 import InspirationResultModal from './modals/InspirationResultModal';
 import { toast } from 'sonner';
+import { usePrograms } from '~/hooks/usePrograms';
+import ProductSearchPanel from './ProductSearchPanel';
 
 interface CanvasImage {
   id: string;
@@ -37,16 +39,13 @@ export default function Canvas() {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   
   // Product search state
-  const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedProgram, setSelectedProgram] = useState<string | null>(null);
-  const itemsPerPage = 10;
   
   const canvasRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { programs } = usePrograms();
   
   // Load saved canvas state from localStorage
   useEffect(() => {
@@ -77,7 +76,6 @@ export default function Canvas() {
       setIsLoadingProducts(true);
       const result = await getAllProducts(100);
       setProducts(result.documents);
-      setFilteredProducts(result.documents);
     } catch (error) {
       console.error('Failed to fetch products:', error);
     } finally {
@@ -85,75 +83,6 @@ export default function Canvas() {
     }
   };
 
-  // Reset pagination when search query or program filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedProgram]);
-
-  // Extract unique program names from filtered products
-  const getUniquePrograms = () => {
-    // First filter products by search query only
-    const searchFilteredProducts = searchQuery.trim() === ''
-      ? products
-      : products.filter(product => {
-          const query = searchQuery.toLowerCase();
-          return (
-            product.title.toLowerCase().includes(query) || 
-            product.program.toLowerCase().includes(query) ||
-            (product.metadata?.description_in_english?.toLowerCase().includes(query) || false)
-          );
-        });
-    
-    // Extract unique program names
-    const uniquePrograms = Array.from(
-      new Set(searchFilteredProducts.map(product => product.program))
-    ).filter(Boolean);
-    
-    return uniquePrograms;
-  };
-
-  // Filter products based on search query and selected program
-  useEffect(() => {
-    if (searchQuery.trim() === '' && !selectedProgram) {
-      setFilteredProducts(products);
-    } else {
-      const query = searchQuery.toLowerCase();
-      
-      const filtered = products.filter(product => {
-        const matchesSearch = searchQuery.trim() === '' || (
-          product.title.toLowerCase().includes(query) || 
-          product.program.toLowerCase().includes(query) ||
-          (product.metadata?.description_in_english?.toLowerCase().includes(query) || false)
-        );
-        
-        const matchesProgram = !selectedProgram || product.program === selectedProgram;
-        
-        return matchesSearch && matchesProgram;
-      });
-      
-      setFilteredProducts(filtered);
-    }
-  }, [searchQuery, products, selectedProgram]);
-  
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, endIndex);
-
-  // Pagination handlers
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
-
-  const goToPrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
-    }
-  };
-  
   // Handle file upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -359,40 +288,45 @@ export default function Canvas() {
   // Function to save canvas as image
   const saveAsImage = async () => {
     if (!canvasRef.current) return;
-    
+
     try {
       // Remove selection highlighting temporarily for clean export
       const selectedImage = images.find(img => img.selected);
       let tempImages = [...images];
-      
+
       if (selectedImage) {
         tempImages = images.map(img => ({ ...img, selected: false }));
         setImages(tempImages);
       }
-      
+
       // Small delay to ensure DOM updates
       await new Promise(resolve => setTimeout(resolve, 100));
-      
+
       const canvas = await html2canvas(canvasRef.current, {
         backgroundColor: null, // transparent background
         scale: 2, // higher quality
       });
-      
+
       // Create download link
       const link = document.createElement('a');
       link.download = `canvas-export-${new Date().toISOString().slice(0, 10)}.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
-      
+
       // Restore selection if there was one
       if (selectedImage) {
         setImages(images);
       }
-      
+
       toast.success('Canvas exported as image successfully');
     } catch (error) {
-      console.error('Failed to export canvas as image:', error);
-      toast.error('Failed to export canvas as image. Please try again.');
+      if (error instanceof Error) {
+        console.error('Failed to export canvas as image:', error.message, '\nStack:', error.stack);
+        toast.error(`Failed to export canvas as image: ${error.message}`);
+      } else {
+        console.error('Failed to export canvas as image:', error);
+        toast.error('Failed to export canvas as image. Please try again.');
+      }
     }
   };
   
@@ -456,6 +390,21 @@ export default function Canvas() {
   };
   
   // Function to generate inspiration based on canvas
+  // Utility function to recursively replace oklch colors in style attributes with rgb fallback
+  function replaceOklchColors(element: HTMLElement) {
+    const style = element.getAttribute('style');
+    if (style && style.includes('oklch')) {
+      // Replace all oklch(...) with #cccccc (or any fallback color you prefer)
+      const newStyle = style.replace(/oklch\([^)]+\)/g, '#cccccc');
+      element.setAttribute('style', newStyle);
+    }
+    Array.from(element.children).forEach(child => {
+      if (child instanceof HTMLElement) {
+        replaceOklchColors(child);
+      }
+    });
+  }
+
   const generateInspiration = async () => {
     if (!canvasRef.current || images.length === 0) {
       toast.error('Please add at least one image to the canvas');
@@ -481,46 +430,23 @@ export default function Canvas() {
       
       // Small delay to ensure DOM updates
       await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Create two canvases - one for the image and one for the mask
-      const imageCanvas = await html2canvas(canvasRef.current, {
+
+      // Replace oklch colors on the actual DOM node before rendering
+      if (canvasRef.current) {
+        replaceOklchColors(canvasRef.current);
+      }
+
+      // Create canvas image only (no mask)
+      const imageCanvas = await html2canvas(canvasRef.current!, {
         backgroundColor: null, // transparent background
         scale: 2, // higher quality
       });
-      
-      // Create mask canvas - white background with black shapes for the images
-      const maskCanvas = document.createElement('canvas');
-      maskCanvas.width = imageCanvas.width;
-      maskCanvas.height = imageCanvas.height;
-      const maskCtx = maskCanvas.getContext('2d');
-      
-      if (maskCtx) {
-        // Fill with white background
-        maskCtx.fillStyle = 'white';
-        maskCtx.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
-        
-        // Draw black rectangles for each image
-        maskCtx.fillStyle = 'black';
-        images.forEach(img => {
-          const scale = 2; // Match the html2canvas scale
-          maskCtx.save();
-          maskCtx.translate(img.x * scale, img.y * scale);
-          maskCtx.rotate((img.rotation * Math.PI) / 180);
-          maskCtx.fillRect(
-            -(img.width * scale) / 2,
-            -(img.height * scale) / 2,
-            img.width * scale,
-            img.height * scale
-          );
-          maskCtx.restore();
-        });
-      }
 
       // Define prompts based on the Python implementation
       const prompt = "Create a sophisticated home decor lifestyle photo featuring elegant furniture and decorative items in a bright, airy living space. Show products in a realistic, high-end home setting with soft natural sunlight streaming through large windows. Include tasteful styling with neutral color palette, layered textures, and organic materials. Capture the products from an editorial perspective with professional composition and depth of field";
       const negativePrompt = "text, watermarks, logos, poor quality, blurry, artificial lighting, cluttered space, oversaturated colors, distorted proportions, unrealistic shadows, cartoon style, illustration, digital art style";
       
-      // Send the canvas data to the inpainting API
+      // Send only the canvas image to the inpainting API (mask will be created on backend)
       const response = await fetch('/api/inpaint', {
         method: 'POST',
         headers: {
@@ -528,7 +454,6 @@ export default function Canvas() {
         },
         body: JSON.stringify({
           base64_image: imageCanvas.toDataURL('image/png').split(',')[1], // Remove data:image/png;base64, prefix
-          base64_mask: maskCanvas.toDataURL('image/png').split(',')[1],
           prompt,
           negative_prompt: negativePrompt,
           internal_model: false,
@@ -587,166 +512,14 @@ export default function Canvas() {
       <PageLayout>
         <div className="w-full flex flex-col h-full">
           <h1 className="text-3xl font-bold mb-6">Generate Inspiration</h1>
-          
-          {/* Product search section - Now positioned before the button toolbar and full width */}
-          <ContentCard className="mb-4 p-4 w-full max-w-none relative z-10">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-4">
-                <div className="relative flex-grow">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
-                  <Input
-                    placeholder="Search products by name, program, or description..."
-                    className="pl-8 w-full"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setSearchQuery('');
-                    setSelectedProgram(null);
-                  }}
-                  disabled={searchQuery === '' && selectedProgram === null}
-                >
-                  Clear All
-                </Button>
-              </div>
-              
-              {/* Program filter buttons */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-medium mr-1">Filter by program:</span>
-                <Button
-                  variant={selectedProgram === null ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedProgram(null)}
-                  className="mb-1"
-                >
-                  All
-                </Button>
-                
-                {getUniquePrograms().map(program => (
-                  <Button
-                    key={program}
-                    variant={selectedProgram === program ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedProgram(program)}
-                    className="mb-1"
-                  >
-                    {program}
-                  </Button>
-                ))}
-                
-                {getUniquePrograms().length === 0 && (
-                  <span className="text-sm text-gray-500">No programs available for current search</span>
-                )}
-              </div>
-              
-              {isLoadingProducts ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                </div>
-              ) : filteredProducts.length === 0 ? (
-                <div className="text-center py-6">
-                  <p className="text-gray-500">No products found. Try a different search term or filter.</p>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-3 mt-2">
-                    {currentProducts.map((product) => (
-                      <div key={product.id} className="flex flex-col items-center">
-                        <div className="relative w-full h-40 bg-gray-100 dark:bg-gray-800 rounded-md overflow-hidden mb-2">
-                          {product.image_url ? (
-                            <img 
-                              src={product.image_url} 
-                              alt={product.title}
-                              className="w-full h-full object-contain"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <span className="text-gray-400">No image</span>
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-sm text-center line-clamp-1 mb-2">{product.title}</p>
-                        <p className="text-xs text-gray-500 text-center line-clamp-1 mb-2">{product.program}</p>
-                        <Button 
-                          className="w-full bg-primary text-white"
-                          size="sm"
-                          disabled={!product.image_url}
-                          onClick={() => addProductToCanvas(product)}
-                        >
-                          Add to Canvas
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  {/* Pagination controls */}
-                  {totalPages > 1 && (
-                    <div className="flex justify-between items-center mt-4">
-                      <div className="text-sm text-gray-500">
-                        Showing {startIndex + 1}-{Math.min(endIndex, filteredProducts.length)} of {filteredProducts.length} products
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={goToPrevPage}
-                          disabled={currentPage === 1}
-                        >
-                          Previous
-                        </Button>
-                        
-                        <div className="flex items-center gap-1">
-                          {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                            // Show first page, last page, current page, and pages around current
-                            let pageToShow;
-                            if (totalPages <= 5) {
-                              // If 5 or fewer pages, show all page numbers
-                              pageToShow = i + 1;
-                            } else if (currentPage <= 3) {
-                              // If near start, show first 5 pages
-                              pageToShow = i + 1;
-                            } else if (currentPage >= totalPages - 2) {
-                              // If near end, show last 5 pages
-                              pageToShow = totalPages - 4 + i;
-                            } else {
-                              // Otherwise show current page and 2 pages before/after
-                              pageToShow = currentPage - 2 + i;
-                            }
-                            
-                            return (
-                              <Button
-                                key={pageToShow}
-                                variant={currentPage === pageToShow ? "default" : "outline"}
-                                size="sm"
-                                className="w-8 h-8 p-0"
-                                onClick={() => setCurrentPage(pageToShow)}
-                              >
-                                {pageToShow}
-                              </Button>
-                            );
-                          })}
-                        </div>
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={goToNextPage}
-                          disabled={currentPage === totalPages}
-                        >
-                          Next
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          </ContentCard>
-          
+
+          <ProductSearchPanel
+            products={products}
+            programs={programs}
+            isLoading={isLoadingProducts}
+            onAddProduct={addProductToCanvas}
+          />
+
           <div className="flex gap-4 mb-4 overflow-x-auto pb-2 flex-wrap z-0 relative">
             <Button
               variant="outline"
@@ -953,4 +726,4 @@ export default function Canvas() {
       </PageLayout>
     </ProtectedRoute>
   );
-} 
+}
