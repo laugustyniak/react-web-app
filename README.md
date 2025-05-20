@@ -115,6 +115,32 @@ docker build -t insbuy-react-app .
 docker run -p 3000:3000 insbuy-react-app
 ```
 
+## Semantic Versioning & Changelog
+
+This project uses [Changesets](https://github.com/changesets/changesets) for automated semantic versioning and changelog management.
+
+### How to use
+
+- **Create a changeset:**
+  ```bash
+  npx changeset
+  ```
+  Follow the prompts to describe your changes. This will create a markdown file in the `.changeset` folder.
+
+- **Version and update changelog:**
+  ```bash
+  npm run version
+  ```
+  This will bump the version, update `CHANGELOG.md`, and update `package.json`.
+
+- **Publish (optional):**
+  ```bash
+  npm run release
+  ```
+  This will publish your package if you use a registry.
+
+See the [Changesets documentation](https://github.com/changesets/changesets) for more details.
+
 ## Tech Stack
 
 - React

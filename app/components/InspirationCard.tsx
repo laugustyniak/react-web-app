@@ -9,14 +9,17 @@ import { Button } from './ui/button';
 import { Pencil, Trash2 } from 'lucide-react';
 import { useAuth } from '~/contexts/AuthContext';
 import { EditInspirationModal, DeleteConfirmationModal } from './modals';
+import { usePrograms } from '../hooks/usePrograms';
+import { programIdToTitle } from '~/lib/programUtils';
 
 interface InspirationCardProps {
   inspiration: Inspiration;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onImageClick?: () => void; // Add this prop
 }
 
-function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps) {
+function InspirationCard({ inspiration, onEdit, onDelete, onImageClick }: InspirationCardProps) {
   const [showCommentsModal, setShowCommentsModal] = useState<boolean>(false);
   const [localCommentCount, setLocalCommentCount] = useState<number>(inspiration.commentCount || 0);
   const [products, setProducts] = useState<(Product & { id: string })[]>([]);
@@ -25,6 +28,7 @@ function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const { isAdmin } = useAuth();
+  const { programs } = usePrograms();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -101,7 +105,9 @@ function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps
       )}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium line-clamp-1">{product.title}</p>
-        <p className="text-xs text-gray-500 line-clamp-1">{product.program}</p>
+        <p className="text-xs text-gray-500 line-clamp-1">
+          {programIdToTitle(programs, product.program)}
+        </p>
       </div>
     </Link>
   ));
@@ -126,9 +132,9 @@ function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps
                 {inspiration.title}
               </CardTitle>
             </Link>
-            {inspiration.programTitle && (
-              <p className="text-xs text-gray-500">{inspiration.programTitle}</p>
-            )}
+            <p className="text-xs text-gray-500">
+              {inspiration.programTitle || (inspiration.program ? programIdToTitle(programs, inspiration.program) : null)}
+            </p>
             {/* <p className="text-xs text-gray-500">
               {inspiration.date ? formatDate(inspiration.date) : ''}
             </p> */}
@@ -151,9 +157,14 @@ function InspirationCard({ inspiration, onEdit, onDelete }: InspirationCardProps
               onLoad={handleImageLoad}
               width={400}
               height={300}
+              onClick={onImageClick} // Attach click handler
+              style={{ cursor: onImageClick ? 'pointer' : undefined }}
             />
           </div>
-          <CardDescription className="line-clamp-3 text-sm text-gray-700 dark:text-gray-300">
+          <CardDescription
+            className="text-sm text-gray-700 dark:text-gray-300"
+            title={inspiration.description}
+          >
             {inspiration.description}
           </CardDescription>
           {products.length > 0 && (

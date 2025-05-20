@@ -10,6 +10,10 @@ import ProgramCard from './ProgramCard';
 import { Button } from './ui/button';
 import { PageLayout } from './ui/layout';
 import { DocumentSnapshot } from 'firebase/firestore';
+import { programIdToTitle } from '~/lib/programUtils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from './ui/dialog';
+import ProductModal from './ProductModal';
+import InspirationModal from './InspirationModal';
 
 export default function Explore() {
   const [inspirations, setInspirations] = useState<Inspiration[]>([]);
@@ -27,6 +31,8 @@ export default function Explore() {
   const [lastInspirationDoc, setLastInspirationDoc] = useState<DocumentSnapshot | null>(null);
   const [lastProductDoc, setLastProductDoc] = useState<DocumentSnapshot | null>(null);
   const [lastProgramDoc, setLastProgramDoc] = useState<DocumentSnapshot | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedInspiration, setSelectedInspiration] = useState<Inspiration | null>(null);
 
   const ITEMS_PER_PAGE = 12;
 
@@ -357,12 +363,14 @@ export default function Explore() {
                         inspiration={inspiration}
                         onEdit={handleInspirationEdit}
                         onDelete={handleInspirationDelete}
+                        onImageClick={() => setSelectedInspiration(inspiration)} // Only image opens modal
                       />
                     </div>
                   ))}
                 </div>
 
                 {activeTab === 'inspirations' && renderLoadMoreButton(hasMoreInspirations)}
+                <InspirationModal inspiration={selectedInspiration} programs={programs} onClose={() => setSelectedInspiration(null)} />
               </>
             )}
           </TabsContent>
@@ -395,18 +403,20 @@ export default function Explore() {
                       <ProductCard
                         id={item.id}
                         title={item.title}
-                        programTitle={item.program}
+                        programTitle={programIdToTitle(programs, item.program)}
                         description={item.metadata?.description_in_english}
                         imageUrl={item.image_url}
                         affiliateLink={item.affiliate_link}
                         onEdit={handleProductEdit}
                         onDelete={handleProductDelete}
+                        onImageClick={() => setSelectedProduct(item)} // Only image opens modal
                       />
                     </div>
                   ))}
                 </div>
 
                 {activeTab === 'products' && renderLoadMoreButton(hasMoreProducts)}
+                <ProductModal product={selectedProduct} programs={programs} onClose={() => setSelectedProduct(null)} />
               </>
             )}
           </TabsContent>

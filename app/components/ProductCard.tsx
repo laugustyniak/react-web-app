@@ -17,6 +17,7 @@ interface ProductCardProps {
   affiliateLink?: string;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onImageClick?: () => void; // NEW PROP
 }
 
 function ProductCard({
@@ -28,6 +29,7 @@ function ProductCard({
   affiliateLink,
   onEdit,
   onDelete,
+  onImageClick, // NEW PROP
 }: ProductCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const { isAdmin } = useAuth();
@@ -77,9 +79,11 @@ function ProductCard({
               <img
                 src={imageUrl}
                 alt={title}
-                className={`w-full h-full object-cover ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                className={`w-full h-full ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
                 loading="lazy"
                 onLoad={handleImageLoad}
+                onClick={onImageClick} // Only image click triggers modal
+                style={{ cursor: onImageClick ? 'pointer' : undefined }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800">
@@ -95,7 +99,7 @@ function ProductCard({
           </div>
         </div>
         <CardContent className="px-4 mt-0">
-          <p className="text-gray-500 line-clamp-2">{description}</p>
+          <p className="text-gray-500">{description}</p>
         </CardContent>
         <CardFooter className="p-3 pt-0 mt-auto flex justify-between">
           {affiliateLink && (

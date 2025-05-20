@@ -4,10 +4,11 @@ import ProductCard from './ProductCard';
 import InspirationCard from './InspirationCard';
 import {
   getProductsByProgramId,
-  getRecentInspirations,
   getInspirationsByProgramId,
 } from '~/lib/firestoreService';
 import type { Inspiration, Product } from '~/lib/dataTypes';
+import { usePrograms } from '../hooks/usePrograms';
+import { programIdToTitle } from '~/lib/programUtils';
 
 interface ProgramDetailProps {
   programId: string;
@@ -26,6 +27,7 @@ export default function ProgramDetails({
   const [programProducts, setProgramProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { programs } = usePrograms();
 
   const fetchInspirations = async (id: string) => {
     try {
@@ -147,7 +149,7 @@ export default function ProgramDetails({
                   <ProductCard
                     id={product.id}
                     title={product.title}
-                    programTitle={title}
+                    programTitle={programIdToTitle(programs, product.program)}
                     description={product.metadata?.description_in_english}
                     imageUrl={product.image_url}
                     affiliateLink={product.affiliate_link}

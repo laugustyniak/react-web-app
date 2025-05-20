@@ -24,45 +24,47 @@ const fontSans = {
 const Header = lazy(() => import('./components/Header'));
 const Footer = lazy(() => import('./components/Footer'));
 
-export const links = () => [
-  {
-    rel: 'apple-touch-icon',
-    sizes: '180x180',
-    href: '/apple-touch-icon.png',
-  },
-  {
-    rel: 'icon',
-    type: 'image/png',
-    sizes: '96x96',
-    href: '/favicon-96x96.png',
-  },
-  {
-    rel: 'icon',
-    type: 'image/png',
-    sizes: '32x32',
-    href: '/favicon-32x32.png',
-  },
-  {
-    rel: 'icon',
-    type: 'image/png',
-    sizes: '16x16',
-    href: '/favicon-16x16.png',
-  },
-  {
-    rel: 'icon',
-    type: 'image/x-icon',
-    href: '/favicon.ico',
-  },
-  {
-    rel: 'icon',
-    type: 'image/svg+xml',
-    href: '/favicon.svg',
-  },
-  {
-    rel: 'manifest',
-    href: '/site.webmanifest',
-  },
-];
+export const links = () => {
+  return [
+    {
+      rel: 'apple-touch-icon',
+      sizes: '180x180',
+      href: '/apple-touch-icon.png',
+    },
+    {
+      rel: 'icon',
+      type: 'image/png',
+      sizes: '96x96',
+      href: '/favicon-96x96.png',
+    },
+    {
+      rel: 'icon',
+      type: 'image/png',
+      sizes: '32x32',
+      href: '/favicon-96x96.png',
+    },
+    {
+      rel: 'icon',
+      type: 'image/png',
+      sizes: '16x16',
+      href: '/favicon-96x96.png',
+    },
+    {
+      rel: 'icon',
+      type: 'image/x-icon',
+      href: '/favicon.ico',
+    },
+    {
+      rel: 'icon',
+      type: 'image/svg+xml',
+      href: '/favicon.svg',
+    },
+    {
+      rel: 'manifest',
+      href: '/site.webmanifest',
+    },
+  ];
+};
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -76,6 +78,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="apple-mobile-web-app-title" content="Buy It" />

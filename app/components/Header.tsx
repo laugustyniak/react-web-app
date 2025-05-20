@@ -6,6 +6,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
 } from '~/components/ui/dropdown-menu';
 import {
   NavigationMenu,
@@ -15,7 +17,7 @@ import {
   navigationMenuTriggerStyle,
 } from '~/components/ui/navigation-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '~/components/ui/sheet';
-import { Menu, Plus, X } from 'lucide-react';
+import { Menu, Plus, X, Wand2 } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { ThemeToggle } from './ui/theme-toggle';
 import { useState, useCallback, memo } from 'react';
@@ -47,6 +49,22 @@ function Header() {
       return location.pathname === path;
     },
     [location.pathname]
+  );
+
+  // Check if the path is an internal tool path
+  const isInternalToolPath = useCallback(
+    (path: string) => {
+      return ['/video-frame-extraction', '/product-extraction', '/generate-inspiration'].includes(path);
+    },
+    []
+  );
+
+  // Check if any internal tool is active
+  const isAnyInternalToolActive = useCallback(
+    () => {
+      return isInternalToolPath(location.pathname);
+    },
+    [location.pathname, isInternalToolPath]
   );
 
   // Check if the current path is an account page
@@ -188,6 +206,46 @@ function Header() {
             >
               Starred
             </Button>
+            {isAdmin && (
+              <div className="mb-1">
+                <p className="px-2 py-1 text-sm font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                  <Wand2 className="h-4 w-4" />
+                  Internal Tools
+                </p>
+                <div className="ml-4 flex flex-col gap-1">
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      'justify-start px-2 py-4 text-base',
+                      isActive('/video-frame-extraction') && 'bg-accent text-accent-foreground'
+                    )}
+                    onClick={() => navigateTo('/video-frame-extraction')}
+                  >
+                    🎬 Extract Frames
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      'justify-start px-2 py-4 text-base',
+                      isActive('/product-extraction') && 'bg-accent text-accent-foreground'
+                    )}
+                    onClick={() => navigateTo('/product-extraction')}
+                  >
+                    🔍 Search for Products
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      'justify-start px-2 py-4 text-base',
+                      isActive('/generate-inspiration') && 'bg-accent text-accent-foreground'
+                    )}
+                    onClick={() => navigateTo('/generate-inspiration')}
+                  >
+                    ✨ Generate Inspiration
+                  </Button>
+                </div>
+              </div>
+            )}
             {user ? (
               <>
                 <div className="border-t my-2 pt-2">
@@ -246,7 +304,7 @@ function Header() {
         </SheetContent>
       </Sheet>
     ),
-    [isMenuOpen, navigateTo, isActive, user, handleSignIn, handleSignOut, handleSignUp]
+    [isMenuOpen, navigateTo, isActive, user, handleSignIn, handleSignOut, handleSignUp, isAdmin]
   );
 
   // Memoized desktop menu items
@@ -276,10 +334,59 @@ function Header() {
               Starred
             </NavigationMenuLink>
           </NavigationMenuItem>
+          {isAdmin && (
+            <NavigationMenuItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "flex items-center gap-1 px-4 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                      isAnyInternalToolActive() && 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
+                    )}
+                  >
+                    <Wand2 className="h-4 w-4 mr-1" />
+                    Internal Tools
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center">
+                  <DropdownMenuLabel>Developer Tools</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className={cn(
+                      "cursor-pointer",
+                      isActive('/video-frame-extraction') && 'bg-accent text-accent-foreground'
+                    )}
+                    onClick={() => navigateTo('/video-frame-extraction')}
+                  >
+                    🎬 Extract Frames
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={cn(
+                      "cursor-pointer", 
+                      isActive('/product-extraction') && 'bg-accent text-accent-foreground'
+                    )}
+                    onClick={() => navigateTo('/product-extraction')}
+                  >
+                    🔍 Search for Products
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={cn(
+                      "cursor-pointer",
+                      isActive('/generate-inspiration') && 'bg-accent text-accent-foreground'
+                    )}
+                    onClick={() => navigateTo('/generate-inspiration')}
+                  >
+                    ✨ Generate Inspiration
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </NavigationMenuItem>
+          )}
         </NavigationMenuList>
       </NavigationMenu>
     ),
-    [isActive, navigateTo]
+    [isActive, navigateTo, user, isAdmin, isAnyInternalToolActive]
   );
 
   // Memoized auth buttons
