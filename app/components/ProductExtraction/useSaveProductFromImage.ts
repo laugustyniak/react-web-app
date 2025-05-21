@@ -1,6 +1,7 @@
 import { insertProduct } from "~/lib/firestoreService";
 import type { Product } from "~/lib/dataTypes";
 import { toast } from "sonner";
+import { generateAffiliateLink } from '~/lib/affiliateLink';
 
 /**
  * Hook to return a callback for saving a product from an image result to Firestore
@@ -17,7 +18,7 @@ export function useSaveProductFromImage(options?: { programId?: string; descript
         const product: Omit<Product, "id"> = {
             title: img.name || "Untitled Product",
             program: options?.programId || "",
-            affiliate_link: img.link,
+            affiliate_link: img.link ? generateAffiliateLink(img.link) || img.link : '',
             image_url: img.image,
             metadata: {
                 description_in_english: options?.description || img.source || "",

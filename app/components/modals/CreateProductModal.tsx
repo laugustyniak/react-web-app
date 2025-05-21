@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { generateAffiliateLink } from '~/lib/affiliateLink';
 import type { FormEvent, ChangeEvent } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '~/components/ui/dialog';
 import { Button } from '~/components/ui/button';
@@ -46,13 +47,15 @@ export function CreateProductModal({ open, onOpenChange, onSuccess, initialTitle
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
+      // Always generate affiliate link with UTM
+      const affiliateLinkWithUtm = affiliateLink ? generateAffiliateLink(affiliateLink) : '';
       await insertProduct({
         title,
         program,
         metadata: {
           description_in_english: description,
         },
-        affiliate_link: affiliateLink,
+        affiliate_link: affiliateLinkWithUtm || affiliateLink,
         image_url: imageUrl,
       });
       toast.success('Product created successfully');

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { generateAffiliateLink } from '~/lib/affiliateLink';
 import { CreateProductModal } from "~/components/modals";
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
@@ -115,7 +116,7 @@ const ExtractedProductsList: React.FC<ExtractedProductsListProps> = ({
                                             setModalInitial({
                                               title: img.title,
                                               image_url: img.original || img.thumbnail,
-                                              affiliate_link: img.link,
+                                              affiliate_link: generateAffiliateLink(img.link) || img.link,
                                               description: img.source || '',
                                             });
                                             setModalOpen(true);
