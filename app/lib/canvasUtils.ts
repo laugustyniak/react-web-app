@@ -1,4 +1,5 @@
 import html2canvas from 'html2canvas';
+import { replaceOklchWithRGB, oklchToRGB } from './colorUtils';
 
 /**
  * Creates a temporary container and returns an image of the element
@@ -7,6 +8,11 @@ import html2canvas from 'html2canvas';
 export async function captureElementAsImage(
     element: HTMLElement
 ): Promise<string | null> {
+    if (!element) {
+        console.error('Error capturing element as image: Element is null or undefined');
+        return null;
+    }
+
     // Create a temporary container to clone into
     const tempContainer = document.createElement('div');
     tempContainer.style.position = 'absolute';
@@ -30,7 +36,13 @@ export async function captureElementAsImage(
                 // Only process same-origin stylesheets
                 if (sheet.href === null || sheet.href.startsWith(window.location.origin)) {
                     Array.from(sheet.cssRules).forEach(rule => {
-                        cssRules += rule.cssText + '\n';
+                        try {
+                            // Process the rule text to replace oklch colors with RGB
+                            let processedRule = replaceOklchWithRGB(rule.cssText);
+                            cssRules += processedRule + '\n';
+                        } catch (ruleError) {
+                            console.warn('Error processing CSS rule:', ruleError);
+                        }
                     });
                 }
             } catch (e) {
@@ -42,6 +54,9 @@ export async function captureElementAsImage(
         styleSheet.textContent = cssRules;
         document.head.appendChild(styleSheet);
 
+        // Also process inline styles of the cloned element and its children
+        processInlineStyles(clone);
+
         // Use html2canvas with proper settings
         const canvas = await html2canvas(clone, {
             backgroundColor: null,
@@ -51,11 +66,17 @@ export async function captureElementAsImage(
             logging: false,
             imageTimeout: 0,
             onclone: (doc) => {
-                // Copy over class attributes to maintain styling
-                const sourceElement = doc.querySelector('.dark');
-                if (sourceElement) {
-                    // If the document has a 'dark' class somewhere, copy it to the cloned document
-                    doc.documentElement.classList.add('dark');
+                try {
+                    // Copy over class attributes to maintain styling
+                    const sourceElement = doc.querySelector('.dark');
+                    if (sourceElement) {
+                        // If the document has a 'dark' class somewhere, copy it to the cloned document
+                        doc.documentElement.classList.add('dark');
+                    }
+                    // Process any inline styles in the cloned document
+                    processInlineStyles(doc.body);
+                } catch (cloneError) {
+                    console.warn('Error in onclone handler:', cloneError);
                 }
             },
         });
@@ -63,41 +84,49 @@ export async function captureElementAsImage(
         return canvas.toDataURL('image/png');
     } catch (error) {
         console.error('Error capturing element as image:', error);
+        // More descriptive error for oklch issues
+        if (error instanceof Error && error.message.includes('oklch')) {
+            throw new Error(`Failed to convert oklch colors: ${error.message}`);
+        }
         return null;
     } finally {
         // Clean up
-        document.body.removeChild(tempContainer);
+        if (document.body.contains(tempContainer)) {
+            document.body.removeChild(tempContainer);
+        }
         // Find and remove the style element we added
         const styleElements = document.head.querySelectorAll('style');
         Array.from(styleElements).slice(-1).forEach(el => {
-            document.head.removeChild(el);
+            if (document.head.contains(el)) {
+                document.head.removeChild(el);
+            }
         });
     }
 }
 
 /**
- * Recursively replaces all oklch colors in style attributes
- * Note: This function is kept for reference but is no longer used
- * in the updated captureElementAsImage implementation
+ * Recursively processes inline styles to replace unsupported color formats
  */
-function replaceColorFormats(element: HTMLElement) {
-    if (element instanceof HTMLElement) {
+function processInlineStyles(element: HTMLElement) {
+    if (!element || !(element instanceof HTMLElement)) {
+        return;
+    }
+
+    try {
         const style = element.getAttribute('style');
         if (style) {
-            // Replace all color function instances with safe colors
-            const newStyle = style
-                .replace(/oklch\([^)]+\)/g, '#000000')
-                .replace(/color:\s*oklch\([^;]+/g, 'color: #000000')
-                .replace(/background(?:-color)?:\s*oklch\([^;]+/g, 'background-color: #ffffff');
-
+            // Replace all oklch color instances with RGB equivalents
+            const newStyle = replaceOklchWithRGB(style);
             element.setAttribute('style', newStyle);
         }
 
         // Process all children recursively
         Array.from(element.children).forEach(child => {
             if (child instanceof HTMLElement) {
-                replaceColorFormats(child);
+                processInlineStyles(child);
             }
         });
+    } catch (error) {
+        console.warn('Error processing inline styles:', error);
     }
 }

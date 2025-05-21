@@ -1,6 +1,8 @@
 // Canvas/hooks/useCanvasExport.ts
 import { toast } from 'sonner';
 import { captureElementAsImage } from '~/lib/canvasUtils';
+import { htmlToPng } from '~/lib/svgUtils';
+import { captureElementDirectly } from '~/lib/directCanvasCapture';
 import type { CanvasImage } from '../types';
 
 export function useCanvasExport(
@@ -22,13 +24,47 @@ export function useCanvasExport(
             // Small delay to ensure DOM updates
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            // Use our captureElementAsImage utility
-            const imageData = await captureElementAsImage(canvasRef.current);
+            // Try multiple approaches in order, with fallbacks
+            let imageData: string | null = null;
+
+            // Method 1: Try the SVG-based approach first (should handle most cases)
+            try {
+                imageData = await htmlToPng(canvasRef.current);
+                console.log("SVG conversion succeeded");
+            } catch (svgError) {
+                console.warn("SVG conversion failed with error:", svgError);
+            }
+
+            // Method 2: If SVG approach fails, try direct canvas capture
+            if (!imageData) {
+                try {
+                    console.log("Trying direct canvas capture");
+                    imageData = await captureElementDirectly(canvasRef.current);
+                    console.log("Direct canvas capture succeeded");
+                } catch (directError) {
+                    console.warn("Direct canvas capture failed with error:", directError);
+                }
+            }
+
+            // Method 3: If both fail, fall back to the original html2canvas method
+            if (!imageData) {
+                try {
+                    console.log("Falling back to html2canvas method");
+                    imageData = await captureElementAsImage(canvasRef.current);
+                    console.log("html2canvas capture succeeded");
+                } catch (htmlCanvasError) {
+                    console.warn("html2canvas capture failed with error:", htmlCanvasError);
+                }
+            }
+
+            if (!imageData) {
+                throw new Error('All image capture methods failed');
+            }
 
             // Create and trigger download
             const link = document.createElement('a');
             link.download = `canvas-export-${new Date().toISOString().slice(0, 10)}.png`;
-            link.href = imageData || '';
+            link.href = imageData;
             link.style.display = 'none';
             document.body.appendChild(link);
             link.click();

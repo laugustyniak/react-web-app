@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { captureElementAsImage } from '~/lib/canvasUtils';
+import { htmlToPng } from '~/lib/svgUtils';
+import { captureElementDirectly } from '~/lib/directCanvasCapture';
 
 export function useInspirationGeneration(
     canvasRef: React.RefObject<HTMLDivElement | null>,
@@ -17,9 +19,7 @@ export function useInspirationGeneration(
     const defaultNegativePrompt = "text, watermarks, logos, poor quality, blurry, artificial lighting, cluttered space, oversaturated colors, distorted proportions, unrealistic shadows, cartoon style, illustration, digital art style";
 
     const [prompt, setPrompt] = useState<string>(defaultPrompt);
-    const [negativePrompt, setNegativePrompt] = useState<string>(defaultNegativePrompt);
-
-    const generateInspiration = async () => {
+    const [negativePrompt, setNegativePrompt] = useState<string>(defaultNegativePrompt);    const generateInspiration = async () => {
         if (!canvasRef.current || !hasImages) {
             toast.error('Please add at least one image to the canvas');
             return;
@@ -39,10 +39,40 @@ export function useInspirationGeneration(
             // Small delay to ensure DOM updates
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            // Use the captureElementAsImage utility to get base64 image data
-            const imageData = await captureElementAsImage(canvasRef.current);
+            // Try multiple approaches in order, with fallbacks
+            let imageData: string | null = null;
+            
+            // Method 1: Try the SVG-based approach first (should handle most cases)
+            try {
+                imageData = await htmlToPng(canvasRef.current);
+                console.log("SVG conversion succeeded");
+            } catch (svgError) {
+                console.warn("SVG conversion failed with error:", svgError);
+            }
+            
+            // Method 2: If SVG approach fails, try direct canvas capture
+            if (!imageData) {
+                try {
+                    console.log("Trying direct canvas capture");
+                    imageData = await captureElementDirectly(canvasRef.current);
+                    console.log("Direct canvas capture succeeded");
+                } catch (directError) {
+                    console.warn("Direct canvas capture failed with error:", directError);
+                }
+            }
+            
+            // Method 3: If both fail, fall back to the original html2canvas method
+            if (!imageData) {
+                try {
+                    console.log("Falling back to html2canvas method");
+                    imageData = await captureElementAsImage(canvasRef.current);
+                    console.log("html2canvas capture succeeded");
+                } catch (htmlCanvasError) {
+                    console.warn("html2canvas capture failed with error:", htmlCanvasError);
+                }
+            }
 
-            if (!imageData) throw new Error('Failed to capture canvas image');
+            if (!imageData) throw new Error('All capture methods failed - unable to capture canvas image');
 
             // Validate the base64 string format
             if (!imageData.startsWith('data:image/png;base64,')) {
@@ -58,10 +88,11 @@ export function useInspirationGeneration(
             }
 
             // Send only the canvas image to the inpainting API
-            const response = await fetch('/api/inpaint', {
+            const response = await fetch('http://localhost:8051/inpaint', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    "x-api-key": "insbuy-a14727b1-58a6-43ad-beae-b393ca192708"
                 },
                 body: JSON.stringify({
                     base64_image: base64Data,

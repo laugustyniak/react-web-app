@@ -8,7 +8,6 @@ import VideoPlayer from "../components/ProductExtraction/VideoPlayer";
 import FrameGrid from "../components/ProductExtraction/FrameGrid";
 import AnalyzeProductsButton from "../components/ProductExtraction/AnalyzeProductsButton";
 import ExtractedProductsList from "../components/ProductExtraction/ExtractedProductsList";
-import ProductSearchPanel from "../components/ProductExtraction/ProductSearchPanel";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 
 const API_KEY = "insbuy-a14727b1-58a6-43ad-beae-b393ca192708"
