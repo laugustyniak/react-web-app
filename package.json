@@ -9,7 +9,7 @@
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc",
     "deploy": "gcloud run deploy react-web-app --source . --platform managed --allow-unauthenticated --region us-central1",
-    "deploy:env": "gcloud run deploy react-web-app --source . --platform managed --allow-unauthenticated --region us-central1 --set-env-vars \"$(awk '!/^#/ && /=/{printf \"%s%s\", (NR==1 ? \"\" : \",\"), $0}' .env)\"",
+    "deploy:local_build_docker": "bash ./scripts/deploy.sh",
     "shadcn": "shadcn",
     "changeset": "changeset",
     "version": "changeset version",

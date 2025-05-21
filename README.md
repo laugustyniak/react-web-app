@@ -115,6 +115,22 @@ docker build -t insbuy-react-app .
 docker run -p 3000:3000 insbuy-react-app
 ```
 
+### Google Cloud Run
+
+The application can be automatically deployed to Google Cloud Run using the built-in deployment script:
+
+```bash
+# Deploy using local Docker build and Google Cloud Run
+npm run deploy:local_build_docker
+```
+
+This script:
+- Builds a Docker image tagged with the current version from package.json
+- Also tags the image as "latest"
+- Configures Docker authentication for Google Cloud if needed
+- Pushes both version-specific and latest images to Google Artifact Registry
+- Deploys the application to Google Cloud Run
+
 ## Semantic Versioning & Changelog
 
 This project uses [Changesets](https://github.com/changesets/changesets) for automated semantic versioning and changelog management.
