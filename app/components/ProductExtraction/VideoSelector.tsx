@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Search } from "lucide-react";
 import type { VideoData } from '../../types/models';
 
 interface VideoSelectorProps {
@@ -33,14 +35,39 @@ const VideoSelector: React.FC<VideoSelectorProps> = ({
   onSelect,
   onLoadMore,
 }) => {
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  
+  // Get unique videos first
   const uniqueVideos = getUniqueVideosByTitle(availableVideos);
+  
+  // Filter videos based on search query
+  const filteredVideos = searchQuery
+    ? uniqueVideos.filter(video => {
+        const title = (video.title || '').toLowerCase();
+        const id = video.video_id.toLowerCase();
+        const query = searchQuery.toLowerCase();
+        return title.includes(query) || id.includes(query);
+      })
+    : uniqueVideos;
 
   return (
     <div className="mb-4 flex flex-col gap-2">
       <h2 className="text-xl font-semibold">Available Videos:</h2>
+      
+      {/* Search input */}
+      <div className="relative mb-2">
+        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Search videos by title or ID..."
+          className="pl-8"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+      
       <div className="flex flex-wrap gap-2">
-        {uniqueVideos.length > 0 ? (
-          uniqueVideos.map((video) => (
+        {filteredVideos.length > 0 ? (
+          filteredVideos.map((video) => (
             <Badge
               key={video.video_id}
               variant={videoData?.video_id === video.video_id ? "default" : "outline"}
@@ -48,12 +75,17 @@ const VideoSelector: React.FC<VideoSelectorProps> = ({
               onClick={() => onSelect(video)}
             >
               {video.video_id === DEFAULT_VIDEO_ID ? '⭐ ' : ''}{video.title ? video.title : video.video_id}
+              {video.title ? ` (${video.video_id})` : ''}
             </Badge>
           ))
         ) : (
-          <p>Loading videos...</p>
+          searchQuery ? (
+            <p>No videos match your search. Try another query.</p>
+          ) : (
+            <p>Loading videos...</p>
+          )
         )}
-        {hasMoreVideos && (
+        {!searchQuery && hasMoreVideos && (
           <Button
             variant="outline"
             size="sm"

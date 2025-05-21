@@ -117,7 +117,7 @@ const ExtractedProductsList: React.FC<ExtractedProductsListProps> = ({
                                               title: img.title,
                                               image_url: img.original || img.thumbnail,
                                               affiliate_link: generateAffiliateLink(img.link) || img.link,
-                                              description: img.source || '',
+                                              description: `${prod.product_name} ${prod.description_in_english}`,
                                             });
                                             setModalOpen(true);
                                           }}
