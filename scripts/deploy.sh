@@ -3,7 +3,6 @@ set -e
 
 # Get the current version from package.json
 VERSION=$(jq -r .version package.json)
-TAG_VERSION="${VERSION//./-}"
 IMAGE_NAME="us-central1-docker.pkg.dev/insbay-b32351/cloud-run-source-deploy/react-web-app"
 REGION="us-central1"
 
@@ -27,9 +26,9 @@ docker push "$IMAGE_NAME:latest"
 echo "🚀 Deploying to Cloud Run..."
 gcloud run deploy react-web-app \
   --image="$IMAGE_NAME:$VERSION" \
-  --tag="$TAG_VERSION" \
+  --tag="v$VERSION" \
   --region="$REGION" \
   --platform=managed \
   --allow-unauthenticated
 
-echo "✅ Deployment complete! Service deployed with version $VERSION and tag revision $TAG_VERSION."
+echo "✅ Deployment complete! Service deployed with version $VERSION."

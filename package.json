@@ -1,7 +1,7 @@
 {
   "name": "react-web-app",
   "private": true,
-  "version": "0.1.3",
+  "version": "0.1.4",
   "type": "module",
   "scripts": {
     "build": "react-router build",
@@ -13,7 +13,7 @@
     "shadcn": "shadcn",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "changeset publish && git tag v$(node -e \"import { createRequire } from 'module'; const require = createRequire(import.meta.url); console.log(require('./package.json').version);\") && git push --tags"
+    "release": "changeset publish && git add . && git commit -m \"chore: release\" && git tag v$(node -e \"import { createRequire } from 'module'; const require = createRequire(import.meta.url); console.log(require('./package.json').version);\") && git push --tags"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.6",

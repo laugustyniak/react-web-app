@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.1.4
+
+### Patch Changes
+
+- add tag for revisions
+
 ## 0.1.3
 
 ### Patch Changes
