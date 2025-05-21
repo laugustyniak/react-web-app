@@ -12,14 +12,14 @@ export type MultipleProducts = {
     products: Product[]; // List of products found in the image
 };
 
-// Video and product-related interfaces from ProductExtraction
-
-
 export interface VideoData {
     video_id: string;
     video_url: string;
     duration_s: number;
     title?: string;
+    program?: string;
+    description?: string;
+    logo_url?: string;
 }
 
 
