@@ -398,23 +398,27 @@ const ProductExtraction = () => {
                 </p>
                 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                  {frames.map((frame, idx) => (
-                    <Card 
-                      key={frame.frame_id}
-                      className="cursor-pointer border-none transition-transform hover:scale-102"
-                      onClick={() => setSelectedFrameIndex(idx)}
-                    >                        <div className="relative aspect-video">
+                  {frames.map((frame, idx) => {
+                    const isSelected = selectedFrameIndex === idx;
+                    return (
+                      <Card
+                        key={frame.frame_id}
+                        className={`cursor-pointer border-2 transition-transform hover:scale-102 ${isSelected ? 'border-blue-500 ring-2 ring-blue-400' : 'border-none'}`}
+                        onClick={() => setSelectedFrameIndex(idx)}
+                      >
+                        <div className="relative aspect-video">
                           <img
                             src={frame.image_url || frame.storage_url || frame.frame_path || `https://picsum.photos/800/450?random=${idx}`}
                             alt={`Frame ${idx + 1}`}
                             className="absolute top-0 left-0 w-full h-full object-cover"
                           />
                         </div>
-                      <div className="p-2 text-center">
-                        <p className="text-sm">Frame {idx + 1}</p>
-                      </div>
-                    </Card>
-                  ))}
+                        <div className="p-2 text-center">
+                          <p className="text-sm">Frame {idx + 1}</p>
+                        </div>
+                      </Card>
+                    );
+                  })}
                 </div>
                 
                 {selectedFrameIndex !== null && (
