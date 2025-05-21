@@ -1,5 +1,5 @@
 import type { Inspiration, Comment, Product, Program } from './dataTypes';
-import type { VideoFrame } from '../services/videoService';
+
 import {
   getDocument,
   queryDocuments,

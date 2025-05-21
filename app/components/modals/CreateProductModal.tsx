@@ -16,14 +16,18 @@ interface CreateProductModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  initialTitle?: string;
+  initialImageUrl?: string;
+  initialAffiliateLink?: string;
+  initialDescription?: string;
 }
 
-export function CreateProductModal({ open, onOpenChange, onSuccess }: CreateProductModalProps) {
-  const [title, setTitle] = useState('');
+export function CreateProductModal({ open, onOpenChange, onSuccess, initialTitle = '', initialImageUrl = '', initialAffiliateLink = '', initialDescription = '' }: CreateProductModalProps) {
+  const [title, setTitle] = useState(initialTitle);
   const [program, setProgram] = useState('');
-  const [description, setDescription] = useState('');
-  const [affiliateLink, setAffiliateLink] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [description, setDescription] = useState(initialDescription);
+  const [affiliateLink, setAffiliateLink] = useState(initialAffiliateLink);
+  const [imageUrl, setImageUrl] = useState(initialImageUrl);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { programs, loading: loadingPrograms } = usePrograms();
@@ -31,13 +35,13 @@ export function CreateProductModal({ open, onOpenChange, onSuccess }: CreateProd
   // Reset form when modal opens
   useEffect(() => {
     if (open) {
-      setTitle('');
+      setTitle(initialTitle);
       setProgram('');
-      setDescription('');
-      setAffiliateLink('');
-      setImageUrl('');
+      setDescription(initialDescription);
+      setAffiliateLink(initialAffiliateLink);
+      setImageUrl(initialImageUrl);
     }
-  }, [open]);
+  }, [open, initialTitle, initialImageUrl, initialAffiliateLink, initialDescription]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
