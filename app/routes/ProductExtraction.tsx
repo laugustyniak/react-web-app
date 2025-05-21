@@ -46,6 +46,12 @@ const ProductExtraction = () => {
   const [extractedProducts, setExtractedProducts] = useState<MultipleProducts | null>(null);
   const [isExtractedProductsLoading, setIsExtractedProductsLoading] = useState<boolean>(false);
   const [extractedProductsError, setExtractedProductsError] = useState<string | null>(null);
+  // Editing state for extracted products
+  const [editingProductIndex, setEditingProductIndex] = useState<number | null>(null);
+  const [editValues, setEditValues] = useState<null | {
+    product_name: string;
+    description_in_english: string;
+  }>(null);
   
   // Default video ID from the requirement
   const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
@@ -442,25 +448,76 @@ const ProductExtraction = () => {
                     {/* Show product description API response below the button */}
                     <div className="w-full max-w-2xl mt-4">
                       {isExtractedProductsLoading && (
-                        <Alert className="mb-2"><AlertDescription>Loading product description...</AlertDescription></Alert>
+                        <Alert className="mb-2"><AlertDescription>🔎 Insbuy AI is looking for products in the image...</AlertDescription></Alert>
                       )}
                       {extractedProductsError && (
                         <Alert variant="destructive" className="mb-2"><AlertDescription>{extractedProductsError}</AlertDescription></Alert>
                       )}
                       {extractedProducts && extractedProducts.products && extractedProducts.products.length > 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {extractedProducts.products.map((prod: import('../types/models').Product, idx: number) => (
-                            <Card key={prod.product_id || idx} className="mb-2">
-                              <div className="p-4">
-                                <h4 className="text-lg font-semibold mb-2">{prod.product_name || prod.product_name}</h4>
-                                {/* <p className="text-sm mb-1"><strong>ID:</strong> {prod.product_id}</p> */}
-                                <p className="text-sm mb-1"><strong>Description:</strong> {prod.description_in_english}</p>
-                                {/* <p className="text-sm mb-1"><strong>Description (Lang):</strong> {prod.description_in_language}</p>
-                                <p className="text-sm mb-1"><strong>Search Query:</strong> {prod.search_query}</p>
-                                <p className="text-sm mb-1"><strong>Search Query (Lang):</strong> {prod.search_query_in_language}</p> */}
-                              </div>
-                            </Card>
-                          ))}
+                          {extractedProducts.products.map((prod: import('../types/models').Product, idx: number) => {
+                            const isEditing = editingProductIndex === idx;
+                            const handleEditClick = () => {
+                              setEditingProductIndex(idx);
+                              setEditValues({
+                                product_name: prod.product_name,
+                                description_in_english: prod.description_in_english,
+                              });
+                            };
+                            const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+                              const { name, value } = e.target;
+                              setEditValues(prev => prev ? { ...prev, [name]: value } : null);
+                            };
+                            const handleSave = () => {
+                              if (!extractedProducts || editValues == null) return;
+                              const updatedProducts = extractedProducts.products.map((p, i) =>
+                                i === idx ? { ...p, product_name: editValues.product_name, description_in_english: editValues.description_in_english } : p
+                              );
+                              setExtractedProducts({ products: updatedProducts });
+                              setEditingProductIndex(null);
+                              setEditValues(null);
+                            };
+                            const handleCancel = () => {
+                              setEditingProductIndex(null);
+                              setEditValues(null);
+                            };
+                            return (
+                              <Card key={prod.product_id || idx} className="mb-2">
+                                <div className="p-4">
+                                  {isEditing && editValues ? (
+                                    <>
+                                      <input
+                                        className="mb-2 w-full border rounded px-2 py-1"
+                                        name="product_name"
+                                        value={editValues.product_name}
+                                        onChange={handleEditChange}
+                                        placeholder="Product Name"
+                                      />
+                                      <textarea
+                                        className="mb-2 w-full border rounded px-2 py-1"
+                                        name="description_in_english"
+                                        value={editValues.description_in_english}
+                                        onChange={handleEditChange}
+                                        placeholder="Description (EN)"
+                                      />
+                                      <div className="flex gap-2 mt-2">
+                                        <Button size="sm" variant="default" onClick={handleSave}>Save</Button>
+                                        <Button size="sm" variant="outline" onClick={handleCancel}>Cancel</Button>
+                                      </div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <h4 className="text-lg font-semibold mb-2">{prod.product_name || prod.product_name}</h4>
+                                      <p className="text-sm mb-1"><strong>Description:</strong> {prod.description_in_english}</p>
+                                      <Button size="sm" variant="outline" className="mt-2" onClick={handleEditClick}>
+                                        Edit
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
+                              </Card>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
