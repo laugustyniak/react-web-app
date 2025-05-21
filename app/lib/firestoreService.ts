@@ -1,4 +1,5 @@
 import type { Inspiration, Comment, Product, Program } from './dataTypes';
+import type { VideoFrame } from '../services/videoService';
 import {
   getDocument,
   queryDocuments,
@@ -408,5 +409,21 @@ export const getRandomInspirations = async (limitCount: number = 12): Promise<In
   } catch (error) {
     console.error('Error fetching random inspirations:', error);
     throw error;
+  }
+};
+
+/**
+ * Fetches all frames associated with a specific video ID
+ */
+export const getFramesByVideoId = async (videoId: string): Promise<VideoFrame[]> => {
+  try {
+    const { documents } = await getCollection<VideoFrame>('frames', {
+      queryConstraints: [where('video_id', '==', videoId)],
+    });
+
+    return documents;
+  } catch (error) {
+    console.error('Error fetching frames by video ID:', error);
+    return [];
   }
 };
