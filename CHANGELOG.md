@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.1.3
+
+### Patch Changes
+
+- fix deployment envs
+
 ## 0.1.2
 
 ### Patch Changes
