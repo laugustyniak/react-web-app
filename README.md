@@ -115,6 +115,22 @@ docker build -t insbuy-react-app .
 docker run -p 3000:3000 insbuy-react-app
 ```
 
+### Google Cloud Run
+
+The application can be automatically deployed to Google Cloud Run using the built-in deployment script:
+
+```bash
+# Deploy using local Docker build and Google Cloud Run
+npm run deploy:local_build_docker
+```
+
+This script:
+- Builds a Docker image tagged with the current version from package.json
+- Also tags the image as "latest"
+- Configures Docker authentication for Google Cloud if needed
+- Pushes both version-specific and latest images to Google Artifact Registry
+- Deploys the application to Google Cloud Run
+
 ## Semantic Versioning & Changelog
 
 This project uses [Changesets](https://github.com/changesets/changesets) for automated semantic versioning and changelog management.
@@ -138,6 +154,46 @@ This project uses [Changesets](https://github.com/changesets/changesets) for aut
   npm run release
   ```
   This will publish your package if you use a registry.
+
+### Step-by-step example
+
+1. **Make code changes** to your application
+
+2. **Create a changeset** to document your changes:
+   ```bash
+   npx changeset
+   ```
+   - Select the type of version bump:
+     - **patch**: for bug fixes and minor changes
+     - **minor**: for new features that don't break existing functionality
+     - **major**: for breaking changes
+   - Enter a detailed description of your changes for the changelog
+
+3. **Commit your changeset**:
+   ```bash
+   git add .changeset/*.md
+   git commit -m "Add changeset for [feature description]"
+   ```
+
+4. **Update the version** in your package.json and create/update the changelog:
+   ```bash
+   npm run version
+   ```
+   This will:
+   - Consume the changeset files
+   - Update package.json with the new version
+   - Create or update CHANGELOG.md
+
+5. **Commit the version changes**:
+   ```bash
+   git add package.json CHANGELOG.md
+   git commit -m "Bump version to [new version]"
+   ```
+
+6. **Push your changes** to your repository:
+   ```bash
+   git push
+   ```
 
 See the [Changesets documentation](https://github.com/changesets/changesets) for more details.
 

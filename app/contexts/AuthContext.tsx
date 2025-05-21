@@ -21,6 +21,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
+  isFirebaseConfigured: boolean;
   signIn: (email: string, password: string, path?: string) => Promise<void>;
   signUp: (email: string, password: string, path?: string) => Promise<void>;
   signInWithGoogle: (path?: string) => Promise<void>;
@@ -46,15 +47,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [isEmailVerified, setIsEmailVerified] = useState<boolean>(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isFirebaseConfigured, setIsFirebaseConfigured] = useState<boolean>(!!auth);
 
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Early return if Firebase auth is not configured
+    if (!auth) {
+      setLoading(false);
+      console.error('Firebase authentication is not properly configured');
+      return () => {};
+    }
+
     const unsubscribe = auth.onAuthStateChanged(async user => {
       setUser(user);
       setIsEmailVerified(user?.emailVerified ?? false);
 
-      if (user) {
+      if (user && db) {
         try {
           const userDocRef = doc(db, 'users', user.uid);
           const userDoc = await getDoc(userDocRef);
@@ -79,6 +88,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string, path: string = '/') => {
+    if (!auth) {
+      throw new Error('Firebase authentication is not properly configured');
+    }
+    
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     if (!userCredential.user.emailVerified) {
       await signOut(auth);
@@ -95,6 +108,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signUp = async (email: string, password: string, path: string = '/') => {
+    if (!auth) {
+      throw new Error('Firebase authentication is not properly configured');
+    }
+    
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     if (userCredential.user) {
       await sendEmailVerification(userCredential.user);
@@ -110,6 +127,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithGoogle = async (path: string = '/') => {
+    if (!auth) {
+      throw new Error('Firebase authentication is not properly configured');
+    }
+    
     await signInWithPopup(auth, googleProvider);
     analytics.then(analyticsInstance => {
       if (analyticsInstance) {
@@ -122,6 +143,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const localSignOut = async (path: string = '/') => {
+    if (!auth) {
+      throw new Error('Firebase authentication is not properly configured');
+    }
+    
     await signOut(auth);
     analytics.then(analyticsInstance => {
       if (analyticsInstance) {
@@ -132,14 +157,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const sendVerificationEmail = async () => {
-    if (user && !user.emailVerified) {
-      await sendEmailVerification(user);
+    if (!auth || !user || !user.emailVerified) {
+      if (user && auth) {
+        await sendEmailVerification(user);
+      } else {
+        throw new Error('User not logged in or Firebase not configured');
+      }
     }
   };
 
   const reauthenticate = async (password: string) => {
-    if (!user || !user.email) {
-      throw new Error('User not logged in');
+    if (!user || !user.email || !auth) {
+      throw new Error('User not logged in or Firebase not configured');
     }
 
     const credential = EmailAuthProvider.credential(user.email, password);
@@ -147,8 +176,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateUserPassword = async (currentPassword: string, newPassword: string) => {
-    if (!user) {
-      throw new Error('User not logged in');
+    if (!user || !auth) {
+      throw new Error('User not logged in or Firebase not configured');
     }
 
     // Reauthenticate user first
@@ -165,6 +194,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const resetPassword = async (email: string) => {
+    if (!auth) {
+      throw new Error('Firebase authentication is not properly configured');
+    }
+    
     try {
       await sendPasswordResetEmail(auth, email);
       analytics.then(analyticsInstance => {
@@ -182,6 +215,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     user,
     loading,
     isAdmin,
+    isFirebaseConfigured: !!auth,
     signIn,
     signUp,
     signInWithGoogle,

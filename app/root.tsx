@@ -9,9 +9,10 @@ import {
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { AnalyticsProvider } from './contexts/AnalyticsContext';
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { cn } from './lib/utils';
 import { Toaster } from 'sonner';
+import { initializeGoogleAds } from './lib/firebase';
 
 import './app.css';
 
@@ -67,6 +68,11 @@ export const links = () => {
 };
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  // Initialize Google Ads when the component mounts
+  useEffect(() => {
+    initializeGoogleAds();
+  }, []);
+
   return (
     <html lang="en" className="antialiased" suppressHydrationWarning>
       <head>
