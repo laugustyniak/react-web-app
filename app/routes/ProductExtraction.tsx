@@ -15,7 +15,7 @@ import {
   getProductById 
 } from '~/lib/firestoreService';
 import { DocumentSnapshot } from 'firebase/firestore';
-import type { VideoData, VideoFrame, UIProduct as Product, SimilarProduct } from '../types/models';
+import type { VideoData, VideoFrame, UIProduct as Product, SimilarProduct, MultipleProducts } from '../types/models';
 
 const API_KEY = "insbuy-a14727b1-58a6-43ad-beae-b393ca192708"
 const API_URL = "http://localhost:8051";
@@ -43,9 +43,9 @@ const ProductExtraction = () => {
   const [generatedInspirations, setGeneratedInspirations] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   // State for product description API response
-  const [productDescription, setProductDescription] = useState<string | null>(null);
-  const [isProductDescriptionLoading, setIsProductDescriptionLoading] = useState<boolean>(false);
-  const [productDescriptionError, setProductDescriptionError] = useState<string | null>(null);
+  const [extractedProducts, setExtractedProducts] = useState<MultipleProducts | null>(null);
+  const [isExtractedProductsLoading, setIsExtractedProductsLoading] = useState<boolean>(false);
+  const [extractedProductsError, setExtractedProductsError] = useState<string | null>(null);
   
   // Default video ID from the requirement
   const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
@@ -162,9 +162,9 @@ const ProductExtraction = () => {
     if (selectedFrameIndex === null || !frames[selectedFrameIndex]) return;
     setIsAnalyzing(true);
     setError(null);
-    setProductDescription(null);
-    setProductDescriptionError(null);
-    setIsProductDescriptionLoading(true);
+    setExtractedProducts(null);
+    setExtractedProductsError(null);
+    setIsExtractedProductsLoading(true);
     try {
       // Get selected frame
       const selectedFrame = frames[selectedFrameIndex];
@@ -198,16 +198,22 @@ const ProductExtraction = () => {
       });
       if (!descResponse.ok) {
         const errText = await descResponse.text();
-        setProductDescriptionError(`API error: ${errText}`);
+        setExtractedProductsError(`API error: ${errText}`);
       } else {
         const descData = await descResponse.json();
-        // The API returns a string, but may be wrapped in { result: ... } or similar, so handle both
-        setProductDescription(typeof descData === 'string' ? descData : (descData.result || JSON.stringify(descData)));
+        // Expect descData to be an object with a 'products' array
+        if (descData && Array.isArray(descData.products)) {
+          setExtractedProducts({ products: descData.products });
+        } else if (descData && descData.result && Array.isArray(descData.result.products)) {
+          setExtractedProducts({ products: descData.result.products });
+        } else {
+          setExtractedProductsError('Unexpected API response format');
+        }
       }
     } catch (err) {
-      setProductDescriptionError(err instanceof Error ? err.message : 'Failed to get product description');
+      setExtractedProductsError(err instanceof Error ? err.message : 'Failed to get product description');
     } finally {
-      setIsProductDescriptionLoading(false);
+      setIsExtractedProductsLoading(false);
       setIsAnalyzing(false);
     }
 
@@ -435,14 +441,27 @@ const ProductExtraction = () => {
                     </Button>
                     {/* Show product description API response below the button */}
                     <div className="w-full max-w-2xl mt-4">
-                      {isProductDescriptionLoading && (
+                      {isExtractedProductsLoading && (
                         <Alert className="mb-2"><AlertDescription>Loading product description...</AlertDescription></Alert>
                       )}
-                      {productDescriptionError && (
-                        <Alert variant="destructive" className="mb-2"><AlertDescription>{productDescriptionError}</AlertDescription></Alert>
+                      {extractedProductsError && (
+                        <Alert variant="destructive" className="mb-2"><AlertDescription>{extractedProductsError}</AlertDescription></Alert>
                       )}
-                      {productDescription && (
-                        <Alert className="mb-2"><AlertDescription>{productDescription}</AlertDescription></Alert>
+                      {extractedProducts && extractedProducts.products && extractedProducts.products.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {extractedProducts.products.map((prod: import('../types/models').Product, idx: number) => (
+                            <Card key={prod.product_id || idx} className="mb-2">
+                              <div className="p-4">
+                                <h4 className="text-lg font-semibold mb-2">{prod.product_name || prod.product_name}</h4>
+                                {/* <p className="text-sm mb-1"><strong>ID:</strong> {prod.product_id}</p> */}
+                                <p className="text-sm mb-1"><strong>Description:</strong> {prod.description_in_english}</p>
+                                {/* <p className="text-sm mb-1"><strong>Description (Lang):</strong> {prod.description_in_language}</p>
+                                <p className="text-sm mb-1"><strong>Search Query:</strong> {prod.search_query}</p>
+                                <p className="text-sm mb-1"><strong>Search Query (Lang):</strong> {prod.search_query_in_language}</p> */}
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
