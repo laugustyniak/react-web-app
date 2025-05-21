@@ -139,6 +139,46 @@ This project uses [Changesets](https://github.com/changesets/changesets) for aut
   ```
   This will publish your package if you use a registry.
 
+### Step-by-step example
+
+1. **Make code changes** to your application
+
+2. **Create a changeset** to document your changes:
+   ```bash
+   npx changeset
+   ```
+   - Select the type of version bump:
+     - **patch**: for bug fixes and minor changes
+     - **minor**: for new features that don't break existing functionality
+     - **major**: for breaking changes
+   - Enter a detailed description of your changes for the changelog
+
+3. **Commit your changeset**:
+   ```bash
+   git add .changeset/*.md
+   git commit -m "Add changeset for [feature description]"
+   ```
+
+4. **Update the version** in your package.json and create/update the changelog:
+   ```bash
+   npm run version
+   ```
+   This will:
+   - Consume the changeset files
+   - Update package.json with the new version
+   - Create or update CHANGELOG.md
+
+5. **Commit the version changes**:
+   ```bash
+   git add package.json CHANGELOG.md
+   git commit -m "Bump version to [new version]"
+   ```
+
+6. **Push your changes** to your repository:
+   ```bash
+   git push
+   ```
+
 See the [Changesets documentation](https://github.com/changesets/changesets) for more details.
 
 ## Tech Stack
