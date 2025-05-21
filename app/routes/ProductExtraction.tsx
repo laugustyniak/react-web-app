@@ -8,20 +8,31 @@ import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Badge } from "~/components/ui/badge";
 import { Separator } from "~/components/ui/separator";
 import { Progress } from "~/components/ui/progress";
+import { 
+  getAllVideos, 
+  getFramesByVideoId, 
+  getProductsByIds, 
+  getProductById 
+} from '~/lib/firestoreService';
+import { DocumentSnapshot } from 'firebase/firestore';
 
 // Mock types
 interface VideoData {
   video_id: string;
   video_url: string;
-  duration_ms: number;
+  duration_s: number;
+  title?: string;
 }
 
+// Using the VideoFrame type as defined in videoService but with our needed properties
 interface VideoFrame {
   frame_id: string;
   video_id: string;
   frame_number: number;
   timestamp_ms: number;
-  frame_path: string;
+  frame_path?: string;
+  image_url?: string; // Our UI uses this
+  storage_url?: string;
   scene_score?: number;
 }
 
@@ -57,9 +68,13 @@ const ProductExtraction = () => {
   const [videoData, setVideoData] = useState<VideoData | null>(null);
   const [frames, setFrames] = useState<VideoFrame[]>([]);
   const [selectedFrameIndex, setSelectedFrameIndex] = useState<number | null>(null);
+  const [availableVideos, setAvailableVideos] = useState<VideoData[]>([]);
+  const [lastVideoDoc, setLastVideoDoc] = useState<DocumentSnapshot | null>(null);
+  const [hasMoreVideos, setHasMoreVideos] = useState<boolean>(true);
   
   // State for product analysis
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [isLoadingVideos, setIsLoadingVideos] = useState<boolean>(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [similarProducts, setSimilarProducts] = useState<Record<string, SimilarProduct[]>>({});
   const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
@@ -67,37 +82,78 @@ const ProductExtraction = () => {
   const [generatedInspirations, setGeneratedInspirations] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   
-  // Example video URLs
-  const exampleVideos = [
-    'https://www.youtube.com/watch?v=LCmYC2qeqM0',
-    'https://www.youtube.com/watch?v=8X_m6E3XEaw'
-  ];
+  // Default video ID from the requirement
+  const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
+  
 
-  // Mock API calls
+
+  // Load all available videos from Firebase on component mount
+  useEffect(() => {
+    loadVideosFromFirebase();
+    
+    // Set the default video URL if availableVideos is empty
+    if (videoUrl === '') {
+      setVideoUrl('https://www.youtube.com/watch?v=8X_m6E3XEaw');
+    }
+  }, []);
+
+
+
+  // Load videos from Firestore
+  const loadVideosFromFirebase = async () => {
+    try {
+      setIsLoadingVideos(true);
+      const { documents, lastDoc, hasMore } = await getAllVideos(10, lastVideoDoc);
+      
+      setAvailableVideos(prev => [...prev, ...documents]);
+      setLastVideoDoc(lastDoc);
+      setHasMoreVideos(hasMore);
+      
+      // If we have videos and no videoData set, load the first one (or the default one)
+      if (documents.length > 0 && !videoData) {
+        const defaultVideo = documents.find(v => v.video_id === DEFAULT_VIDEO_ID) || documents[0];
+        setVideoData(defaultVideo);
+        await loadFrames(defaultVideo.video_id);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load videos from Firebase');
+    } finally {
+      setIsLoadingVideos(false);
+    }
+  };
+
+  // Load more videos from Firebase
+  const loadMoreVideos = () => {
+    if (hasMoreVideos && !isLoadingVideos) {
+      loadVideosFromFirebase();
+    }
+  };
+
+  // Load a specific video
   const loadVideo = async (url: string) => {
     try {
       setError(null);
       
-      // Mock API call
-      const response = await fetch('/api/videos/load', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ video_url: url })
-      });
+      // Find the video in our available videos by URL or use the first one
+      const videoByUrl = availableVideos.find(v => v.video_url === url);
       
-      if (!response.ok) throw new Error('Failed to load video');
-      
-      // Mock response
-      const data: VideoData = {
-        video_id: 'video_' + Date.now(),
-        video_url: url,
-        duration_ms: 180000 // Mock 3 minutes duration
-      };
-      
-      setVideoData(data);
-      
-      // Load frames for this video
-      await loadFrames(data.video_id);
+      if (videoByUrl) {
+        setVideoData(videoByUrl);
+        await loadFrames(videoByUrl.video_id);
+      } else {
+        // If not in our list, try to find it by the default ID
+        const defaultVideo = availableVideos.find(v => v.video_id === DEFAULT_VIDEO_ID);
+        if (defaultVideo) {
+          setVideoData(defaultVideo);
+          await loadFrames(defaultVideo.video_id);
+        } else if (availableVideos.length > 0) {
+          // Fall back to the first video in the list
+          setVideoData(availableVideos[0]);
+          await loadFrames(availableVideos[0].video_id);
+        } else {
+          throw new Error('No videos available');
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
     }
@@ -105,22 +161,26 @@ const ProductExtraction = () => {
 
   const loadFrames = async (videoId: string) => {
     try {
-      // Mock API call
-      const response = await fetch(`/api/frames/list?video_id=${videoId}`);
+      setError(null);
+      setIsAnalyzing(true);
       
-      if (!response.ok) throw new Error('Failed to load frames');
+      // Get frames from Firebase
+      const framesData = await getFramesByVideoId(videoId);
       
-      // Mock data for frames
-      const mockFrames: VideoFrame[] = Array(9).fill(null).map((_, idx) => ({
-        frame_id: `frame_${idx}_${Date.now()}`,
-        video_id: videoId,
-        frame_number: idx + 1,
-        timestamp_ms: (idx + 1) * 10000,
-        frame_path: `https://picsum.photos/800/450?random=${idx}`, // Mock image URL
-        scene_score: Math.random()
+      // Convert the frame data to the expected format
+      const formattedFrames: VideoFrame[] = framesData.map((frame, idx) => ({
+        frame_id: frame.frame_id || `frame_${idx}_${Date.now()}`,
+        video_id: frame.video_id,
+        frame_number: frame.frame_number || idx + 1,
+        timestamp_ms: frame.timestamp_ms || (idx + 1) * 10000,
+        frame_path: frame.frame_path,
+        storage_url: frame.storage_url,
+        // Use storage_url, frame_path, or a placeholder for the image
+        image_url: frame.storage_url || frame.frame_path || `https://picsum.photos/800/450?random=${idx}`,
+        scene_score: frame.scene_score || Math.random()
       }));
       
-      setFrames(mockFrames);
+      setFrames(formattedFrames);
       // Clear previous selections
       setSelectedFrameIndex(null);
       setProducts([]);
@@ -128,6 +188,8 @@ const ProductExtraction = () => {
       setInspirationProducts([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load frames');
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -141,16 +203,8 @@ const ProductExtraction = () => {
       // Get selected frame
       const selectedFrame = frames[selectedFrameIndex];
       
-      // Mock API call to analyze products
-      const response = await fetch('/api/products/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ frame_id: selectedFrame.frame_id })
-      });
-      
-      if (!response.ok) throw new Error('Failed to analyze products');
-      
-      // Mock product detection
+      // Call API or get products for this frame from Firebase
+      // For now, we'll use mock data that matches our Product type
       const mockProducts: Product[] = Array(3).fill(null).map((_, idx) => ({
         product_id: `product_${idx}_${Date.now()}`,
         frame_id: selectedFrame.frame_id,
@@ -166,20 +220,13 @@ const ProductExtraction = () => {
         image_path: `https://picsum.photos/200/200?random=${idx}`
       }));
       
+      // In a real implementation, you would query products by frame_id
+      // For example:
+      // const productsData = await getProductsByFrameId(selectedFrame.frame_id);
+      
       setProducts(mockProducts);
       
-      // Mock API call to find similar products
-      const searchResponse = await fetch('/api/products/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          products: mockProducts.map(p => p.product_id)
-        })
-      });
-      
-      if (!searchResponse.ok) throw new Error('Failed to search for similar products');
-      
-      // Generate mock similar products
+      // Generate mock similar products (in real app, you would fetch these from Firebase)
       const mockSimilarProducts: Record<string, SimilarProduct[]> = {};
       mockProducts.forEach(product => {
         mockSimilarProducts[product.product_id] = Array(4).fill(null).map((_, idx) => ({
@@ -268,18 +315,37 @@ const ProductExtraction = () => {
         </p>
         
         <div className="mb-4 flex flex-col gap-2">
-          <h2 className="text-xl font-semibold">Example Video Links:</h2>
+          <h2 className="text-xl font-semibold">Available Videos:</h2>
           <div className="flex flex-wrap gap-2">
-            {exampleVideos.map((url, index) => (
-              <Badge 
-                key={index} 
-                variant="outline"
-                className="cursor-pointer"
-                onClick={() => setVideoUrl(url)}
+            {availableVideos.length > 0 ? (
+              availableVideos.map((video, index) => (
+                <Badge 
+                  key={video.video_id} 
+                  variant={videoData?.video_id === video.video_id ? "default" : "outline"}
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setVideoUrl(video.video_url);
+                    setVideoData(video);
+                    loadFrames(video.video_id);
+                  }}
+                >
+                  {video.video_id === DEFAULT_VIDEO_ID ? '⭐ ' : ''}{video.title ? video.title : video.video_id}
+                </Badge>
+              ))
+            ) : (
+              <p>Loading videos...</p>
+            )}
+            
+            {hasMoreVideos && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={loadMoreVideos}
+                disabled={isLoadingVideos}
               >
-                Example {index + 1}
-              </Badge>
-            ))}
+                {isLoadingVideos ? 'Loading...' : 'Load More Videos'}
+              </Button>
+            )}
           </div>
         </div>
         
@@ -337,14 +403,13 @@ const ProductExtraction = () => {
                       key={frame.frame_id}
                       className="cursor-pointer border-none transition-transform hover:scale-102"
                       onClick={() => setSelectedFrameIndex(idx)}
-                    >
-                      <div className="relative aspect-video">
-                        <img
-                          src={frame.frame_path}
-                          alt={`Frame ${idx + 1}`}
-                          className="absolute top-0 left-0 w-full h-full object-cover"
-                        />
-                      </div>
+                    >                        <div className="relative aspect-video">
+                          <img
+                            src={frame.image_url || frame.storage_url || frame.frame_path || `https://picsum.photos/800/450?random=${idx}`}
+                            alt={`Frame ${idx + 1}`}
+                            className="absolute top-0 left-0 w-full h-full object-cover"
+                          />
+                        </div>
                       <div className="p-2 text-center">
                         <p className="text-sm">Frame {idx + 1}</p>
                       </div>
@@ -516,4 +581,4 @@ const ProductExtraction = () => {
   );
 };
 
-export default ProductExtraction; 
+export default ProductExtraction;

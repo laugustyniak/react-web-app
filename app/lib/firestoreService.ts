@@ -427,3 +427,25 @@ export const getFramesByVideoId = async (videoId: string): Promise<VideoFrame[]>
     return [];
   }
 };
+
+/**
+ * Fetches all videos from Firestore
+ */
+export const getAllVideos = async (
+  limitCount: number = 50,
+  lastDoc?: DocumentSnapshot | null
+): Promise<{
+  documents: { video_id: string; video_url: string; duration_s: number }[];
+  lastDoc: DocumentSnapshot | null;
+  hasMore: boolean;
+}> => {
+  try {
+    return await getCollection<{ video_id: string; video_url: string; duration_s: number }>('videos', {
+      queryConstraints: [orderBy('video_id', 'desc'), limit(limitCount)],
+      lastDoc: lastDoc || undefined,
+    });
+  } catch (error) {
+    console.error('Error fetching videos from Firestore:', error);
+    throw error;
+  }
+};
