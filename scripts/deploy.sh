@@ -6,6 +6,9 @@ VERSION=$(jq -r .version package.json)
 IMAGE_NAME="us-central1-docker.pkg.dev/insbay-b32351/cloud-run-source-deploy/react-web-app"
 REGION="us-central1"
 
+# Create a valid tag by replacing periods with hyphens
+VALID_TAG="v$(echo $VERSION | tr '.' '-')"
+
 echo "🔨 Building Docker image with version $VERSION..."
 docker build -t "$IMAGE_NAME:$VERSION" .
 
@@ -26,9 +29,9 @@ docker push "$IMAGE_NAME:latest"
 echo "🚀 Deploying to Cloud Run..."
 gcloud run deploy react-web-app \
   --image="$IMAGE_NAME:$VERSION" \
-  --tag="v$VERSION" \
+  --tag="$VALID_TAG" \
   --region="$REGION" \
   --platform=managed \
   --allow-unauthenticated
 
-echo "✅ Deployment complete! Service deployed with version $VERSION."
+echo "✅ Deployment complete! Service deployed with version $VERSION and tag $VALID_TAG."
