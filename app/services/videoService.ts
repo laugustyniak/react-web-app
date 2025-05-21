@@ -1,19 +1,4 @@
-// Types for video processing
-export interface VideoData {
-  video_id: string;
-  video_url: string;
-  duration_s: number;
-}
-
-export interface VideoFrame {
-  frame_id: string;
-  video_id: string;
-  frame_number: number;
-  timestamp_ms: number;
-  frame_path: string;
-  storage_url: string;
-  scene_score?: number;
-}
+import type { VideoData, VideoFrame } from '~/types/models';
 
 // Format time in mm:ss
 export const formatTime = (seconds: number) => {

@@ -1,7 +1,8 @@
 import React, { forwardRef, useImperativeHandle, useRef } from 'react';
 import ReactPlayer from 'react-player';
 import { Card } from "~/components/ui/card";
-import type { VideoData } from '~/services/videoService';
+import type { VideoData } from '~/types/models';
+
 
 export interface VideoPlayerRef {
   seekTo: (time: number) => void;

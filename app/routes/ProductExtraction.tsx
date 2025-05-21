@@ -15,52 +15,13 @@ import {
   getProductById 
 } from '~/lib/firestoreService';
 import { DocumentSnapshot } from 'firebase/firestore';
+import type { VideoData, VideoFrame, UIProduct as Product, SimilarProduct } from '../types/models';
 
-// Mock types
-interface VideoData {
-  video_id: string;
-  video_url: string;
-  duration_s: number;
-  title?: string;
-}
+const API_KEY = "insbuy-a14727b1-58a6-43ad-beae-b393ca192708"
+const API_URL = "http://localhost:8051";
 
-// Using the VideoFrame type as defined in videoService but with our needed properties
-interface VideoFrame {
-  frame_id: string;
-  video_id: string;
-  frame_number: number;
-  timestamp_ms: number;
-  frame_path?: string;
-  image_url?: string; // Our UI uses this
-  storage_url?: string;
-  scene_score?: number;
-}
 
-interface Product {
-  product_id: string;
-  frame_id: string;
-  name: string;
-  category: string;
-  confidence: number;
-  bounding_box: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-  image_path: string;
-}
-
-interface SimilarProduct {
-  product_id: string;
-  name: string;
-  brand: string;
-  price: number;
-  currency: string;
-  image_url: string;
-  product_url: string;
-  similarity_score: number;
-}
+// Import types from models
 
 const ProductExtraction = () => {
   // State for video and frame selection
@@ -81,6 +42,10 @@ const ProductExtraction = () => {
   const [inspirationProducts, setInspirationProducts] = useState<Product[]>([]);
   const [generatedInspirations, setGeneratedInspirations] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // State for product description API response
+  const [productDescription, setProductDescription] = useState<string | null>(null);
+  const [isProductDescriptionLoading, setIsProductDescriptionLoading] = useState<boolean>(false);
+  const [productDescriptionError, setProductDescriptionError] = useState<string | null>(null);
   
   // Default video ID from the requirement
   const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
@@ -195,16 +160,62 @@ const ProductExtraction = () => {
 
   const analyzeProducts = async () => {
     if (selectedFrameIndex === null || !frames[selectedFrameIndex]) return;
-    
     setIsAnalyzing(true);
     setError(null);
-    
+    setProductDescription(null);
+    setProductDescriptionError(null);
+    setIsProductDescriptionLoading(true);
     try {
       // Get selected frame
       const selectedFrame = frames[selectedFrameIndex];
-      
-      // Call API or get products for this frame from Firebase
-      // For now, we'll use mock data that matches our Product type
+
+      // --- Product Description API Call ---
+      // Get the image URL (prefer image_url, then storage_url, then frame_path)
+      const imageUrl = selectedFrame.image_url || selectedFrame.storage_url || selectedFrame.frame_path;
+      if (!imageUrl) throw new Error('No image available for selected frame');
+
+      // Fetch the image and convert to base64
+      const imageResponse = await fetch(imageUrl);
+      const imageBlob = await imageResponse.blob();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') resolve(reader.result.split(',')[1]);
+          else reject('Failed to convert image to base64');
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(imageBlob);
+      });
+
+      // Call the product description API
+      const descResponse = await fetch(`${API_URL}/get_product_description`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY
+        },
+        body: JSON.stringify({ base64_image: base64, language: 'english' })
+      });
+      if (!descResponse.ok) {
+        const errText = await descResponse.text();
+        setProductDescriptionError(`API error: ${errText}`);
+      } else {
+        const descData = await descResponse.json();
+        // The API returns a string, but may be wrapped in { result: ... } or similar, so handle both
+        setProductDescription(typeof descData === 'string' ? descData : (descData.result || JSON.stringify(descData)));
+      }
+    } catch (err) {
+      setProductDescriptionError(err instanceof Error ? err.message : 'Failed to get product description');
+    } finally {
+      setIsProductDescriptionLoading(false);
+      setIsAnalyzing(false);
+    }
+
+    // --- Existing mock product analysis logic (unchanged) ---
+    try {
+      // Get selected frame
+      const selectedFrame = frames[selectedFrameIndex];
+      // Mock products
       const mockProducts: Product[] = Array(3).fill(null).map((_, idx) => ({
         product_id: `product_${idx}_${Date.now()}`,
         frame_id: selectedFrame.frame_id,
@@ -219,14 +230,8 @@ const ProductExtraction = () => {
         },
         image_path: `https://picsum.photos/200/200?random=${idx}`
       }));
-      
-      // In a real implementation, you would query products by frame_id
-      // For example:
-      // const productsData = await getProductsByFrameId(selectedFrame.frame_id);
-      
       setProducts(mockProducts);
-      
-      // Generate mock similar products (in real app, you would fetch these from Firebase)
+      // Mock similar products
       const mockSimilarProducts: Record<string, SimilarProduct[]> = {};
       mockProducts.forEach(product => {
         mockSimilarProducts[product.product_id] = Array(4).fill(null).map((_, idx) => ({
@@ -240,12 +245,9 @@ const ProductExtraction = () => {
           similarity_score: 0.9 - (idx * 0.1)
         }));
       });
-      
       setSimilarProducts(mockSimilarProducts);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to analyze products');
-    } finally {
-      setIsAnalyzing(false);
     }
   };
 
@@ -275,9 +277,9 @@ const ProductExtraction = () => {
     
     try {
       // Mock API call
-      const response = await fetch('/api/inspirations/generate', {
+      const response = await fetch(`${API_URL}/inspirations/generate`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-api-key': API_KEY },
         body: JSON.stringify({
           products: inspirationProducts.map(p => p.product_id)
         })
@@ -422,7 +424,7 @@ const ProductExtraction = () => {
                 </div>
                 
                 {selectedFrameIndex !== null && (
-                  <div className="mb-4 flex justify-center">
+                  <div className="mb-4 flex flex-col items-center">
                     <Button 
                       variant="default" 
                       onClick={analyzeProducts}
@@ -431,6 +433,18 @@ const ProductExtraction = () => {
                     >
                       {isAnalyzing ? 'Analyzing...' : 'Analyze and Find Products'}
                     </Button>
+                    {/* Show product description API response below the button */}
+                    <div className="w-full max-w-2xl mt-4">
+                      {isProductDescriptionLoading && (
+                        <Alert className="mb-2"><AlertDescription>Loading product description...</AlertDescription></Alert>
+                      )}
+                      {productDescriptionError && (
+                        <Alert variant="destructive" className="mb-2"><AlertDescription>{productDescriptionError}</AlertDescription></Alert>
+                      )}
+                      {productDescription && (
+                        <Alert className="mb-2"><AlertDescription>{productDescription}</AlertDescription></Alert>
+                      )}
+                    </div>
                   </div>
                 )}
                 

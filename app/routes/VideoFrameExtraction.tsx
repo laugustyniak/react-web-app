@@ -5,7 +5,8 @@ import VideoPlayer from '~/components/video/VideoPlayer';
 import type { VideoPlayerRef } from '~/components/video/VideoPlayer';
 import TimeRangeSelector from '~/components/video/TimeRangeSelector';
 import FrameGrid from '~/components/video/FrameGrid';
-import type { VideoData, VideoFrame } from '../services/videoService';
+import type { VideoData, VideoFrame } from '~/types/models';
+
 import { 
   loadVideo as apiLoadVideo,
   loadSavedFrames as apiLoadSavedFrames,
