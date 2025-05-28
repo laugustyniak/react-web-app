@@ -2,8 +2,13 @@
 export const CONFIG = {
   // Backend API settings
   API: {
-    URL: process.env.BACKEND_API_URL || 'http://localhost:8000',
-    KEY: process.env.INSBUY_API_KEY_1 || '',
+    // In production/SSR, use the proxy route to hide API keys
+    // In development with React Router dev server, use direct backend URL
+    URL: typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+      ? '/api'  // Use proxy in production
+      : process.env.BACKEND_API_URL || 'http://localhost:8000',
+    // API key should not be used on the client side when using proxy
+    KEY: typeof window !== 'undefined' ? '' : (process.env.INSBUY_API_KEY_1 || ''),
   },
 
   // Inspiration generation

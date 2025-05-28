@@ -1,0 +1,306 @@
+openapi: 3.0.3
+info:
+  title: Express SSR API Proxy
+  description: |
+    Express-based Server-Side Rendering API proxy that securely forwards requests to the Python backend while keeping API keys hidden from client-side code.
+
+    ## Features
+    - **Secure API Key Management**: API keys are handled server-side only
+    - **Request Proxying**: All `/api/*` requests are forwarded to the Python backend
+    - **Error Handling**: Comprehensive error responses with appropriate status codes
+    - **Development Support**: Special development mode endpoints for testing
+
+    ## Security
+    All requests to `/api/*` endpoints automatically include the required API key authentication when forwarding to the backend. Client applications never need to handle API keys directly.
+
+  version: 1.0.0
+  contact:
+    name: React Web App API
+    email: support@insbuy.com
+
+servers:
+  - url: http://localhost:5000
+    description: Development server
+  - url: https://your-production-domain.com
+    description: Production server
+
+paths:
+  /:
+    get:
+      summary: Health check endpoint
+      description: Returns server status and configuration information
+      tags:
+        - Health
+      responses:
+        "200":
+          description: Server is running successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Express server running in development mode"
+                  api_proxy:
+                    type: string
+                    example: "Available at /api/*"
+                  note:
+                    type: string
+                    example: "For full app development, use: npm run dev"
+
+  /api/health:
+    get:
+      summary: Backend health check
+      description: Proxied health check to the Python backend
+      tags:
+        - API Proxy
+      responses:
+        "200":
+          description: Backend is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  timestamp:
+                    type: string
+                    format: date-time
+        "404":
+          description: Health endpoint not implemented on backend
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Backend server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/inpaint:
+    post:
+      summary: Image inpainting
+      description: |
+        Performs AI-powered image inpainting using the provided image, mask, and prompt.
+        This endpoint proxies the request to the Python backend with automatic API key authentication.
+      tags:
+        - AI Services
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - prompt
+                - image
+              properties:
+                prompt:
+                  type: string
+                  description: Text description of what should be generated in the masked area
+                  example: "a beautiful landscape with mountains and trees"
+                  minLength: 1
+                  maxLength: 1000
+                image:
+                  type: string
+                  description: Base64-encoded image data (with data URL prefix)
+                  example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                  pattern: "^data:image/(png|jpeg|jpg|webp);base64,"
+                mask:
+                  type: string
+                  description: Base64-encoded mask image (white areas will be inpainted)
+                  example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+                  pattern: "^data:image/(png|jpeg|jpg|webp);base64,"
+                guidance_scale:
+                  type: number
+                  description: How closely to follow the prompt (1.0-20.0)
+                  minimum: 1.0
+                  maximum: 20.0
+                  default: 7.5
+                  example: 7.5
+                num_inference_steps:
+                  type: integer
+                  description: Number of denoising steps (1-100)
+                  minimum: 1
+                  maximum: 100
+                  default: 20
+                  example: 20
+                strength:
+                  type: number
+                  description: How much to transform the image (0.0-1.0)
+                  minimum: 0.0
+                  maximum: 1.0
+                  default: 0.8
+                  example: 0.8
+      responses:
+        "200":
+          description: Inpainting completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  image:
+                    type: string
+                    description: Base64-encoded result image
+                    example: "data:image/png;base64,..."
+                  metadata:
+                    type: object
+                    properties:
+                      processing_time:
+                        type: number
+                        description: Time taken to process in seconds
+                        example: 3.45
+                      model_version:
+                        type: string
+                        example: "stable-diffusion-2-inpainting"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                missing_prompt:
+                  summary: Missing prompt
+                  value:
+                    error: "Prompt is required"
+                invalid_image:
+                  summary: Invalid image format
+                  value:
+                    error: "Image must be a valid base64-encoded image"
+        "422":
+          description: Request validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Server error during processing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/{proxy+}:
+    get:
+      summary: Generic GET proxy
+      description: Proxies any GET request to the backend API
+      tags:
+        - API Proxy
+      parameters:
+        - name: proxy+
+          in: path
+          required: true
+          description: The backend endpoint path
+          schema:
+            type: string
+            example: "models/list"
+      responses:
+        "200":
+          description: Successful response from backend
+          content:
+            application/json:
+              schema:
+                type: object
+        "404":
+          description: Endpoint not found on backend
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Backend or proxy error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Generic POST proxy
+      description: Proxies any POST request to the backend API
+      tags:
+        - API Proxy
+      parameters:
+        - name: proxy+
+          in: path
+          required: true
+          description: The backend endpoint path
+          schema:
+            type: string
+            example: "generate/text"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request body will be forwarded as-is to the backend
+      responses:
+        "200":
+          description: Successful response from backend
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Backend or proxy error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Invalid request parameters"
+        message:
+          type: string
+          description: Detailed error description (development mode only)
+          example: "The 'prompt' field is required and cannot be empty"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 400
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: |
+        API key authentication (handled automatically by the proxy).
+        Client applications do not need to provide this header - it's added server-side.
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: Health
+    description: Server health and status endpoints
+  - name: API Proxy
+    description: Generic proxy endpoints that forward requests to the backend
+  - name: AI Services
+    description: AI-powered services like image generation and processing
+
+externalDocs:
+  description: Find more info about the React Web App
+  url: https://github.com/your-username/react-web-app

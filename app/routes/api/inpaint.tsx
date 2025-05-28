@@ -20,33 +20,63 @@ export async function action({ request }: { request: Request }) {
     // Get request body
     const body = await request.json();
     
-    // Forward the request to the Python backend
-    const response = await fetch(`${API_URL}/inpaint`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': API_KEY
-      },
-      body: JSON.stringify(body)
-    });
+    // Check if we're using the proxy (API_KEY will be empty on client)
+    const isUsingProxy = !API_KEY;
+    
+    if (isUsingProxy) {
+      // Using Express proxy - API key is handled server-side
+      const response = await fetch(`${API_URL}/inpaint`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Backend API error:', errorText);
-      return new Response(
-        JSON.stringify({ error: `Backend API returned ${response.status}: ${errorText}` }), 
-        { 
-          status: response.status,
-          headers: { 'Content-Type': 'application/json' }
-        }
-      );
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Proxy API error:', errorText);
+        return new Response(
+          JSON.stringify({ error: `API returned ${response.status}: ${errorText}` }), 
+          { 
+            status: response.status,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(JSON.stringify(data), {
+        headers: { 'Content-Type': 'application/json' }
+      });
+    } else {
+      // Direct backend call (development mode)
+      const response = await fetch(`${API_URL}/inpaint`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': API_KEY
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Backend API error:', errorText);
+        return new Response(
+          JSON.stringify({ error: `Backend API returned ${response.status}: ${errorText}` }), 
+          { 
+            status: response.status,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        );
+      }
+
+      const data = await response.json();
+      return new Response(JSON.stringify(data), {
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
-
-    // Return the response from the backend
-    const data = await response.json();
-    return new Response(JSON.stringify(data), {
-      headers: { 'Content-Type': 'application/json' }
-    });
   } catch (error) {
     console.error('Error in inpaint API route:', error);
     return new Response(
