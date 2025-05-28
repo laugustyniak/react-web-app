@@ -5,24 +5,11 @@ export default function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  remixContext: EntryContext,
+  entryContext: EntryContext,
   loadContext: AppLoadContext
 ) {
-  // For React Router v7, we need to render the app differently
-  // The framework handles the routing internally
-  const markup = renderToString(
-    // React Router v7 handles this internally, we just need to provide the handler
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>React Web App</title>
-      </head>
-      <body>
-        <div id="root" />
-      </body>
-    </html>
-  );
+  // For React Router v7, the framework provides the rendered content in entryContext
+  const markup = renderToString(entryContext.appShell);
 
   responseHeaders.set('Content-Type', 'text/html');
 
