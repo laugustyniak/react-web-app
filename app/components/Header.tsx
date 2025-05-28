@@ -54,7 +54,7 @@ function Header() {
   // Check if the path is an internal tool path
   const isInternalToolPath = useCallback(
     (path: string) => {
-      return ['/video-frame-extraction', '/product-extraction', '/generate-inspiration'].includes(path);
+      return ['/video-frame-extraction', '/product-extraction', '/generate-inspiration', '/generate-inspiration-v2'].includes(path);
     },
     []
   );
@@ -243,6 +243,16 @@ function Header() {
                   >
                     ✨ Generate Inspiration
                   </Button>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      'justify-start px-2 py-4 text-base',
+                      isActive('/generate-inspiration-v2') && 'bg-accent text-accent-foreground'
+                    )}
+                    onClick={() => navigateTo('/generate-inspiration-v2')}
+                  >
+                    🎨 Konva Image Editor
+                  </Button>
                 </div>
               </div>
             )}
@@ -378,6 +388,15 @@ function Header() {
                     onClick={() => navigateTo('/generate-inspiration')}
                   >
                     ✨ Generate Inspiration
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    className={cn(
+                      "cursor-pointer",
+                      isActive('/generate-inspiration-v2') && 'bg-accent text-accent-foreground'
+                    )}
+                    onClick={() => navigateTo('/generate-inspiration-v2')}
+                  >
+                    🎨 Konva Image Editor
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

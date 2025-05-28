@@ -2,7 +2,7 @@
 // This adapter module provides a clean interface to Konva and React-Konva
 // while handling the ES Module/CommonJS compatibility issues
 
-// Import from main package directly
+// Import from main package directly - use same pattern as react-konva-wrapper.ts
 import { 
   Stage, 
   Layer, 
@@ -22,7 +22,7 @@ import {
   Ring,
   Wedge,
   Ellipse
-} from 'react-konva';
+} from 'react-konva/lib/ReactKonvaStage';
 
 // Import Konva dynamically to avoid ESM issues
 let Konva = null;

@@ -1,5 +1,5 @@
 // react-konva-wrapper.ts - TypeScript version with proper types
-import { Stage, Layer, Rect, Circle, Line, Text, Image, Group, Shape, Label, Tag, Path } from 'react-konva/lib/ReactKonvaStage';
+import { Stage, Layer, Rect, Circle, Line, Text, Image, Group, Shape, Label, Tag, Path } from 'react-konva';
 import type {
     StageProps, LayerProps, RectProps, CircleProps, LineProps, TextProps,
     ImageProps, GroupProps, ShapeProps, LabelProps, TagProps, PathProps

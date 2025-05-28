@@ -14,6 +14,13 @@ export function useCanvasExport(
     // Function to save canvas as image
     const saveAsImage = async () => {
         if (!canvasRef.current) return;
+
+        // Check if there are any images on the canvas
+        if (images.length === 0) {
+            toast.error('Cannot export an empty canvas. Please add at least one image.');
+            return;
+        }
+
         try {
             // Remove selection highlighting temporarily for clean export
             const selectedImage = images.find(img => img.selected);
@@ -61,6 +68,11 @@ export function useCanvasExport(
                 throw new Error('All image capture methods failed');
             }
 
+            // Validate that the image contains actual data (not an empty canvas)
+            if (!validateImageData(imageData)) {
+                throw new Error('Generated image appears to be empty');
+            }
+
             // Create and trigger download
             const link = document.createElement('a');
             link.download = `canvas-export-${new Date().toISOString().slice(0, 10)}.png`;
@@ -80,6 +92,28 @@ export function useCanvasExport(
             console.error('Failed to export canvas as image:', error);
             toast.error(`Failed to export canvas as image: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
+    };
+
+    // Function to validate image data
+    const validateImageData = (imageData: string): boolean => {
+        // Check if the image data is empty or suspiciously small
+        if (!imageData || typeof imageData !== 'string') return false;
+
+        // Basic validation: check if it's a proper data URL
+        if (!imageData.startsWith('data:image/')) return false;
+
+        // Check if the base64 part exists and is not empty
+        const base64Data = imageData.split(',')[1];
+        if (!base64Data || base64Data.trim() === '') return false;
+
+        // If base64 length is too small, it might be an empty or corrupt image
+        // A 1x1 transparent pixel is about 68 chars, so check for something larger
+        if (base64Data.length < 100) {
+            console.warn("Image data suspiciously small, might be empty:", base64Data.length);
+            return false;
+        }
+
+        return true;
     };
 
     // Function to export canvas state

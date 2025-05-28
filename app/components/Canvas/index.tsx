@@ -17,6 +17,7 @@ import type { Product } from '~/lib/dataTypes';
 import CanvasToolbar from './components/CanvasToolbar';
 import CanvasArea from './components/CanvasArea';
 import PromptInputs from './components/PromptInputs';
+import GeneratedInspirations from './components/GeneratedInspirations';
 import { useCanvasImages } from './hooks/useCanvasImages';
 import { useImageManipulation } from './hooks/useImageManipulation';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
@@ -39,6 +40,40 @@ export default function Canvas() {
     selectImage,
     deselectAllImages
   } = useCanvasImages();
+  
+  // Function to verify canvas state before operations
+  const verifyCanvasState = (): boolean => {
+    if (images.length === 0) {
+      toast.error('Cannot proceed with an empty canvas. Please add at least one image.');
+      return false;
+    }
+    
+    if (!canvasRef.current) {
+      toast.error('Canvas reference not available. Please try reloading the page.');
+      return false;
+    }
+    
+    const { offsetWidth, offsetHeight } = canvasRef.current;
+    if (offsetWidth === 0 || offsetHeight === 0) {
+      toast.error('Canvas has invalid dimensions. Please try reloading the page.');
+      console.error('Canvas has zero dimensions:', { offsetWidth, offsetHeight });
+      return false;
+    }
+    
+    // Check if any images failed to load
+    const failedImages = images.filter(img => {
+      const imgEl = document.querySelector(`img[src="${img.src}"]`);
+      return !imgEl || !(imgEl as HTMLImageElement).complete;
+    });
+    
+    if (failedImages.length > 0) {
+      toast.error(`${failedImages.length} image(s) failed to load properly. This may affect the output.`);
+      console.warn('Failed images:', failedImages);
+      // We don't return false here to allow the user to proceed if they want to
+    }
+    
+    return true;
+  };
   
   const {
     selectedTool,
@@ -82,7 +117,8 @@ export default function Canvas() {
     generateInspiration,
     showResultModal,
     setShowResultModal,
-    generatedImage
+    generatedImage,
+    generatedImages
   } = useInspirationGeneration(canvasRef, deselectAllImages, images.length > 0);
   
   // Product search state
@@ -131,6 +167,20 @@ export default function Canvas() {
     }
   };
   
+  // Wrap save as image with verification
+  const handleSaveAsImage = async () => {
+    if (verifyCanvasState()) {
+      await saveAsImage();
+    }
+  };
+  
+  // Wrap generate inspiration with verification
+  const handleGenerateInspiration = async () => {
+    if (verifyCanvasState()) {
+      await generateInspiration();
+    }
+  };
+  
   // Handle global mouse events
   useEffect(() => {
     const handleGlobalMouseUp = () => {
@@ -144,6 +194,36 @@ export default function Canvas() {
     };
   }, []);
   
+  // Add debug logging for canvas issues
+  useEffect(() => {
+    if (images.length > 0 && canvasRef.current) {
+      // Log canvas dimensions periodically
+      const logCanvasState = () => {
+        const { offsetWidth, offsetHeight } = canvasRef.current!;
+        console.log('Canvas dimensions:', { 
+          offsetWidth, 
+          offsetHeight, 
+          imageCount: images.length,
+          imagesComplete: images.filter(img => {
+            const imgEl = document.querySelector(`img[src="${img.src}"]`);
+            return imgEl && (imgEl as HTMLImageElement).complete;
+          }).length
+        });
+      };
+      
+      // Log initially
+      setTimeout(logCanvasState, 500);
+      
+      // And after any browser resize
+      const handleResize = () => {
+        setTimeout(logCanvasState, 100);
+      };
+      
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [images, canvasRef]);
+
   // Redirect if not authenticated or not admin
   if (!user) {
     return <Navigate to="/sign-in" />;
@@ -185,7 +265,7 @@ export default function Canvas() {
             handleDelete={handleDelete}
             handleFileUpload={handleFileUpload}
             fileInputRef={fileInputRef}
-            saveAsImage={saveAsImage}
+            saveAsImage={handleSaveAsImage}
             exportCanvasState={exportCanvasState}
             importCanvasState={importCanvasState}
             handleClearCanvas={handleClearCanvas}
@@ -225,18 +305,22 @@ export default function Canvas() {
             <Button
               variant="default"
               size="lg"
-              onClick={generateInspiration}
+              onClick={handleGenerateInspiration}
               disabled={images.length === 0 || isGenerating}
               className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
             >
               <Wand2 size={18} />
               {isGenerating ? "Generating..." : "Generate Inspiration"}
             </Button>
+            
+            {/* Display Generated Inspirations */}
+            <GeneratedInspirations images={generatedImages} />
           </div>
         </div>
         
+        {/* Keep modal for backward compatibility, but we're not showing it anymore */}
         <InspirationResultModal
-          isOpen={showResultModal}
+          isOpen={false} // Changed from showResultModal to always be false
           onClose={() => setShowResultModal(false)}
           imageData={generatedImage}
         />

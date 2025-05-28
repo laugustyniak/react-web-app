@@ -7,7 +7,7 @@ import { Textarea } from '~/components/ui/textarea';
 import { Label } from '~/components/ui/label';
 import { insertInspiration, getProgramById } from '~/lib/firestoreService';
 import { toast } from 'sonner';
-import { uploadFile } from '~/lib/fileUploadService';
+import { uploadFile, uploadBase64Image } from '~/lib/fileUploadService';
 import { Loader2 } from 'lucide-react';
 import { MultiCombobox, SingleCombobox } from '~/components/ui/combobox';
 import { useProducts } from '~/hooks/useProducts';
@@ -17,12 +17,14 @@ interface CreateInspirationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
+  initialImageUrl?: string | null;
 }
 
 export function CreateInspirationModal({
   open,
   onOpenChange,
   onSuccess,
+  initialImageUrl
 }: CreateInspirationModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -36,18 +38,18 @@ export function CreateInspirationModal({
   const { programs, loading: loadingPrograms } = usePrograms();
   const { products, loading } = useProducts();
 
-  // Reset form when modal opens
+  // Reset form when modal opens and set the initial image URL if provided
   useEffect(() => {
     if (open) {
       setTitle('');
       setDescription('');
       setLogoUrl('');
       setProgramTitle('');
-      setImageUrl('');
+      setImageUrl(initialImageUrl || '');
       setSelectedProgram('');
       setSelectedProducts([]);
     }
-  }, [open]);
+  }, [open, initialImageUrl]);
 
   // Fetch program logo when program is selected
   useEffect(() => {
@@ -74,11 +76,24 @@ export function CreateInspirationModal({
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
     try {
+      let finalImageUrl = imageUrl;
+      
+      // If we're using a base64 image (from generated inspirations), upload it first
+      if (imageUrl && imageUrl.startsWith('data:image')) {
+        setIsUploading(true);
+        const uploadResult = await uploadBase64Image(imageUrl);
+        if (uploadResult.success) {
+          finalImageUrl = uploadResult.data.file.urls.original;
+        }
+        setIsUploading(false);
+      }
+      
       await insertInspiration({
         title,
         description,
-        imageUrl,
+        imageUrl: finalImageUrl,
         logoUrl,
         program: selectedProgram,
         programTitle,
@@ -89,10 +104,12 @@ export function CreateInspirationModal({
         commentCount: 0,
         date: new Date().toISOString(),
       });
+      
       toast.success('Inspiration created successfully');
       onSuccess?.();
       onOpenChange(false);
     } catch (error) {
+      console.error('Error creating inspiration:', error);
       toast.error('Failed to create inspiration');
     }
   };
@@ -193,7 +210,7 @@ export function CreateInspirationModal({
                 type="button"
                 variant="outline"
                 onClick={handleUploadClick}
-                disabled={isUploading}
+                disabled={isUploading || (!!initialImageUrl && !!imageUrl)}
                 className="w-full cursor-pointer"
               >
                 {isUploading ? (
@@ -201,14 +218,20 @@ export function CreateInspirationModal({
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Uploading...
                   </>
+                ) : imageUrl ? (
+                  'Change Image'
                 ) : (
                   'Upload Image'
                 )}
               </Button>
             </div>
           </div>
-          <Button type="submit" className="w-full cursor-pointer">
-            Create
+          <Button 
+            type="submit" 
+            className="w-full cursor-pointer"
+            disabled={isUploading}
+          >
+            {isUploading ? 'Processing...' : 'Create'}
           </Button>
         </form>
       </DialogContent>

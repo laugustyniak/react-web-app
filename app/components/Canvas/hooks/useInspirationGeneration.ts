@@ -5,6 +5,12 @@ import { captureElementAsImage } from '~/lib/canvasUtils';
 import { htmlToPng } from '~/lib/svgUtils';
 import { captureElementDirectly } from '~/lib/directCanvasCapture';
 
+type GeneratedImage = {
+    id: string;
+    data: string;
+    timestamp: Date;
+};
+
 export function useInspirationGeneration(
     canvasRef: React.RefObject<HTMLDivElement | null>,
     deselectAllImages: () => void,
@@ -13,14 +19,53 @@ export function useInspirationGeneration(
     const [isGenerating, setIsGenerating] = useState(false);
     const [showResultModal, setShowResultModal] = useState(false);
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+    const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
 
     // Default prompts
     const defaultPrompt = "Create a sophisticated home decor lifestyle photo featuring elegant furniture and decorative items in a bright, airy living space. Show products in a realistic, high-end home setting with soft natural sunlight streaming through large windows. Include tasteful styling with neutral color palette, layered textures, and organic materials. Capture the products from an editorial perspective with professional composition and depth of field";
     const defaultNegativePrompt = "text, watermarks, logos, poor quality, blurry, artificial lighting, cluttered space, oversaturated colors, distorted proportions, unrealistic shadows, cartoon style, illustration, digital art style";
 
     const [prompt, setPrompt] = useState<string>(defaultPrompt);
-    const [negativePrompt, setNegativePrompt] = useState<string>(defaultNegativePrompt);    const generateInspiration = async () => {
-        if (!canvasRef.current || !hasImages) {
+    const [negativePrompt, setNegativePrompt] = useState<string>(defaultNegativePrompt);
+
+    // Function to validate image data
+    const validateImageData = (imageData: string | null): boolean => {
+        if (!imageData || typeof imageData !== 'string') {
+            console.error("Image data is null or not a string");
+            return false;
+        }
+
+        // Validate the base64 string format
+        if (!imageData.startsWith('data:image/')) {
+            console.error("Invalid image data format - doesn't start with 'data:image/'");
+            return false;
+        }
+
+        // Extract the base64 data by removing the prefix
+        const base64Data = imageData.split(',')[1];
+
+        // Validate that we have actual base64 data
+        if (!base64Data || base64Data.trim() === '') {
+            console.error("Empty base64 data in image");
+            return false;
+        }
+
+        // If base64 length is too small, it might be an empty or corrupt image
+        if (base64Data.length < 100) {
+            console.warn("Image data suspiciously small, might be empty:", base64Data.length);
+            return false;
+        }
+
+        return true;
+    };
+
+    const generateInspiration = async () => {
+        if (!canvasRef.current) {
+            toast.error('Canvas reference is not available');
+            return;
+        }
+
+        if (!hasImages) {
             toast.error('Please add at least one image to the canvas');
             return;
         }
@@ -41,7 +86,7 @@ export function useInspirationGeneration(
 
             // Try multiple approaches in order, with fallbacks
             let imageData: string | null = null;
-            
+
             // Method 1: Try the SVG-based approach first (should handle most cases)
             try {
                 imageData = await htmlToPng(canvasRef.current);
@@ -49,7 +94,7 @@ export function useInspirationGeneration(
             } catch (svgError) {
                 console.warn("SVG conversion failed with error:", svgError);
             }
-            
+
             // Method 2: If SVG approach fails, try direct canvas capture
             if (!imageData) {
                 try {
@@ -60,7 +105,7 @@ export function useInspirationGeneration(
                     console.warn("Direct canvas capture failed with error:", directError);
                 }
             }
-            
+
             // Method 3: If both fail, fall back to the original html2canvas method
             if (!imageData) {
                 try {
@@ -74,18 +119,13 @@ export function useInspirationGeneration(
 
             if (!imageData) throw new Error('All capture methods failed - unable to capture canvas image');
 
-            // Validate the base64 string format
-            if (!imageData.startsWith('data:image/png;base64,')) {
-                throw new Error('Invalid image data format');
+            // Validate the image data
+            if (!validateImageData(imageData)) {
+                throw new Error('Canvas capture resulted in empty or invalid image data');
             }
 
             // Extract the base64 data by removing the prefix
             const base64Data = imageData.split(',')[1];
-
-            // Validate that we have actual base64 data
-            if (!base64Data || base64Data.trim() === '') {
-                throw new Error('Empty image data');
-            }
 
             // Send only the canvas image to the inpainting API
             const response = await fetch('http://localhost:8051/inpaint', {
@@ -109,8 +149,27 @@ export function useInspirationGeneration(
             const result = await response.json();
 
             // The API returns a base64 encoded image
-            setGeneratedImage(result.image);
-            setShowResultModal(true);
+            console.log("Generate inspiration result:", result);
+            const newImageData = result.image;
+
+            // Validate the returned image
+            if (!validateImageData(`data:image/png;base64,${newImageData}`)) {
+                throw new Error('API returned empty or invalid image data');
+            }
+
+            setGeneratedImage(newImageData);
+
+            // Add the new image to our list of generated images
+            const newImage: GeneratedImage = {
+                id: new Date().getTime().toString(),
+                data: newImageData,
+                timestamp: new Date(),
+            };
+
+            setGeneratedImages(prevImages => [newImage, ...prevImages]);
+
+            // We're not showing the modal anymore, but keeping the state for backward compatibility
+            setShowResultModal(false);
 
             toast.success('Inspiration generated successfully', {
                 id: 'generate-inspiration',
@@ -139,6 +198,7 @@ export function useInspirationGeneration(
         generateInspiration,
         showResultModal,
         setShowResultModal,
-        generatedImage
+        generatedImage,
+        generatedImages
     };
 }
