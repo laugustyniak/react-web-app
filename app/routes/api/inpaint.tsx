@@ -5,12 +5,16 @@ const API_URL = CONFIG.API.URL;
 const API_KEY = CONFIG.API.KEY;
 
 export async function loader() {
+  console.log('[inpaint] loader called');
   return new Response("Method not allowed", { status: 405 });
 }
 
 export async function action({ request }: { request: Request }) {
+  console.log('[inpaint] action called');
   try {
+    console.log(`[inpaint] Request method: ${request.method}`);
     if (request.method !== 'POST') {
+      console.warn('[inpaint] Method not allowed:', request.method);
       return new Response(JSON.stringify({ error: 'Method not allowed' }), {
         status: 405,
         headers: { 'Content-Type': 'application/json' }
@@ -18,13 +22,25 @@ export async function action({ request }: { request: Request }) {
     }
 
     // Get request body
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+      console.log('[inpaint] Request body:', JSON.stringify(body).slice(0, 500));
+    } catch (err) {
+      console.error('[inpaint] Failed to parse JSON body:', err);
+      return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
     
     // Check if we're using the proxy (API_KEY will be empty on client)
     const isUsingProxy = !API_KEY;
-    
+    console.log(`[inpaint] isUsingProxy: ${isUsingProxy}, API_URL: ${API_URL}`);
+
     if (isUsingProxy) {
       // Using Express proxy - API key is handled server-side
+      console.log('[inpaint] Forwarding request to proxy:', `${API_URL}/inpaint`);
       const response = await fetch(`${API_URL}/inpaint`, {
         method: 'POST',
         headers: {
@@ -33,9 +49,10 @@ export async function action({ request }: { request: Request }) {
         body: JSON.stringify(body)
       });
 
+      console.log('[inpaint] Proxy response status:', response.status);
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Proxy API error:', errorText);
+        console.error('[inpaint] Proxy API error:', errorText);
         return new Response(
           JSON.stringify({ error: `API returned ${response.status}: ${errorText}` }), 
           { 
@@ -46,11 +63,13 @@ export async function action({ request }: { request: Request }) {
       }
 
       const data = await response.json();
+      console.log('[inpaint] Proxy API success, response:', JSON.stringify(data).slice(0, 500));
       return new Response(JSON.stringify(data), {
         headers: { 'Content-Type': 'application/json' }
       });
     } else {
       // Direct backend call (development mode)
+      console.log('[inpaint] Forwarding request directly to backend:', `${API_URL}/inpaint`);
       const response = await fetch(`${API_URL}/inpaint`, {
         method: 'POST',
         headers: {
@@ -60,9 +79,10 @@ export async function action({ request }: { request: Request }) {
         body: JSON.stringify(body)
       });
 
+      console.log('[inpaint] Backend response status:', response.status);
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Backend API error:', errorText);
+        console.error('[inpaint] Backend API error:', errorText);
         return new Response(
           JSON.stringify({ error: `Backend API returned ${response.status}: ${errorText}` }), 
           { 
@@ -73,12 +93,13 @@ export async function action({ request }: { request: Request }) {
       }
 
       const data = await response.json();
+      console.log('[inpaint] Backend API success, response:', JSON.stringify(data).slice(0, 500));
       return new Response(JSON.stringify(data), {
         headers: { 'Content-Type': 'application/json' }
       });
     }
   } catch (error) {
-    console.error('Error in inpaint API route:', error);
+    console.error('[inpaint] Error in inpaint API route:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), 
       { 
@@ -87,4 +108,4 @@ export async function action({ request }: { request: Request }) {
       }
     );
   }
-}; 
+};
