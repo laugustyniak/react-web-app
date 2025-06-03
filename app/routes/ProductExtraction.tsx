@@ -10,13 +10,6 @@ import AnalyzeProductsButton from "../components/ProductExtraction/AnalyzeProduc
 import ExtractedProductsList from "../components/ProductExtraction/ExtractedProductsList";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 
-const API_KEY = "insbuy-a14727b1-58a6-43ad-beae-b393ca192708"
-const API_URL = "http://localhost:8051";
-
-
-// Import types from models
-
-
 const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
 
 const ProductExtraction = () => {
@@ -188,7 +181,7 @@ const ProductExtraction = () => {
       });
       const descResponse = await fetch(`http://localhost:8051/get_product_description`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'x-api-key': "insbuy-a14727b1-58a6-43ad-beae-b393ca192708"
         },
