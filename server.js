@@ -12,7 +12,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // API Configuration
 const API_CONFIG = {
-  BACKEND_URL: process.env.BACKEND_API_URL || 'http://localhost:8000',
+  BACKEND_URL: process.env.BACKEND_API_URL || 'https://insbuy-api.augustyniak.ai',
   API_KEY: process.env.INSBUY_API_KEY_1 || '',
 };
 
@@ -34,7 +34,7 @@ function createAPIProxy() {
         'Content-Type': 'application/json',
         'x-api-key': API_CONFIG.API_KEY,
         ...Object.fromEntries(
-          Object.entries(req.headers).filter(([key]) => 
+          Object.entries(req.headers).filter(([key]) =>
             !['host', 'content-length', 'x-api-key'].includes(key.toLowerCase())
           )
         )
@@ -67,10 +67,10 @@ function createAPIProxy() {
 
       // Forward request to backend
       const response = await fetch(targetUrl, options);
-      
+
       // Set response headers
       res.status(response.status);
-      
+
       // Copy relevant headers from backend response
       ['content-type', 'cache-control', 'etag'].forEach(header => {
         const value = response.headers.get(header);
@@ -90,7 +90,7 @@ function createAPIProxy() {
 
     } catch (error) {
       console.error('API Proxy Error:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Internal server error',
         message: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
@@ -106,12 +106,64 @@ async function createServer() {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+  // Health check endpoint for this Express server
+  app.get('/health', (req, res) => {
+    res.json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      version: '1.0.0'
+    });
+  });
+
+  // API health check endpoint that forwards to backend's /healthcheck
+  app.get('/api/health', async (req, res) => {
+    try {
+      const targetUrl = `${API_CONFIG.BACKEND_URL}/healthcheck`;
+      const headers = {
+        'Content-Type': 'application/json',
+        'x-api-key': API_CONFIG.API_KEY,
+      };
+      const response = await fetch(targetUrl, {
+        method: 'GET',
+        headers,
+      });
+      res.status(response.status);
+      ['content-type', 'cache-control', 'etag'].forEach(header => {
+        const value = response.headers.get(header);
+        if (value) {
+          res.set(header, value);
+        }
+      });
+      if (response.headers.get('content-type')?.includes('application/json')) {
+        const data = await response.json();
+        res.json(data);
+      } else {
+        const text = await response.text();
+        res.send(text);
+      }
+    } catch (error) {
+      console.error('Backend health check failed:', error);
+      res.status(503).json({
+        status: 'unhealthy',
+        service: 'Express API Proxy',
+        backend_status: 'unreachable',
+        backend_url: API_CONFIG.BACKEND_URL,
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  // Removed custom /get_product_description route. All /api/* routes are handled by the API proxy middleware.
+
   // Serve API documentation
   app.get('/api-docs', (req, res) => {
     try {
       const apiDocsPath = path.resolve(__dirname, 'api-docs.json');
       const apiDocs = JSON.parse(fs.readFileSync(apiDocsPath, 'utf8'));
-      
+
       // Update server URL based on request
       apiDocs.servers = [
         {
@@ -119,7 +171,7 @@ async function createServer() {
           description: isProduction ? 'Production server' : 'Development server'
         }
       ];
-      
+
       res.json(apiDocs);
     } catch (error) {
       res.status(500).json({ error: 'Could not load API documentation' });
@@ -323,10 +375,10 @@ async function createServer() {
     console.log('🔧 Development mode: API proxy enabled at /api/*');
     console.log('📡 Backend URL:', API_CONFIG.BACKEND_URL);
     console.log('🔑 API Key configured:', !!API_CONFIG.API_KEY);
-    
+
     // For development, just serve a simple message for non-API routes
     app.get('*', (req, res) => {
-      res.json({ 
+      res.json({
         message: 'Express server running in development mode',
         api_proxy: 'Available at /api/*',
         documentation: 'Available at /docs',
