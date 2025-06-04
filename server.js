@@ -1,3 +1,34 @@
+// Direct endpoint for /find_image
+async function handleFindImage(req, res) {
+  try {
+    const targetUrl = `${API_CONFIG.BACKEND_URL}/find_image`;
+    const body = req.body;
+    const headers = {
+      'content-type': 'application/json',
+      'x-api-key': API_CONFIG.API_KEY
+    };
+    const options = {
+      method: req.method,
+      headers,
+      body: JSON.stringify(body)
+    };
+    const response = await fetch(targetUrl, options);
+    res.status(response.status);
+    if (response.headers.get('content-type')?.includes('application/json')) {
+      const data = await response.json();
+      res.json(data);
+    } else {
+      const text = await response.text();
+      res.send(text);
+    }
+  } catch (error) {
+    console.error('Direct endpoint error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+}
 import express from 'express';
 import { createRequestHandler } from '@react-router/express';
 import path from 'path';
@@ -16,86 +47,37 @@ const API_CONFIG = {
   API_KEY: process.env.INSBUY_API_KEY_1 || '',
 };
 
-// API Proxy Middleware
-function createAPIProxy() {
-  return async (req, res, next) => {
-    // Only handle /api/ routes
-    if (!req.path.startsWith('/api/')) {
-      return next();
+
+// Direct endpoint for /get_product_description*
+async function handleGetProductDescription(req, res) {
+  try {
+    const targetUrl = `${API_CONFIG.BACKEND_URL}/get_product_description`;
+    const body = req.body;
+    const headers = {
+      'content-type': 'application/json',
+      'x-api-key': API_CONFIG.API_KEY
+    };
+    const options = {
+      method: req.method,
+      headers,
+      body: JSON.stringify(body)
+    };
+    const response = await fetch(targetUrl, options);
+    res.status(response.status);
+    if (response.headers.get('content-type')?.includes('application/json')) {
+      const data = await response.json();
+      res.json(data);
+    } else {
+      const text = await response.text();
+      res.send(text);
     }
-
-    try {
-      // Extract the API endpoint (remove /api prefix)
-      const endpoint = req.path.replace('/api', '');
-      const targetUrl = `${API_CONFIG.BACKEND_URL}${endpoint}`;
-
-      // Prepare headers with API key
-      const headers = {
-        'Content-Type': 'application/json',
-        'x-api-key': API_CONFIG.API_KEY,
-        ...Object.fromEntries(
-          Object.entries(req.headers).filter(([key]) =>
-            !['host', 'content-length', 'x-api-key'].includes(key.toLowerCase())
-          )
-        )
-      };
-
-      // Prepare request options
-      const options = {
-        method: req.method,
-        headers,
-      };
-
-      // Add body for POST, PUT, PATCH requests
-      if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-        if (req.is('application/json')) {
-          const body = await new Promise((resolve, reject) => {
-            let data = '';
-            req.on('data', chunk => data += chunk);
-            req.on('end', () => {
-              try {
-                resolve(JSON.parse(data));
-              } catch (e) {
-                resolve(data);
-              }
-            });
-            req.on('error', reject);
-          });
-          options.body = JSON.stringify(body);
-        }
-      }
-
-      // Forward request to backend
-      const response = await fetch(targetUrl, options);
-
-      // Set response headers
-      res.status(response.status);
-
-      // Copy relevant headers from backend response
-      ['content-type', 'cache-control', 'etag'].forEach(header => {
-        const value = response.headers.get(header);
-        if (value) {
-          res.set(header, value);
-        }
-      });
-
-      // Handle different response types
-      if (response.headers.get('content-type')?.includes('application/json')) {
-        const data = await response.json();
-        res.json(data);
-      } else {
-        const text = await response.text();
-        res.send(text);
-      }
-
-    } catch (error) {
-      console.error('API Proxy Error:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
-  };
+  } catch (error) {
+    console.error('Direct endpoint error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
 }
 
 async function createServer() {
@@ -156,7 +138,11 @@ async function createServer() {
     }
   });
 
-  // Removed custom /get_product_description route. All /api/* routes are handled by the API proxy middleware.
+  // Direct endpoint for /get_product_description*
+  app.post('/api/get_product_description', handleGetProductDescription);
+
+  // Direct endpoint for /find_image
+  app.post('/api/find_image', handleFindImage);
 
   // Serve API documentation
   app.get('/api-docs', (req, res) => {
@@ -349,8 +335,7 @@ async function createServer() {
     res.send(swaggerHtml);
   });
 
-  // Add API proxy middleware for all environments
-  app.use(createAPIProxy());
+  // Proxy middleware removed
 
   if (isProduction) {
     // Production mode

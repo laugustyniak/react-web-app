@@ -7,5 +7,8 @@ export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
   server: {
     cors: true,
+    proxy: {
+      '/api': 'http://localhost:5000'
+    }
   },
 });

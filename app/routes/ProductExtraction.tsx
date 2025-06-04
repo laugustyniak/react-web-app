@@ -51,9 +51,9 @@ const ProductExtraction = () => {
     setSearchErrorByIdx(prev => ({ ...prev, [idx]: null }));
     setSearchResultsByIdx(prev => ({ ...prev, [idx]: null }));
     try {
-      const response = await fetch(`http://localhost:8051/find_image`, {
+      const response = await fetch(`/api/find_image`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': "insbuy-a14727b1-58a6-43ad-beae-b393ca192708" },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query })
       });
       if (!response.ok) {
@@ -179,12 +179,9 @@ const ProductExtraction = () => {
         reader.onerror = reject;
         reader.readAsDataURL(imageBlob);
       });
-      const descResponse = await fetch(`http://localhost:8051/get_product_description`, {
+      const descResponse = await fetch(`/api/get_product_description`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': "insbuy-a14727b1-58a6-43ad-beae-b393ca192708"
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ base64_image: base64, language: 'english' })
       });
       if (!descResponse.ok) {
@@ -215,9 +212,9 @@ const ProductExtraction = () => {
     setSearchResults(null);
     try {
       // Example: call a search API endpoint (replace with your actual endpoint)
-      const response = await fetch(`http://localhost:8051/find_image`, {
+      const response = await fetch(`/api/find_image`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-api-key': "insbuy-a14727b1-58a6-43ad-beae-b393ca192708" },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query })
       });
       if (!response.ok) {
