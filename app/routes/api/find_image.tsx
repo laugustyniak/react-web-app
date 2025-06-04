@@ -1,4 +1,5 @@
 import { CONFIG } from '~/constants/config';
+import type { FindImageRequest } from '~/types/api_models';
 
 const API_URL = CONFIG.API.URL;
 const API_KEY = CONFIG.API.KEY;
@@ -26,7 +27,7 @@ export async function action({ request }: { request: Request }) {
             });
         }
 
-        // Validate required fields
+        // Validate required fields for FindImageRequest
         if (!body.query) {
             return new Response(JSON.stringify({
                 detail: [
@@ -38,13 +39,21 @@ export async function action({ request }: { request: Request }) {
             });
         }
 
+        // Build request according to FindImageRequest model
+        const findImageRequest: FindImageRequest = {
+            query: body.query,
+            location: body.location || 'Japan',
+            gl: body.gl || 'jp',
+            hl: body.hl || 'ja',
+        };
+
         const response = await fetch(`${API_URL}/find_image`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'x-api-key': API_KEY
             },
-            body: JSON.stringify(body)
+            body: JSON.stringify(findImageRequest)
         });
 
         if (!response.ok) {

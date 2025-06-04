@@ -14,7 +14,7 @@ export async function action({ request }: { request: Request }) {
                 status: 405,
                 headers: { 'Content-Type': 'application/json' }
             });
-        }
+        } 
 
         let body;
         try {
