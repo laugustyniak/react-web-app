@@ -16,7 +16,9 @@
     "shadcn": "shadcn",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "changeset publish && git add . && git commit -m \"chore: release\" && git tag v$(node -e \"import { createRequire } from 'module'; const require = createRequire(import.meta.url); console.log(require('./package.json').version);\") && git push --tags"
+    "release": "changeset publish && git add . && git commit -m \"chore: release\" && git tag v$(node -e \"import { createRequire } from 'module'; const require = createRequire(import.meta.url); console.log(require('./package.json').version);\") && git push --tags",
+    "dev:all": "concurrently \"npm run dev\" \"npm run dev:express\"",
+    "start:all": "concurrently \"npm run start:express\" \"npm run start\""
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.6",
@@ -67,6 +69,7 @@
     "@types/node": "^20",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
+    "concurrently": "^9.1.2",
     "prettier": "^3.5.2",
     "react-router-devtools": "^1.1.0",
     "tailwindcss": "^4.0.0",
