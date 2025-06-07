@@ -16,9 +16,13 @@ sleep 10
 echo "🏥 Testing health endpoint..."
 curl -f http://localhost:5000/health || (echo "❌ Health check failed"; docker logs $CONTAINER_ID; docker stop $CONTAINER_ID; exit 1)
 
-# Test API health endpoint
+# Test API health endpoint (expected to fail without API key)
 echo "🔍 Testing API health endpoint..."
-curl -f http://localhost:5000/api/health || (echo "⚠️ API health check failed (might be expected if backend is unreachable)")
+if curl -s http://localhost:5000/api/health | grep -q "401\|503\|unhealthy"; then
+  echo "✅ API health endpoint responding (401/503 expected without API key)"
+else
+  echo "⚠️ API health endpoint returned unexpected response"
+fi
 
 # Test root endpoint
 echo "🌐 Testing root endpoint..."

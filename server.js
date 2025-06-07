@@ -101,7 +101,7 @@ async function createServer() {
   });
 
   // API health check endpoint that forwards to backend's /healthcheck
-  app.get('/api/health', async (req, res) => {
+  app.get('/api/healthcheck', async (req, res) => {
     try {
       const targetUrl = `${API_CONFIG.BACKEND_URL}/healthcheck`;
       const headers = {
@@ -157,7 +157,14 @@ async function createServer() {
         mode: 'production',
       });
 
-      app.all('*', requestHandler);
+      // Only handle non-API routes with React Router
+      app.all('*', (req, res, next) => {
+        // Skip React Router for API routes and health endpoint
+        if (req.path.startsWith('/api/') || req.path === '/health') {
+          return next();
+        }
+        return requestHandler(req, res, next);
+      });
     } catch (error) {
       console.error('Failed to load server build:', error);
       console.log('Make sure to run "npm run build" first');
