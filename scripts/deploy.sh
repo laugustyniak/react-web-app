@@ -32,6 +32,12 @@ gcloud run deploy react-web-app \
   --tag="$VALID_TAG" \
   --region="$REGION" \
   --platform=managed \
-  --allow-unauthenticated
+  --allow-unauthenticated \
+  --port=5000 \
+  --set-env-vars="NODE_ENV=production,PORT=5000" \
+  --memory=512Mi \
+  --cpu=1 \
+  --min-instances=0 \
+  --max-instances=10
 
 echo "✅ Deployment complete! Service deployed with version $VERSION and tag $VALID_TAG."

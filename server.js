@@ -1,3 +1,22 @@
+
+import express from 'express';
+import { createRequestHandler } from '@react-router/express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import fs from 'fs';
+
+// Load environment variables
+dotenv.config();
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// API Configuration
+const API_CONFIG = {
+  BACKEND_URL: process.env.BACKEND_API_URL || 'https://insbuy-api.augustyniak.ai',
+  API_KEY: process.env.INSBUY_API_KEY_1 || '',
+};
+
 // Direct endpoint for /find_image
 async function handleFindImage(req, res) {
   try {
@@ -29,24 +48,6 @@ async function handleFindImage(req, res) {
     });
   }
 }
-import express from 'express';
-import { createRequestHandler } from '@react-router/express';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-import fs from 'fs';
-
-// Load environment variables
-dotenv.config();
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// API Configuration
-const API_CONFIG = {
-  BACKEND_URL: process.env.BACKEND_API_URL || 'https://insbuy-api.augustyniak.ai',
-  API_KEY: process.env.INSBUY_API_KEY_1 || '',
-};
-
 
 // Direct endpoint for /get_product_description*
 async function handleGetProductDescription(req, res) {
@@ -144,199 +145,6 @@ async function createServer() {
   // Direct endpoint for /find_image
   app.post('/api/find_image', handleFindImage);
 
-  // Serve API documentation
-  app.get('/api-docs', (req, res) => {
-    try {
-      const apiDocsPath = path.resolve(__dirname, 'api-docs.json');
-      const apiDocs = JSON.parse(fs.readFileSync(apiDocsPath, 'utf8'));
-
-      // Update server URL based on request
-      apiDocs.servers = [
-        {
-          url: `${req.protocol}://${req.get('host')}`,
-          description: isProduction ? 'Production server' : 'Development server'
-        }
-      ];
-
-      res.json(apiDocs);
-    } catch (error) {
-      res.status(500).json({ error: 'Could not load API documentation' });
-    }
-  });
-
-  // Serve Swagger UI for API documentation
-  app.get('/docs', (req, res) => {
-    const swaggerHtml = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Express SSR API Documentation</title>
-  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
-  <style>
-    html {
-      box-sizing: border-box;
-      overflow: -moz-scrollbars-vertical;
-      overflow-y: scroll;
-    }
-    *, *:before, *:after {
-      box-sizing: inherit;
-    }
-    body {
-      margin:0;
-      background: #fafafa;
-    }
-  </style>
-</head>
-<body>
-  <div id="swagger-ui"></div>
-  <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js"></script>
-  <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js"></script>
-  <script>
-    window.onload = function() {
-      try {
-        const ui = SwaggerUIBundle({
-          url: '/api-docs',
-          dom_id: '#swagger-ui',
-          deepLinking: true,
-          presets: [
-            SwaggerUIBundle.presets.apis,
-            SwaggerUIStandalonePreset
-          ],
-          plugins: [
-            SwaggerUIBundle.plugins.DownloadUrl
-          ],
-          layout: "StandaloneLayout",
-          tryItOutEnabled: true,
-          validatorUrl: null, // Disable online validator
-          onComplete: function() {
-            console.log('Swagger UI loaded successfully');
-          },
-          onFailure: function(error) {
-            console.error('Swagger UI failed to load:', error);
-            document.getElementById('swagger-ui').innerHTML = 
-              '<div style="padding: 20px; color: red;">Failed to load API documentation: ' + 
-              (error.message || error) + '</div>';
-          },
-          requestInterceptor: function(request) {
-            console.log('Request:', request);
-            return request;
-          },
-          responseInterceptor: function(response) {
-            console.log('Response:', response);
-            return response;
-          }
-        });
-      } catch (error) {
-        console.error('Error initializing Swagger UI:', error);
-        document.getElementById('swagger-ui').innerHTML = 
-          '<div style="padding: 20px; color: red;">Error initializing API documentation: ' + 
-          error.message + '</div>';
-      }
-    };
-  </script>
-</body>
-</html>`;
-    res.send(swaggerHtml);
-  });
-
-  // Debug endpoint with minimal API spec
-  app.get('/api-docs-debug', (req, res) => {
-    const minimalSpec = {
-      "openapi": "3.0.3",
-      "info": {
-        "title": "Express SSR API Proxy",
-        "version": "1.0.0",
-        "description": "A simple API proxy"
-      },
-      "servers": [
-        {
-          "url": `${req.protocol}://${req.get('host')}`,
-          "description": "Development server"
-        }
-      ],
-      "paths": {
-        "/": {
-          "get": {
-            "summary": "Health check",
-            "responses": {
-              "200": {
-                "description": "OK",
-                "content": {
-                  "application/json": {
-                    "schema": {
-                      "type": "object",
-                      "properties": {
-                        "message": {
-                          "type": "string"
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    };
-    res.json(minimalSpec);
-  });
-
-  // Debug docs page with minimal spec
-  app.get('/docs-debug', (req, res) => {
-    const swaggerHtml = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Debug API Documentation</title>
-  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
-</head>
-<body>
-  <div id="swagger-ui"></div>
-  <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js"></script>
-  <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js"></script>
-  <script>
-    window.onload = function() {
-      try {
-        console.log('Initializing Swagger UI...');
-        const ui = SwaggerUIBundle({
-          url: '/api-docs-debug',
-          dom_id: '#swagger-ui',
-          deepLinking: true,
-          presets: [
-            SwaggerUIBundle.presets.apis,
-            SwaggerUIStandalonePreset
-          ],
-          plugins: [
-            SwaggerUIBundle.plugins.DownloadUrl
-          ],
-          layout: "StandaloneLayout",
-          validatorUrl: null,
-          onComplete: function() {
-            console.log('Swagger UI loaded successfully');
-          },
-          onFailure: function(error) {
-            console.error('Swagger UI failed to load:', error);
-          }
-        });
-      } catch (error) {
-        console.error('Error initializing Swagger UI:', error);
-        document.getElementById('swagger-ui').innerHTML = 
-          '<div style="padding: 20px; color: red;">Error: ' + error.message + '</div>';
-      }
-    };
-  </script>
-</body>
-</html>`;
-    res.send(swaggerHtml);
-  });
-
-  // Proxy middleware removed
-
   if (isProduction) {
     // Production mode
     app.use(express.static(path.resolve(__dirname, 'build/client')));
@@ -378,8 +186,6 @@ async function createServer() {
     console.log(`🚀 Express server with SSR running at http://localhost:${port}`);
     console.log('📱 Your React app is server-side rendered!');
     console.log('🔗 API proxy available at /api/*');
-    console.log('� API documentation at /docs');
-    console.log('📋 API spec at /api-docs');
     console.log('�📡 Backend:', API_CONFIG.BACKEND_URL);
   });
 }

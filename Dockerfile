@@ -18,5 +18,9 @@ FROM node:20-alpine
 COPY ./package.json package-lock.json /app/
 COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/build /app/build
+COPY ./server.js /app/
 WORKDIR /app
-CMD ["npm", "run", "start"]
+EXPOSE 5000
+ENV NODE_ENV=production
+ENV PORT=5000
+CMD ["npm", "run", "start:express"]
