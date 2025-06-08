@@ -8,9 +8,11 @@ import VideoPlayer from "../components/ProductExtraction/VideoPlayer";
 import FrameGrid from "../components/ProductExtraction/FrameGrid";
 import AnalyzeProductsButton from "../components/ProductExtraction/AnalyzeProductsButton";
 import ExtractedProductsList from "../components/ProductExtraction/ExtractedProductsList";
+import { Button } from "~/components/ui/button";
 import { Alert, AlertDescription } from "~/components/ui/alert";
 
 const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
+
 
 const ProductExtraction = () => {
   // State for raw find_images results (must be declared before any usage)
@@ -45,6 +47,7 @@ const ProductExtraction = () => {
   const [searchResultsByIdx, setSearchResultsByIdx] = useState<Record<number, any>>({});
   const [isSearchingByIdx, setIsSearchingByIdx] = useState<Record<number, boolean>>({});
   const [searchErrorByIdx, setSearchErrorByIdx] = useState<Record<number, string | null>>({});
+  const [showExtractedProducts, setShowExtractedProducts] = useState<boolean>(false);
   // Handler for per-product Insbuy AI search
   const handleProductSearchWithAI = async (idx: number, query: string) => {
     setIsSearchingByIdx(prev => ({ ...prev, [idx]: true }));
@@ -319,7 +322,22 @@ const ProductExtraction = () => {
               isAnalyzing={isAnalyzing}
               onAnalyze={analyzeProducts}
             />
-            <ExtractedProductsList
+            {/* Add Toggle Button Here */}
+            {(extractedProducts || (rawFindImagesResults && rawFindImagesResults.length > 0)) && (
+              <Button 
+                onClick={() => setShowExtractedProducts(!showExtractedProducts)} 
+                variant="outline" 
+                className="my-2"
+              >
+                {showExtractedProducts ? 'Hide' : 'Show'} Found Products 
+                {extractedProducts && extractedProducts.products && ` (${extractedProducts.products.length})`}
+              </Button>
+            )}
+
+            {/* Conditionally render the list and raw results */}
+            {showExtractedProducts && (
+              <>
+                <ExtractedProductsList
               extractedProducts={extractedProducts}
               isLoading={isExtractedProductsLoading}
               error={extractedProductsError}
@@ -334,15 +352,17 @@ const ProductExtraction = () => {
               isSearchingByIdx={isSearchingByIdx}
               searchErrorByIdx={searchErrorByIdx}
             />
-            {/* Raw find_images results display */}
+                {/* Raw find_images results display */}
             {rawFindImagesResults && rawFindImagesResults.length > 0 && (
               <div className="mt-8">
                 <h2 className="text-xl font-bold mb-2">Raw find_images API Results</h2>
-                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-96">
+                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-96 w-full">
                   {JSON.stringify(rawFindImagesResults, null, 2)}
                 </pre>
               </div>
             )}
+          </>
+        )}
           </div>
         )}
 

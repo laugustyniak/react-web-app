@@ -1,4 +1,3 @@
-
 import express from 'express';
 import { createRequestHandler } from '@react-router/express';
 import path from 'path';
@@ -10,11 +9,20 @@ import fs from 'fs';
 dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const isProduction = process.env.NODE_ENV === 'production';
 
 // API Configuration
 const API_CONFIG = {
   BACKEND_URL: process.env.BACKEND_API_URL || 'https://insbuy-api.augustyniak.ai',
   API_KEY: process.env.INSBUY_API_KEY_1 || '',
+};
+
+// Logging middleware for development
+const logRequest = (req, res, next) => {
+  if (!isProduction) {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  }
+  next();
 };
 
 // Direct endpoint for /find_image
@@ -83,7 +91,25 @@ async function handleGetProductDescription(req, res) {
 
 async function createServer() {
   const app = express();
-  const isProduction = process.env.NODE_ENV === 'production';
+
+  // CORS configuration for development
+  if (!isProduction) {
+    app.use((req, res, next) => {
+      res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-api-key');
+      res.header('Access-Control-Allow-Credentials', 'true');
+      
+      if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+      } else {
+        next();
+      }
+    });
+  }
+
+  // Request logging
+  app.use(logRequest);
 
   // Parse JSON bodies
   app.use(express.json({ limit: '10mb' }));
@@ -193,7 +219,7 @@ async function createServer() {
     console.log(`🚀 Express server with SSR running at http://localhost:${port}`);
     console.log('📱 Your React app is server-side rendered!');
     console.log('🔗 API proxy available at /api/*');
-    console.log('�📡 Backend:', API_CONFIG.BACKEND_URL);
+    console.log('📡 Backend:', API_CONFIG.BACKEND_URL);
   });
 }
 
