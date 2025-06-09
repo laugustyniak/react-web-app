@@ -3,7 +3,7 @@ set -e
 
 # Get the current version from package.json
 VERSION=$(jq -r .version package.json)
-IMAGE_NAME="us-central1-docker.pkg.dev/insbay-b32351/cloud-run-source-deploy/react-web-app"
+IMAGE_NAME="us-central1-docker.pkg.dev/insbay-b32351/buy-it-prod/react-web-app"
 REGION="us-central1"
 
 # Create a valid tag by replacing periods with hyphens
@@ -33,8 +33,8 @@ gcloud run deploy react-web-app \
   --region="$REGION" \
   --platform=managed \
   --allow-unauthenticated \
-  --port=5000 \
-  --set-env-vars="NODE_ENV=production,PORT=5000" \
+  --port=8080 \
+  --set-env-vars="NODE_ENV=production" \
   --memory=512Mi \
   --cpu=1 \
   --min-instances=0 \

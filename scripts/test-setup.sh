@@ -65,12 +65,12 @@ npm run start:prod > /tmp/prod-server.log 2>&1 &
 PROD_PID=$!
 echo "Started production server (PID: $PROD_PID)"
 
-if wait_for_server "http://localhost:5000/health"; then
-    test_endpoint "http://localhost:5000/health" "Production health endpoint"
-    test_endpoint "http://localhost:5000/api/healthcheck" "Production API endpoint"
+if wait_for_server "http://localhost:8080/health"; then
+    test_endpoint "http://localhost:8080/health" "Production health endpoint"
+    test_endpoint "http://localhost:8080/api/healthcheck" "Production API endpoint"
     
     # Test if it serves HTML for root path
-    if curl -s "http://localhost:5000/" | grep -q "html\|HTML"; then
+    if curl -s "http://localhost:8080/" | grep -q "html\|HTML"; then
         echo -e "${GREEN}✅ Production serves HTML content${NC}"
     else
         echo -e "${RED}❌ Production not serving HTML content${NC}"
@@ -90,9 +90,9 @@ if command -v docker-compose &> /dev/null; then
     if docker-compose up -d --build > /tmp/docker-build.log 2>&1; then
         echo -e "${GREEN}✅ Container started successfully${NC}"
         
-        if wait_for_server "http://localhost:5000/health"; then
-            test_endpoint "http://localhost:5000/health" "Container health endpoint"
-            test_endpoint "http://localhost:5000/api/healthcheck" "Container API endpoint"
+        if wait_for_server "http://localhost:8080/health"; then
+            test_endpoint "http://localhost:8080/health" "Container health endpoint"
+            test_endpoint "http://localhost:8080/api/healthcheck" "Container API endpoint"
             
             # Check container logs
             echo -e "${YELLOW}Container logs (last 10 lines):${NC}"
@@ -121,9 +121,9 @@ NODE_ENV=development node server.js > /tmp/dev-server.log 2>&1 &
 DEV_PID=$!
 echo "Started development API server (PID: $DEV_PID)"
 
-if wait_for_server "http://localhost:5000/health"; then
-    test_endpoint "http://localhost:5000/health" "Development health endpoint"
-    test_endpoint "http://localhost:5000/api/healthcheck" "Development API endpoint"
+if wait_for_server "http://localhost:8080/health"; then
+    test_endpoint "http://localhost:8080/health" "Development health endpoint"
+    test_endpoint "http://localhost:8080/api/healthcheck" "Development API endpoint"
 else
     echo -e "${RED}❌ Development server failed to start${NC}"
 fi
