@@ -61,7 +61,7 @@ const ExtractedProductsList: React.FC<ExtractedProductsListProps> = ({
         <div>
           {extractedProducts.products.map((prod, idx) => {
             const isEditing = editingProductIndex === idx;
-            const isExpanded = expanded[idx];
+            const isExpanded = expanded[idx] !== false; // Default to true (expanded) when undefined
             return (
               <div key={prod.product_id || idx} className="mb-4 w-full">
                 <Card className="w-full">

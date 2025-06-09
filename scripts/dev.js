@@ -65,7 +65,7 @@ async function main() {
   await new Promise(resolve => setTimeout(resolve, 2000));
   
   // Start Vite dev server
-  const viteServer = startProcess('npm', ['run', 'dev'], 'VITE', 'green');
+  const viteServer = startProcess('npm', ['run', 'dev:vite'], 'VITE', 'green');
 
   // Handle graceful shutdown
   process.on('SIGINT', () => {

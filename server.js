@@ -1,9 +1,10 @@
-import express from 'express';
 import { createRequestHandler } from '@react-router/express';
+import dotenv from 'dotenv';
+import express from 'express';
+import fs from 'fs';
+import https from 'https';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
-import fs from 'fs';
 
 // Load environment variables
 dotenv.config();
@@ -99,7 +100,7 @@ async function createServer() {
       res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
       res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-api-key');
       res.header('Access-Control-Allow-Credentials', 'true');
-      
+
       if (req.method === 'OPTIONS') {
         res.sendStatus(200);
       } else {
@@ -215,8 +216,43 @@ async function createServer() {
   }
 
   const port = process.env.PORT || 8080;
+  const httpsPort = process.env.HTTPS_PORT || 8443;
+
+  // Check if SSL certificates exist
+  const certPath = path.join(__dirname, 'certs', 'localhost.crt');
+  const keyPath = path.join(__dirname, 'certs', 'localhost.key');
+
+  if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+    // HTTPS server
+    const httpsOptions = {
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(certPath)
+    };
+
+    https.createServer(httpsOptions, app).listen(httpsPort, () => {
+      console.log(`🔒 HTTPS Express server with SSR running at https://localhost:${httpsPort}`);
+      console.log('📱 Your React app is server-side rendered with SSL!');
+      console.log('🔗 API proxy available at /api/*');
+      console.log('📡 Backend:', API_CONFIG.BACKEND_URL);
+      console.log('⚠️  Accept the self-signed certificate in your browser');
+    });
+
+    // Optional: Also run HTTP server that redirects to HTTPS
+    app.use((req, res, next) => {
+      if (req.header('x-forwarded-proto') !== 'https') {
+        res.redirect(`https://${req.header('host')}${req.url}`);
+      } else {
+        next();
+      }
+    });
+  }
+
+  // HTTP server (always available as fallback)
   app.listen(port, () => {
-    console.log(`🚀 Express server with SSR running at http://localhost:${port}`);
+    console.log(`🚀 HTTP Express server with SSR running at http://localhost:${port}`);
+    if (!fs.existsSync(certPath) || !fs.existsSync(keyPath)) {
+      console.log('💡 To enable HTTPS, run: chmod +x generate-certs.sh && ./generate-certs.sh');
+    }
     console.log('📱 Your React app is server-side rendered!');
     console.log('🔗 API proxy available at /api/*');
     console.log('📡 Backend:', API_CONFIG.BACKEND_URL);

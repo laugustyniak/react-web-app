@@ -1,15 +1,15 @@
 
-import React, { useState, useEffect } from 'react';
-import { getAllVideos, getFramesByVideoId } from '~/lib/firestoreService';
 import { DocumentSnapshot } from 'firebase/firestore';
-import type { VideoData, VideoFrame, MultipleProducts } from '../types/models';
-import VideoSelector from "../components/ProductExtraction/VideoSelector";
-import VideoPlayer from "../components/ProductExtraction/VideoPlayer";
-import FrameGrid from "../components/ProductExtraction/FrameGrid";
+import React, { useEffect, useState } from 'react';
+import { Alert, AlertDescription } from "~/components/ui/alert";
+import { Button } from "~/components/ui/button";
+import { getAllVideos, getFramesByVideoId } from '~/lib/firestoreService';
 import AnalyzeProductsButton from "../components/ProductExtraction/AnalyzeProductsButton";
 import ExtractedProductsList from "../components/ProductExtraction/ExtractedProductsList";
-import { Button } from "~/components/ui/button";
-import { Alert, AlertDescription } from "~/components/ui/alert";
+import FrameGrid from "../components/ProductExtraction/FrameGrid";
+import VideoPlayer from "../components/ProductExtraction/VideoPlayer";
+import VideoSelector from "../components/ProductExtraction/VideoSelector";
+import type { MultipleProducts, VideoData, VideoFrame } from '../types/models';
 
 const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
 
@@ -324,12 +324,12 @@ const ProductExtraction = () => {
             />
             {/* Add Toggle Button Here */}
             {(extractedProducts || (rawFindImagesResults && rawFindImagesResults.length > 0)) && (
-              <Button 
-                onClick={() => setShowExtractedProducts(!showExtractedProducts)} 
-                variant="outline" 
+              <Button
+                onClick={() => setShowExtractedProducts(!showExtractedProducts)}
+                variant="outline"
                 className="my-2"
               >
-                {showExtractedProducts ? 'Hide' : 'Show'} Found Products 
+                {showExtractedProducts ? 'Hide' : 'Show'} Found Products
                 {extractedProducts && extractedProducts.products && ` (${extractedProducts.products.length})`}
               </Button>
             )}
@@ -338,31 +338,31 @@ const ProductExtraction = () => {
             {showExtractedProducts && (
               <>
                 <ExtractedProductsList
-              extractedProducts={extractedProducts}
-              isLoading={isExtractedProductsLoading}
-              error={extractedProductsError}
-              editingProductIndex={editingProductIndex}
-              editValues={editValues}
-              onEditClick={(idx, product_name, description_in_english) => handleEditClick(idx, { product_name, description_in_english })}
-              onEditChange={handleEditChange}
-              onSave={handleSave}
-              onCancel={handleCancel}
-              onSearchWithAI={handleProductSearchWithAI}
-              searchResultsByIdx={searchResultsByIdx}
-              isSearchingByIdx={isSearchingByIdx}
-              searchErrorByIdx={searchErrorByIdx}
-            />
+                  extractedProducts={extractedProducts}
+                  isLoading={isExtractedProductsLoading}
+                  error={extractedProductsError}
+                  editingProductIndex={editingProductIndex}
+                  editValues={editValues}
+                  onEditClick={(idx, product_name, description_in_english) => handleEditClick(idx, { product_name, description_in_english })}
+                  onEditChange={handleEditChange}
+                  onSave={handleSave}
+                  onCancel={handleCancel}
+                  onSearchWithAI={handleProductSearchWithAI}
+                  searchResultsByIdx={searchResultsByIdx}
+                  isSearchingByIdx={isSearchingByIdx}
+                  searchErrorByIdx={searchErrorByIdx}
+                />
                 {/* Raw find_images results display */}
-            {rawFindImagesResults && rawFindImagesResults.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-xl font-bold mb-2">Raw find_images API Results</h2>
-                <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-96 w-full">
-                  {JSON.stringify(rawFindImagesResults, null, 2)}
-                </pre>
-              </div>
+                {rawFindImagesResults && rawFindImagesResults.length > 0 && (
+                  <div className="mt-8">
+                    <h2 className="text-xl font-bold mb-2">Raw find_images API Results</h2>
+                    <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-96 w-full">
+                      {JSON.stringify(rawFindImagesResults, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
           </div>
         )}
 

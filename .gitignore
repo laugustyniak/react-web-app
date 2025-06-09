@@ -3,6 +3,9 @@
 .vscode/
 .env
 
+# SSL Certificates
+/certs/
+
 # React Router
 /.react-router/
 /build/
