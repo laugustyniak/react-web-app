@@ -22,7 +22,7 @@ variable "container_image" {
 variable "backend_api_url" {
   description = "Backend API URL"
   type        = string
-  default     = "https://insbuy-api.augustyniak.ai"
+  default     = "https://buy-it-api-dev-wxmkjx3j4a-uc.a.run.app"
 }
 
 variable "api_key" {

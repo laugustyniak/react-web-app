@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { generateAffiliateLink } from '~/lib/affiliateLink';
 import { CreateProductModal } from "~/components/modals";
-import { Card } from "~/components/ui/card";
-import { Button } from "~/components/ui/button";
 import { Alert, AlertDescription } from "~/components/ui/alert";
+import { Button } from "~/components/ui/button";
+import { Card } from "~/components/ui/card";
+import { generateAffiliateLink } from '~/lib/affiliateLink';
 import type { MultipleProducts } from '../../types/models';
 
 interface ExtractedProductsListProps {
@@ -61,7 +61,7 @@ const ExtractedProductsList: React.FC<ExtractedProductsListProps> = ({
         <div>
           {extractedProducts.products.map((prod, idx) => {
             const isEditing = editingProductIndex === idx;
-            const isExpanded = !!expanded[idx];
+            const isExpanded = expanded[idx];
             return (
               <div key={prod.product_id || idx} className="mb-4 w-full">
                 <Card className="w-full">
