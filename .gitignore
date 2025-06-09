@@ -13,3 +13,5 @@
 
 **/*.tfvars
 **/*.tfvars.json
+
+.terraform/
