@@ -93,21 +93,18 @@ async function handleGetProductDescription(req, res) {
 async function createServer() {
   const app = express();
 
-  // CORS configuration for development
-  if (!isProduction) {
-    app.use((req, res, next) => {
-      res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
-      res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-api-key');
-      res.header('Access-Control-Allow-Credentials', 'true');
+  // CORS configuration using cors package
+  const cors = require('cors');
+  const allowedOrigins = isProduction
+    ? ['https://dev.buy-it.ai', 'https://prod.buy-it.ai']
+    : ['http://localhost:8080'];
 
-      if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
-      } else {
-        next();
-      }
-    });
-  }
+  app.use(cors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'x-api-key'],
+  }));
 
   // Request logging
   app.use(logRequest);
