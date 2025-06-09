@@ -19,8 +19,10 @@ COPY ./package.json package-lock.json /app/
 COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/build /app/build
 COPY ./server.js /app/
+
 WORKDIR /app
-EXPOSE 5000
+EXPOSE 8080
 ENV NODE_ENV=production
-ENV PORT=5000
+ENV PORT=8080
+
 CMD ["npm", "run", "start:express"]
