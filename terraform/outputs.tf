@@ -1,11 +1,11 @@
 output "service_url" {
   description = "URL of the deployed Cloud Run service"
-  value       = google_cloud_run_v2_service.react_web_app.uri
+  value       = google_cloud_run_v2_service.buy_it.uri
 }
 
 output "service_name" {
   description = "Name of the Cloud Run service"
-  value       = google_cloud_run_v2_service.react_web_app.name
+  value       = google_cloud_run_v2_service.buy_it.name
 }
 
 output "artifact_registry_url" {

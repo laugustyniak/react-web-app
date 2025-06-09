@@ -22,7 +22,7 @@ resource "google_artifact_registry_repository" "repo" {
 }
 
 # Cloud Run Service
-resource "google_cloud_run_v2_service" "react_web_app" {
+resource "google_cloud_run_v2_service" "buy_it" {
   name     = var.service_name
   location = var.region
 
@@ -73,8 +73,8 @@ resource "google_cloud_run_v2_service" "react_web_app" {
 
 # IAM binding to allow unauthenticated access
 resource "google_cloud_run_service_iam_binding" "public_access" {
-  location = google_cloud_run_v2_service.react_web_app.location
-  service  = google_cloud_run_v2_service.react_web_app.name
+  location = google_cloud_run_v2_service.buy_it.location
+  service  = google_cloud_run_v2_service.buy_it.name
   role     = "roles/run.invoker"
   members  = ["allUsers"]
 }
