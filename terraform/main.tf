@@ -16,7 +16,7 @@ provider "google" {
 # Artifact Registry Repository
 resource "google_artifact_registry_repository" "repo" {
   location      = var.region
-  repository_id = "buy-it-${var.environment}"
+  repository_id = "buy-it-docker-repo"
   description   = "Docker repository for Buy-It React web app (${var.environment})"
   format        = "DOCKER"
 }
