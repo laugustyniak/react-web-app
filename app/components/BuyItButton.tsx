@@ -1,6 +1,6 @@
-import { Button } from './ui/button';
-import { trackEvent } from '../lib/analytics';
 import { useAnalytics } from '~/contexts/AnalyticsContext';
+import { trackEvent } from '../lib/analytics';
+import { Button } from './ui/button';
 
 interface BuyItButtonProps {
   affiliateLink: string;
@@ -24,7 +24,7 @@ export default function BuyItButton({ affiliateLink, productTitle, productId }: 
 
   return (
     <Button onClick={handleClick} className="w-full cursor-pointer">
-      Buy it
+      Check Price
     </Button>
   );
 }
