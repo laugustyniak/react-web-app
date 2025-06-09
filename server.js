@@ -95,7 +95,7 @@ async function createServer() {
   // CORS configuration for development
   if (!isProduction) {
     app.use((req, res, next) => {
-      res.header('Access-Control-Allow-Origin', 'http://localhost:3000');
+      res.header('Access-Control-Allow-Origin', 'http://localhost:8080');
       res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
       res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-api-key');
       res.header('Access-Control-Allow-Credentials', 'true');
@@ -214,7 +214,7 @@ async function createServer() {
     });
   }
 
-  const port = process.env.PORT || 5000;
+  const port = process.env.PORT || 8080;
   app.listen(port, () => {
     console.log(`🚀 Express server with SSR running at http://localhost:${port}`);
     console.log('📱 Your React app is server-side rendered!');
