@@ -60,3 +60,8 @@ variable "environment" {
   description = "Environment (dev, prod)"
   type        = string
 }
+
+variable "domain_name" {
+  description = "Domain name for the service (e.g., dev.buy-it.ai, prod.buy-it.ai)"
+  type        = string
+}

@@ -13,6 +13,9 @@ provider "google" {
   region  = var.region
 }
 
+# Get project data
+data "google_project" "project" {}
+
 # Artifact Registry Repository
 resource "google_artifact_registry_repository" "repo" {
   location      = var.region
@@ -77,4 +80,20 @@ resource "google_cloud_run_service_iam_binding" "public_access" {
   service  = google_cloud_run_v2_service.buy_it.name
   role     = "roles/run.invoker"
   members  = ["allUsers"]
+}
+
+# Domain mapping for custom domain
+resource "google_cloud_run_domain_mapping" "domain" {
+  location = var.region
+  name     = var.domain_name
+
+  metadata {
+    namespace = data.google_project.project.project_id
+  }
+
+  spec {
+    route_name = google_cloud_run_v2_service.buy_it.name
+  }
+
+  depends_on = [google_cloud_run_v2_service.buy_it]
 }
