@@ -19,7 +19,7 @@ data "google_project" "project" {}
 # Artifact Registry Repository
 resource "google_artifact_registry_repository" "repo" {
   location      = var.region
-  repository_id = "buy-it-docker-repo"
+  repository_id = var.docker_repo_name
   description   = "Docker repository for Buy-It React web app (${var.environment})"
   format        = "DOCKER"
 }
@@ -83,17 +83,15 @@ resource "google_cloud_run_service_iam_binding" "public_access" {
 }
 
 # Domain mapping for custom domain
-resource "google_cloud_run_domain_mapping" "domain" {
+resource "google_cloud_run_domain_mapping" "default" {
+  count = var.enable_domain_mapping ? 1 : 0
+
   location = var.region
   name     = var.domain_name
-
   metadata {
-    namespace = data.google_project.project.project_id
+    namespace = var.project_id
   }
-
   spec {
     route_name = google_cloud_run_v2_service.buy_it.name
   }
-
-  depends_on = [google_cloud_run_v2_service.buy_it]
 }

@@ -230,7 +230,7 @@ For production use, consider setting up remote state storage:
 
 1. **API Key Not Set**
 
-   ```
+   ```bash
    Error: TF_VAR_api_key environment variable is not set
    ```
 
@@ -238,7 +238,7 @@ For production use, consider setting up remote state storage:
 
 2. **Docker Authentication**
 
-   ```
+   ```bash
    Error: unauthorized: authentication required
    ```
 
@@ -250,7 +250,7 @@ For production use, consider setting up remote state storage:
 
 3. **Terraform State Lock**
 
-   ```
+   ```bash
    Error: state lock
    ```
 

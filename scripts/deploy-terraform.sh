@@ -13,6 +13,7 @@ NC='\033[0m' # No Color
 ENVIRONMENT="dev"
 BUILD_IMAGE=true
 PUSH_IMAGE=true
+DOMAIN_MAPPING=false
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -29,12 +30,17 @@ while [[ $# -gt 0 ]]; do
       PUSH_IMAGE=false
       shift
       ;;
+    --no-domain)
+      DOMAIN_MAPPING=false
+      shift
+      ;;
     -h|--help)
       echo "Usage: $0 [OPTIONS]"
       echo "Options:"
       echo "  --env ENV       Environment to deploy (dev|prod) [default: dev]"
       echo "  --no-build      Skip Docker image build"
       echo "  --no-push       Skip Docker image push"
+      echo "  --no-domain     Skip domain mapping"
       echo "  -h, --help      Show this help message"
       exit 0
       ;;
@@ -101,10 +107,10 @@ fi
 
 # Plan and apply
 echo -e "${YELLOW}📋 Planning deployment...${NC}"
-terraform plan -var-file="${ENVIRONMENT}.tfvars"
+terraform plan -var-file="${ENVIRONMENT}.tfvars" -var="enable_domain_mapping=${DOMAIN_MAPPING}"
 
 echo -e "${YELLOW}🚀 Applying changes...${NC}"
-terraform apply -var-file="${ENVIRONMENT}.tfvars" -auto-approve
+terraform apply -var-file="${ENVIRONMENT}.tfvars" -var="enable_domain_mapping=${DOMAIN_MAPPING}" -auto-approve
 
 # Get service URL
 SERVICE_URL=$(terraform output -raw service_url)

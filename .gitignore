@@ -14,7 +14,4 @@
 *.tfstate
 *.tfstate.*
 
-**/*.tfvars
-**/*.tfvars.json
-
 .terraform/

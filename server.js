@@ -1,4 +1,5 @@
 import { createRequestHandler } from '@react-router/express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
 import fs from 'fs';
@@ -94,7 +95,6 @@ async function createServer() {
   const app = express();
 
   // CORS configuration using cors package
-  const cors = require('cors');
   const allowedOrigins = isProduction
     ? ['https://dev.buy-it.ai', 'https://prod.buy-it.ai']
     : ['http://localhost:8080'];

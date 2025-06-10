@@ -1,6 +1,12 @@
 variable "project_id" {
   description = "Google Cloud Project ID"
   type        = string
+  default     = "insbay-b32351"
+}
+
+variable "docker_repo_name" {
+  description = "Name of the Docker Artifact Registry repository (e.g., buy-it-dev-repo or buy-it-prod-repo)"
+  type        = string
 }
 
 variable "region" {
@@ -22,7 +28,6 @@ variable "container_image" {
 variable "backend_api_url" {
   description = "Backend API URL"
   type        = string
-  default     = "https://buy-it-api-dev-wxmkjx3j4a-uc.a.run.app"
 }
 
 variable "api_key" {
@@ -64,4 +69,10 @@ variable "environment" {
 variable "domain_name" {
   description = "Domain name for the service (e.g., dev.buy-it.ai, prod.buy-it.ai)"
   type        = string
+}
+
+variable "enable_domain_mapping" {
+  description = "Whether to create the Google Cloud Run domain mapping"
+  type        = bool
+  default     = false
 }

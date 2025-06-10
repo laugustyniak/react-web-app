@@ -1,11 +1,9 @@
 # Production environment configuration
-project_id      = "insbay-b32351"
-region          = "us-central1"
-service_name    = "buy-it-prod"
+service_name     = "buy-it-prod"
 docker_repo_name = "buy-it-prod-repo"
-container_image = "us-central1-docker.pkg.dev/insbay-b32351/buy-it-prod-repo/buy-it:latest"
-environment     = "prod"
-domain_name     = "prod.buy-it.ai"
+container_image  = "us-central1-docker.pkg.dev/insbay-b32351/buy-it-prod-repo/buy-it:latest"
+environment      = "prod"
+domain_name      = "prod.buy-it.ai"
 
 # Resource limits for production
 cpu_limit     = "1"
