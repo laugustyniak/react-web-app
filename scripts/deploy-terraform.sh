@@ -66,7 +66,7 @@ fi
 
 # Get version from package.json
 VERSION=$(jq -r .version package.json)
-IMAGE_NAME="us-central1-docker.pkg.dev/insbay-b32351/buy-it-docker-repo/buy-it"
+IMAGE_NAME="us-central1-docker.pkg.dev/insbay-b32351/buy-it-$ENVIRONMENT-repo/buy-it"
 
 echo -e "${BLUE}🚀 Deploying React Web App${NC}"
 echo -e "${YELLOW}📦 Version: $VERSION${NC}"
@@ -79,8 +79,9 @@ if [[ "$BUILD_IMAGE" == true ]]; then
   npm run build
 
   echo -e "${BLUE}🔨 Step 2: Building Docker image...${NC}"
-  docker build -t "$IMAGE_NAME:$ENVIRONMENT-$VERSION" .
-  docker tag "$IMAGE_NAME:$ENVIRONMENT-$VERSION" "$IMAGE_NAME:$ENVIRONMENT"
+  docker build -t "$IMAGE_NAME" .
+  docker tag "$IMAGE_NAME" "$IMAGE_NAME:$VERSION"
+  docker tag "$IMAGE_NAME" "$IMAGE_NAME:latest"
 fi
 
 # Step 2: Push to Artifact Registry
@@ -91,13 +92,13 @@ if [[ "$PUSH_IMAGE" == true ]]; then
   fi
 
   echo -e "${BLUE}⬆️ Step 4: Pushing images to Artifact Registry...${NC}"
-  docker push "$IMAGE_NAME:$ENVIRONMENT"
-  docker push "$IMAGE_NAME:$ENVIRONMENT-$VERSION"
+  docker push "$IMAGE_NAME:$VERSION"
+  docker push "$IMAGE_NAME:latest"
 fi
 
 # Step 3: Deploy with Terraform
 echo -e "${BLUE}🏗️ Step 5: Deploying infrastructure with Terraform...${NC}"
-cd terraform
+cd terraform/$ENVIRONMENT
 
 # Initialize Terraform if needed
 if [[ ! -d ".terraform" ]]; then
@@ -119,8 +120,7 @@ echo ""
 echo -e "${GREEN}✅ Deployment complete!${NC}"
 echo -e "${GREEN}🌐 Service URL: $SERVICE_URL${NC}"
 echo -e "${YELLOW}📊 Version: $VERSION${NC}"
-echo -e "${YELLOW}🔧 Environment: $ENVIRONMENT${NC}"
-echo -e "${YELLOW}📦 Image: $IMAGE_NAME:$ENVIRONMENT-$VERSION${NC}"
+echo -e "${YELLOW}� Image: $IMAGE_NAME:$VERSION${NC}"
 
 # Optional: Open the URL in browser
 if command -v open &> /dev/null; then

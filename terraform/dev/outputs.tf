@@ -15,10 +15,10 @@ output "artifact_registry_url" {
 
 output "domain_name" {
   description = "Custom domain name mapped to the service"
-  value       = google_cloud_run_domain_mapping.domain.name
+  value       = length(google_cloud_run_domain_mapping.default) > 0 ? google_cloud_run_domain_mapping.default[0].name : null
 }
 
 output "domain_status" {
   description = "Status of the domain mapping"
-  value       = google_cloud_run_domain_mapping.domain.status
+  value       = length(google_cloud_run_domain_mapping.default) > 0 ? google_cloud_run_domain_mapping.default[0].status : null
 }

@@ -5,3 +5,6 @@ README.md
 .gitignore
 .prettierrc
 .vscode/
+
+/terraform
+/scripts
