@@ -1,5 +1,5 @@
-import { Dialog, DialogContent, DialogClose } from './ui/dialog';
 import type { Product } from '~/lib/dataTypes';
+import { Dialog, DialogClose, DialogContent } from './ui/dialog';
 
 interface ProductModalProps {
   product: Product | null;
@@ -31,7 +31,7 @@ export default function ProductModal({ product, onClose, programs }: ProductModa
             rel="noopener noreferrer"
             className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-primary text-white rounded hover:bg-primary/90 transition shadow-lg z-10"
           >
-            Buy It
+            Check Price
           </a>
         )}
         <DialogClose className="absolute top-4 right-4" />
