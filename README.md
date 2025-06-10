@@ -236,6 +236,19 @@ This project uses [Changesets](https://github.com/changesets/changesets) for aut
 
 See the [Changesets documentation](https://github.com/changesets/changesets) for more details.
 
+## Cloud Storage CORS Configuration
+
+To allow your web app to access files from Firebase Storage, you must set the appropriate CORS rules:
+
+1. Edit `cors.json` to specify your desired CORS policy.
+2. Run the following command to apply the CORS configuration to your bucket:
+
+   ```sh
+   gsutil cors set cors.json gs://insbay-b32351.firebasestorage.app
+   ```
+
+This ensures your frontend can interact with files in the Firebase Storage bucket without CORS errors.
+
 ## Tech Stack
 
 - React
