@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.2.0
+
+### Minor Changes
+
+- internal tools and deployments services starting to work
+
 ## 0.1.5
 
 ### Patch Changes
