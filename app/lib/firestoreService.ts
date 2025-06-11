@@ -1,4 +1,4 @@
-import type { VideoData } from '../types/models';
+import type { VideoData, VideoFrame } from '../types/models';
 import type { Comment, Inspiration, Product, Program } from './dataTypes';
 
 import { DocumentSnapshot, limit, orderBy, where } from 'firebase/firestore';
@@ -312,6 +312,108 @@ export const insertProduct = async (product: Omit<Product, 'id'>): Promise<strin
     return docId;
   } catch (error) {
     console.error('Error inserting product:', error);
+    throw error;
+  }
+};
+
+/**
+ * Inserts a new video into Firestore
+ */
+export const insertVideo = async (video: Omit<VideoData, 'video_id'>): Promise<string> => {
+  try {
+    // Check if video with same URL already exists
+    const existingVideos = await queryDocuments<VideoData>(
+      'videos',
+      [{ field: 'video_url', operator: '==', value: video.video_url }]
+    );
+
+    if (existingVideos.length > 0) {
+      throw new Error('Video with this URL already exists');
+    }
+
+    const docId = await addDocument('videos', {
+      ...video,
+      created_at: new Date().toISOString(),
+      is_processed: video.is_processed || false,
+    });
+    return docId;
+  } catch (error) {
+    console.error('Error inserting video:', error);
+    throw error;
+  }
+};
+
+/**
+ * Saves a video frame to Firestore
+ */
+export const saveFrame = async (frame: Omit<VideoFrame, 'frame_id'>): Promise<string> => {
+  try {
+    // Check for duplicate frames within 500ms tolerance
+    const existingFrames = await queryDocuments<VideoFrame>(
+      'frames',
+      [{ field: 'video_id', operator: '==', value: frame.video_id }]
+    );
+
+    const duplicateFrame = existingFrames.find(existingFrame =>
+      Math.abs(existingFrame.timestamp_ms - frame.timestamp_ms) <= 10
+    );
+
+    if (duplicateFrame) {
+      throw new Error('Frame already exists within 10ms tolerance');
+    }
+
+    const docId = await addDocument('frames', {
+      ...frame,
+      created_at: new Date().toISOString(),
+    });
+    return docId;
+  } catch (error) {
+    console.error('Error saving frame:', error);
+    throw error;
+  }
+};
+
+/**
+ * Updates video data in Firestore
+ */
+export const updateVideo = async (id: string, data: Partial<VideoData>): Promise<void> => {
+  try {
+    if (!id) {
+      throw new Error('Video ID is required for update');
+    }
+    await updateDocument('videos', id, data);
+  } catch (error) {
+    console.error('Error updating video:', error);
+    throw error;
+  }
+};
+
+/**
+ * Deletes a video from Firestore
+ */
+export const deleteVideo = async (id: string): Promise<void> => {
+  try {
+    if (!id) {
+      throw new Error('Video ID is required for deletion');
+    }
+    await deleteDocument('videos', id);
+  } catch (error) {
+    console.error('Error deleting video:', error);
+    throw error;
+  }
+};
+
+/**
+ * Deletes a video frame from Firestore
+ */
+export const deleteFrame = async (id: string): Promise<void> => {
+  try {
+    if (!id) {
+      throw new Error('Frame ID is required for deletion');
+    }
+    await deleteDocument('frames', id);
+  } catch (error) {
+    console.error('Error deleting frame:', error);
     throw error;
   }
 };

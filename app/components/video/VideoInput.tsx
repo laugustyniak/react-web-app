@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
+import { Alert, AlertDescription } from "~/components/ui/alert";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { Badge } from "~/components/ui/badge";
 import { LoadingSpinner } from "~/components/ui/loading";
-import { Alert, AlertDescription } from "~/components/ui/alert";
 
 interface VideoInputProps {
   onVideoLoad: (url: string) => Promise<void>;
+  onAddToProcessing?: (url: string) => Promise<void>;
   isLoading: boolean;
   error: string | null;
 }
 
-const VideoInput: React.FC<VideoInputProps> = ({ onVideoLoad, isLoading, error }) => {
+const VideoInput: React.FC<VideoInputProps> = ({ onVideoLoad, onAddToProcessing, isLoading, error }) => {
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [file, setFile] = useState<File | null>(null);
 
@@ -25,7 +26,7 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoLoad, isLoading, error }
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
-      
+
       // Create a URL for the local file
       const fileUrl = URL.createObjectURL(selectedFile);
       setVideoUrl(fileUrl);
@@ -39,28 +40,37 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoLoad, isLoading, error }
     }
   };
 
+  const handleAddToProcessing = async () => {
+    if (videoUrl && onAddToProcessing) {
+      await onAddToProcessing(videoUrl);
+      // Clear the URL after adding to processing
+      setVideoUrl('');
+      setFile(null);
+    }
+  };
+
   return (
     <div className="mb-4">
       <div className="mb-4 flex flex-col gap-2">
         <h2 className="text-xl font-semibold">Example Video Links:</h2>
         <div className="flex flex-wrap gap-2">
           {exampleVideos.map((url, index) => (
-            <Badge 
-              key={index} 
+            <Badge
+              key={index}
               variant="outline"
               className="cursor-pointer"
-              onClick={() => setVideoUrl(url)} 
+              onClick={() => setVideoUrl(url)}
             >
               {url}
             </Badge>
           ))}
         </div>
       </div>
-      
+
       <div className="mb-4">
         <h2 className="text-xl font-semibold mb-2">Upload Video File:</h2>
-        <Input 
-          type="file" 
+        <Input
+          type="file"
           accept="video/*"
           onChange={handleFileChange}
           className="mb-2"
@@ -69,27 +79,45 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoLoad, isLoading, error }
           <p className="text-sm">Selected file: {file.name} ({Math.round(file.size / 1024 / 1024 * 10) / 10} MB)</p>
         )}
       </div>
-      
+
       <div className="mb-4">
         <h2 className="text-xl font-semibold mb-2">Or Enter YouTube URL:</h2>
-        <div className="flex flex-col sm:flex-row gap-2">
+        <div className="flex flex-col gap-3">
           <Input
             className="w-full"
             placeholder="https://www.youtube.com/watch?v=..."
             value={videoUrl}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setVideoUrl(e.target.value)}
           />
-          <Button 
-            variant="default" 
-            onClick={handleLoadVideo}
-            disabled={!videoUrl || isLoading}
-            className="min-w-[120px]"
-          >
-            {isLoading ? <LoadingSpinner /> : 'Load Video'}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <Button
+              variant="default"
+              onClick={handleLoadVideo}
+              disabled={!videoUrl || isLoading}
+              className="flex-1 min-w-[120px]"
+            >
+              {isLoading ? <LoadingSpinner /> : 'Load Video for Extraction'}
+            </Button>
+            {onAddToProcessing && (
+              <Button
+                variant="outline"
+                onClick={handleAddToProcessing}
+                disabled={!videoUrl || isLoading}
+                className="flex-1 min-w-[120px]"
+              >
+                {isLoading ? <LoadingSpinner /> : 'Add Video to Processing'}
+              </Button>
+            )}
+          </div>
+          <div className="text-sm text-gray-600">
+            <p><strong>Load Video for Extraction:</strong> Immediately load and extract frames from this video</p>
+            {onAddToProcessing && (
+              <p><strong>Add Video to Processing:</strong> Queue this video for later processing (status: Queued)</p>
+            )}
+          </div>
         </div>
       </div>
-      
+
       {error && (
         <Alert variant="destructive" className="mb-4">
           <AlertDescription>{error}</AlertDescription>
@@ -99,4 +127,4 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoLoad, isLoading, error }
   );
 };
 
-export default VideoInput; 
+export default VideoInput;

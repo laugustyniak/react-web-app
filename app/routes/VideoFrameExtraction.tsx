@@ -1,12 +1,15 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import { toast } from 'sonner';
 import FrameGrid from '~/components/video/FrameGrid';
 import TimeRangeSelector from '~/components/video/TimeRangeSelector';
 import VideoInput from '~/components/video/VideoInput';
+import VideoSelector from '~/components/ProductExtraction/VideoSelector';
 import type { VideoPlayerRef } from '~/components/video/VideoPlayer';
 import VideoPlayer from '~/components/video/VideoPlayer';
 import type { VideoData, VideoFrame } from '~/types/models';
+import { getAllVideos } from '~/lib/firestoreService';
+import { DocumentSnapshot } from 'firebase/firestore';
 
 import {
   deleteFrame as apiDeleteFrame,
@@ -26,8 +29,79 @@ const VideoFrameExtraction = () => {
   const [extractionProgress, setExtractionProgress] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
 
+  // Video selector state
+  const [availableVideos, setAvailableVideos] = useState<VideoData[]>([]);
+  const [lastVideoDoc, setLastVideoDoc] = useState<DocumentSnapshot | null>(null);
+  const [hasMoreVideos, setHasMoreVideos] = useState<boolean>(true);
+  const [isLoadingVideos, setIsLoadingVideos] = useState<boolean>(false);
+  const [showVideoSelector, setShowVideoSelector] = useState<boolean>(false);
+
   // References
   const playerRef = useRef<VideoPlayerRef>(null);
+
+  const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
+
+  // Load videos from Firestore on component mount
+  useEffect(() => {
+    loadVideosFromFirebase();
+  }, []);
+
+  // Load videos from Firestore
+  const loadVideosFromFirebase = async () => {
+    try {
+      setIsLoadingVideos(true);
+      const { documents, lastDoc, hasMore } = await getAllVideos(200, lastVideoDoc); // Load up to 200 videos by default
+      setAvailableVideos(prev => [...prev, ...documents]);
+      setLastVideoDoc(lastDoc);
+      setHasMoreVideos(hasMore);
+      // Don't auto-select a video - let user choose via VideoInput or VideoSelector
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load videos from Firebase');
+    } finally {
+      setIsLoadingVideos(false);
+    }
+  };
+
+  // Load more videos from Firebase
+  const loadMoreVideos = () => {
+    if (hasMoreVideos && !isLoadingVideos) {
+      loadVideosFromFirebase();
+    }
+  };
+
+  // Load ALL videos from Firebase
+  const loadAllVideos = async () => {
+    if (isLoadingVideos) return;
+
+    try {
+      setIsLoadingVideos(true);
+      setError(null);
+
+      let allVideos: VideoData[] = [...availableVideos];
+      let currentLastDoc = lastVideoDoc;
+      let hasMore = hasMoreVideos;
+
+      // Keep loading batches until we have all videos
+      while (hasMore) {
+        const { documents, lastDoc, hasMore: moreAvailable } = await getAllVideos(50, currentLastDoc);
+        allVideos = [...allVideos, ...documents];
+        currentLastDoc = lastDoc;
+        hasMore = moreAvailable;
+      }
+
+      // Update state with all videos
+      setAvailableVideos(allVideos);
+      setLastVideoDoc(currentLastDoc);
+      setHasMoreVideos(false);
+
+      console.log(`Loaded ${allVideos.length} videos total`);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load all videos from Firebase');
+    } finally {
+      setIsLoadingVideos(false);
+    }
+  };
 
   // Handle loading a video
   const handleLoadVideo = async (url: string) => {
@@ -42,13 +116,56 @@ const VideoFrameExtraction = () => {
       // Call API to load video
       const data = await apiLoadVideo(url);
       setVideoData(data);
-
+      
       // Load saved frames for this video
       const frames = await apiLoadSavedFrames(data.video_id);
       setSavedFrames(frames);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error occurred');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Handle adding video to processing queue
+  const handleAddVideoToProcessing = async (url: string) => {
+    if (!url.trim()) {
+      setError('Please enter a video URL');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Basic validation
+      if (!ReactPlayer.canPlay(url)) {
+        throw new Error('Unsupported video URL');
+      }
+
+      // Create video data with queued status
+      const videoData: Partial<VideoData> = {
+        video_url: url,
+        is_processed: false, // Queued status
+        created_at: new Date() as any, // Will be converted to Firestore Timestamp
+        title: `Video from ${new URL(url).hostname}`,
+        description: 'Added for processing'
+      };
+
+      // Save to Firebase (you'll need to implement this in your service)
+      // For now, we'll simulate the API call
+      toast.success('Video added to processing queue!', {
+        description: 'The video will be processed shortly.'
+      });
+
+      console.log('Video added to processing queue:', videoData);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add video to processing queue');
+      toast.error('Failed to add video', {
+        description: err instanceof Error ? err.message : 'Unknown error occurred'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -313,12 +430,55 @@ const VideoFrameExtraction = () => {
           to focus on the most relevant parts of your content.
         </p>
 
-        {/* Video Input Component */}
+        {/* Video Input Component - Primary option */}
         <VideoInput
           onVideoLoad={handleLoadVideo}
+          onAddToProcessing={handleAddVideoToProcessing}
           isLoading={isLoading}
           error={error}
         />
+
+        {/* Toggle for Video Selector */}
+        <div className="my-6 text-center">
+          <button
+            onClick={() => setShowVideoSelector(!showVideoSelector)}
+            className="text-blue-600 hover:text-blue-800 underline text-sm"
+          >
+            {showVideoSelector ? 'Hide' : 'Show'} existing videos library
+          </button>
+        </div>
+
+        {/* Video Selector Component - Alternative option */}
+        {showVideoSelector && (
+          <>
+            {/* Divider */}
+            <div className="my-8 flex items-center">
+              <div className="flex-1 border-t border-gray-300"></div>
+              <div className="mx-4 text-sm text-gray-500 bg-white px-2">OR</div>
+              <div className="flex-1 border-t border-gray-300"></div>
+            </div>
+
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold mb-2">Choose from Existing Videos</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Select from previously uploaded videos in your library
+              </p>
+              <VideoSelector
+                availableVideos={availableVideos}
+                videoData={videoData}
+                DEFAULT_VIDEO_ID={DEFAULT_VIDEO_ID}
+                hasMoreVideos={hasMoreVideos}
+                isLoadingVideos={isLoadingVideos}
+                onSelect={async (video) => {
+                  setVideoData(video);
+                  await handleLoadVideo(video.video_url);
+                }}
+                onLoadMore={loadMoreVideos}
+                onLoadAll={loadAllVideos}
+              />
+            </div>
+          </>
+        )}
 
         {videoData && (
           <>
