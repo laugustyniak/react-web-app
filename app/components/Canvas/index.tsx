@@ -57,7 +57,6 @@ export default function Canvas() {
   const {
     snapshots,
     createSnapshot,
-    createExportSnapshot,
     createInspirationSnapshot,
     deleteSnapshot,
     clearAllSnapshots,
@@ -82,7 +81,6 @@ export default function Canvas() {
   } = useDragAndDrop(addImagesToCanvas);
 
   const {
-    saveAsImage,
     exportCanvasState,
     importCanvasState
   } = useCanvasExport(images, setImages, canvasRef, deselectAllImages);
@@ -100,12 +98,6 @@ export default function Canvas() {
     setShowResultModal,
     generatedImage
   } = useInspirationGeneration(canvasRef, deselectAllImages, images.length > 0);
-
-  // Wrapper function for export that creates a snapshot
-  const handleExportAsImage = async () => {
-    await createExportSnapshot();
-    await saveAsImage();
-  };
 
   // Wrapper function for inspiration generation that creates a snapshot
   const handleGenerateInspiration = async () => {
@@ -228,7 +220,6 @@ export default function Canvas() {
             handleDelete={handleDelete}
             handleFileUpload={handleFileUpload}
             fileInputRef={fileInputRef}
-            saveAsImage={handleExportAsImage}
             exportCanvasState={exportCanvasState}
             importCanvasState={importCanvasState}
             handleClearCanvas={handleClearCanvas}

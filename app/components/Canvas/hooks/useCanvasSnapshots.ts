@@ -1,8 +1,8 @@
 // Canvas/hooks/useCanvasSnapshots.ts
-import { useState, useCallback, useRef } from 'react';
-import type { CanvasImage } from '../types';
-import type { CanvasSnapshot } from '../components/CanvasSnapshots';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
+import type { CanvasSnapshot } from '../components/CanvasSnapshots';
+import type { CanvasImage } from '../types';
 
 interface UseCanvasSnapshotsProps {
   images: CanvasImage[];
@@ -25,7 +25,7 @@ export function useCanvasSnapshots({
       // Create a temporary canvas to render the current state
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
-      
+
       if (!ctx) {
         throw new Error('Could not get canvas context');
       }
@@ -51,17 +51,17 @@ export function useCanvasSnapshots({
         return new Promise<void>((resolve, reject) => {
           const img = new Image();
           img.crossOrigin = 'anonymous';
-          
+
           img.onload = () => {
             try {
               ctx.save();
-              
+
               // Calculate scaled position and size
               const scaledX = image.x * scaleX;
               const scaledY = image.y * scaleY;
               const scaledWidth = image.width * scaleX;
               const scaledHeight = image.height * scaleY;
-              
+
               // Apply rotation if needed
               if (image.rotation !== 0) {
                 const centerX = scaledX + scaledWidth / 2;
@@ -70,7 +70,7 @@ export function useCanvasSnapshots({
                 ctx.rotate((image.rotation * Math.PI) / 180);
                 ctx.translate(-centerX, -centerY);
               }
-              
+
               // Draw the image
               ctx.drawImage(img, scaledX, scaledY, scaledWidth, scaledHeight);
               ctx.restore();
@@ -79,7 +79,7 @@ export function useCanvasSnapshots({
               reject(error);
             }
           };
-          
+
           img.onerror = () => reject(new Error(`Failed to load image: ${image.src}`));
           img.src = image.src;
         });
@@ -100,7 +100,7 @@ export function useCanvasSnapshots({
   // Create a new snapshot
   const createSnapshot = useCallback(async (description?: string) => {
     const imageData = await captureCanvas();
-    
+
     if (!imageData) {
       return null;
     }
@@ -115,15 +115,6 @@ export function useCanvasSnapshots({
     setSnapshots(prev => [snapshot, ...prev]); // Add to beginning for chronological order
     return snapshot;
   }, [captureCanvas, images.length]);
-
-  // Create snapshot for export action
-  const createExportSnapshot = useCallback(async () => {
-    const snapshot = await createSnapshot('Exported canvas');
-    if (snapshot) {
-      console.log('Export snapshot captured:', snapshot.id);
-    }
-    return snapshot;
-  }, [createSnapshot]);
 
   // Create snapshot for inspiration generation
   const createInspirationSnapshot = useCallback(async () => {
@@ -143,7 +134,7 @@ export function useCanvasSnapshots({
   // Clear all snapshots
   const clearAllSnapshots = useCallback(() => {
     if (snapshots.length === 0) return;
-    
+
     if (window.confirm(`Are you sure you want to delete all ${snapshots.length} snapshots?`)) {
       setSnapshots([]);
       toast.success('All snapshots cleared');
@@ -167,7 +158,6 @@ export function useCanvasSnapshots({
   return {
     snapshots,
     createSnapshot: manualCapture,
-    createExportSnapshot,
     createInspirationSnapshot,
     deleteSnapshot,
     clearAllSnapshots,
