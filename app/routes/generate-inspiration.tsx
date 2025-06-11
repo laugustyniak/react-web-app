@@ -1,9 +1,9 @@
-import Canvas from '~/components/Canvas/index';
-import { useAuth } from '~/contexts/AuthContext';
-import { Navigate } from 'react-router';
 import { AlertTriangle } from 'lucide-react';
-import { PageLayout, ContentCard } from '~/components/ui/layout';
+import { Navigate } from 'react-router';
+import Canvas from '~/components/Canvas/index';
 import { Button } from '~/components/ui/button';
+import { ContentCard, PageLayout } from '~/components/ui/layout';
+import { useAuth } from '~/contexts/AuthContext';
 
 export function meta() {
   return [
@@ -33,4 +33,4 @@ export default function GenerateInspirationRoute() {
   }
 
   return <Canvas />;
-} 
+}
