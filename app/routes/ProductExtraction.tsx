@@ -1,7 +1,7 @@
 import { DocumentSnapshot } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
+import SearchOptionsPanel, { type SearchOptions } from '~/components/ProductExtraction/SearchOptionsPanel';
 import { Alert, AlertDescription } from "~/components/ui/alert";
-import { Button } from "~/components/ui/button";
 import { getAllVideos, getFramesByVideoId } from '~/lib/firestoreService';
 import AnalyzeProductsButton from "../components/ProductExtraction/AnalyzeProductsButton";
 import ExtractedProductsList from "../components/ProductExtraction/ExtractedProductsList";
@@ -46,6 +46,15 @@ const ProductExtraction = () => {
   const [searchResultsByIdx, setSearchResultsByIdx] = useState<Record<number, any>>({});
   const [isSearchingByIdx, setIsSearchingByIdx] = useState<Record<number, boolean>>({});
   const [searchErrorByIdx, setSearchErrorByIdx] = useState<Record<number, string | null>>({});
+  // Search options state
+  const [searchOptions, setSearchOptions] = useState<SearchOptions>({
+    location: "United States",
+    language: "English",
+    hl: "en",
+    gl: "us",
+    context: "",
+    marketplace: ""
+  });
   // Handler for per-product Insbuy AI search
   const handleProductSearchWithAI = async (idx: number, query: string) => {
     setIsSearchingByIdx(prev => ({ ...prev, [idx]: true }));
@@ -55,7 +64,7 @@ const ProductExtraction = () => {
       const response = await fetch(`/api/find_image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
+        body: JSON.stringify({ query: query + ' ' + searchOptions.marketplace + ' ' + searchOptions.context, hl: searchOptions.hl, gl: searchOptions.gl, location: searchOptions.location })
       });
       if (!response.ok) {
         const errText = await response.text();
@@ -257,7 +266,7 @@ const ProductExtraction = () => {
       const response = await fetch(`/api/find_image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
+        body: JSON.stringify({ query: query + ' ' + searchOptions.marketplace + ' ' + searchOptions.context, hl: searchOptions.hl, gl: searchOptions.gl, location: searchOptions.location })
       });
       if (!response.ok) {
         const errText = await response.text();
@@ -358,6 +367,14 @@ const ProductExtraction = () => {
         {/* Analyze Products Button and Extracted Products List */}
         {selectedFrameIndex !== null && (
           <div className="mb-4 flex flex-col items-center">
+            {/* Search Options Panel */}
+            <div className="w-full max-w-md mb-4">
+              <SearchOptionsPanel
+                searchOptions={searchOptions}
+                onOptionsChange={setSearchOptions}
+              />
+            </div>
+
             <AnalyzeProductsButton
               isAnalyzing={isAnalyzing}
               onAnalyze={analyzeProducts}
