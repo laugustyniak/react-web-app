@@ -1,7 +1,7 @@
 // Canvas/components/CanvasToolbar.tsx
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
-import { Upload, Move, Maximize, Minimize, RotateCw, Trash, Save, Download, Upload as UploadIcon, XCircle } from 'lucide-react';
+import { Upload, Move, Maximize, Minimize, RotateCw, Trash, Save, Download, Upload as UploadIcon, XCircle, Camera } from 'lucide-react';
 import type { CanvasTool } from '../types';
 
 interface CanvasToolbarProps {
@@ -16,6 +16,7 @@ interface CanvasToolbarProps {
   exportCanvasState: () => void;
   importCanvasState: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleClearCanvas: () => void;
+  handleManualSnapshot?: () => void;
   hasImages: boolean;
 }
 
@@ -31,6 +32,7 @@ export default function CanvasToolbar({
   exportCanvasState,
   importCanvasState,
   handleClearCanvas,
+  handleManualSnapshot,
   hasImages
 }: CanvasToolbarProps) {
   return (
@@ -102,6 +104,18 @@ export default function CanvasToolbar({
       </Button>
       
       <div className="ml-auto flex gap-2">
+        {handleManualSnapshot && (
+          <Button
+            variant="outline"
+            onClick={handleManualSnapshot}
+            className="flex items-center gap-2"
+            disabled={!hasImages}
+          >
+            <Camera size={16} />
+            Capture Snapshot
+          </Button>
+        )}
+        
         <Button
           variant="outline"
           onClick={saveAsImage}

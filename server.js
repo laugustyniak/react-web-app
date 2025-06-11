@@ -91,6 +91,38 @@ async function handleGetProductDescription(req, res) {
   }
 }
 
+// Direct endpoint for /inpaint
+async function handleInpaint(req, res) {
+  try {
+    const targetUrl = `${API_CONFIG.BACKEND_URL}/inpaint`;
+    const body = req.body;
+    const headers = {
+      'content-type': 'application/json',
+      'x-api-key': API_CONFIG.API_KEY
+    };
+    const options = {
+      method: req.method,
+      headers,
+      body: JSON.stringify(body)
+    };
+    const response = await fetch(targetUrl, options);
+    res.status(response.status);
+    if (response.headers.get('content-type')?.includes('application/json')) {
+      const data = await response.json();
+      res.json(data);
+    } else {
+      const text = await response.text();
+      res.send(text);
+    }
+  } catch (error) {
+    console.error('Direct endpoint error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+}
+
 async function createServer() {
   const app = express();
 
@@ -168,6 +200,9 @@ async function createServer() {
 
   // Direct endpoint for /find_image
   app.post('/api/find_image', handleFindImage);
+
+  // Direct endpoint for /inpaint
+  app.post('/api/inpaint', handleInpaint);
 
   if (isProduction) {
     // Production mode

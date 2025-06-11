@@ -2,8 +2,8 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { captureElementAsImage } from '~/lib/canvasUtils';
-import { htmlToPng } from '~/lib/svgUtils';
 import { captureElementDirectly } from '~/lib/directCanvasCapture';
+import { htmlToPng } from '~/lib/svgUtils';
 
 export function useInspirationGeneration(
     canvasRef: React.RefObject<HTMLDivElement | null>,
@@ -41,7 +41,7 @@ export function useInspirationGeneration(
 
             // Try multiple approaches in order, with fallbacks
             let imageData: string | null = null;
-            
+
             // Method 1: Try the SVG-based approach first (should handle most cases)
             try {
                 imageData = await htmlToPng(canvasRef.current);
@@ -49,7 +49,7 @@ export function useInspirationGeneration(
             } catch (svgError) {
                 console.warn("SVG conversion failed with error:", svgError);
             }
-            
+
             // Method 2: If SVG approach fails, try direct canvas capture
             if (!imageData) {
                 try {
@@ -60,7 +60,7 @@ export function useInspirationGeneration(
                     console.warn("Direct canvas capture failed with error:", directError);
                 }
             }
-            
+
             // Method 3: If both fail, fall back to the original html2canvas method
             if (!imageData) {
                 try {
@@ -88,11 +88,10 @@ export function useInspirationGeneration(
             }
 
             // Send only the canvas image to the inpainting API
-            const response = await fetch('http://localhost:8051/inpaint', {
+            const response = await fetch('/api/inpaint', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    "x-api-key": "insbuy-a14727b1-58a6-43ad-beae-b393ca192708"
                 },
                 body: JSON.stringify({
                     base64_image: base64Data,

@@ -1,45 +1,47 @@
 // Canvas/index.tsx
-import { useState, useRef, useEffect } from 'react';
-import { PageLayout, ContentCard } from '~/components/ui/layout';
-import ProtectedRoute from '~/components/ProtectedRoute';
-import { Button } from '~/components/ui/button';
 import { AlertTriangle, Wand2 } from 'lucide-react';
-import { useAuth } from '~/contexts/AuthContext';
+import { useEffect, useRef, useState } from 'react';
 import { Navigate } from 'react-router';
-import { getAllProducts } from '~/lib/firestoreService';
 import { toast } from 'sonner';
-import { usePrograms } from '~/hooks/usePrograms';
 import ProductSearchPanel from '~/components/ProductSearchPanel';
+import ProtectedRoute from '~/components/ProtectedRoute';
 import InspirationResultModal from '~/components/modals/InspirationResultModal';
+import { Button } from '~/components/ui/button';
+import { ContentCard, PageLayout } from '~/components/ui/layout';
+import { useAuth } from '~/contexts/AuthContext';
+import { usePrograms } from '~/hooks/usePrograms';
 import type { Product } from '~/lib/dataTypes';
+import { getAllProducts } from '~/lib/firestoreService';
 
 // Import our components and hooks
-import CanvasToolbar from './components/CanvasToolbar';
 import CanvasArea from './components/CanvasArea';
+import CanvasSnapshots from './components/CanvasSnapshots';
+import CanvasToolbar from './components/CanvasToolbar';
 import PromptInputs from './components/PromptInputs';
-import { useCanvasImages } from './hooks/useCanvasImages';
-import { useImageManipulation } from './hooks/useImageManipulation';
-import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { useCanvasExport } from './hooks/useCanvasExport';
+import { useCanvasImages } from './hooks/useCanvasImages';
+import { useCanvasSnapshots } from './hooks/useCanvasSnapshots';
+import { useDragAndDrop } from './hooks/useDragAndDrop';
+import { useImageManipulation } from './hooks/useImageManipulation';
 import { useInspirationGeneration } from './hooks/useInspirationGeneration';
-import { processFilesToCanvasImages, createCanvasImageFromProduct } from './utils/canvasHelpers';
+import { createCanvasImageFromProduct, processFilesToCanvasImages } from './utils/canvasHelpers';
 
 export default function Canvas() {
   const { user, isAdmin } = useAuth();
   const canvasRef = useRef<HTMLDivElement>(null);
-  
+
   // Custom hooks
   const {
-    images, 
-    setImages, 
-    addImage, 
-    clearImages, 
-    updateImage, 
-    removeImage, 
+    images,
+    setImages,
+    addImage,
+    clearImages,
+    updateImage,
+    removeImage,
     selectImage,
     deselectAllImages
   } = useCanvasImages();
-  
+
   const {
     selectedTool,
     setSelectedTool,
@@ -50,12 +52,26 @@ export default function Canvas() {
     handleResize,
     handleRotate
   } = useImageManipulation(images, updateImage, selectImage);
-  
+
+  // Canvas snapshots functionality
+  const {
+    snapshots,
+    createSnapshot,
+    createExportSnapshot,
+    createInspirationSnapshot,
+    deleteSnapshot,
+    clearAllSnapshots,
+    downloadSnapshot
+  } = useCanvasSnapshots({
+    images,
+    canvasRef
+  });
+
   // Add images to canvas from files
   const addImagesToCanvas = (files: File[]) => {
     processFilesToCanvasImages(files, images.length, addImage);
   };
-  
+
   const {
     isDraggingFile,
     fileInputRef,
@@ -64,13 +80,13 @@ export default function Canvas() {
     handleDrop,
     handleFileUpload
   } = useDragAndDrop(addImagesToCanvas);
-  
+
   const {
     saveAsImage,
     exportCanvasState,
     importCanvasState
   } = useCanvasExport(images, setImages, canvasRef, deselectAllImages);
-  
+
   const {
     prompt,
     setPrompt,
@@ -84,17 +100,29 @@ export default function Canvas() {
     setShowResultModal,
     generatedImage
   } = useInspirationGeneration(canvasRef, deselectAllImages, images.length > 0);
-  
+
+  // Wrapper function for export that creates a snapshot
+  const handleExportAsImage = async () => {
+    await createExportSnapshot();
+    await saveAsImage();
+  };
+
+  // Wrapper function for inspiration generation that creates a snapshot
+  const handleGenerateInspiration = async () => {
+    await createInspirationSnapshot();
+    await generateInspiration();
+  };
+
   // Product search state
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState(false);
   const { programs } = usePrograms();
-  
+
   // Load products from Firestore on component mount
   useEffect(() => {
     fetchProducts();
   }, []);
-  
+
   // Load products from Firestore
   const fetchProducts = async () => {
     try {
@@ -107,7 +135,7 @@ export default function Canvas() {
       setIsLoadingProducts(false);
     }
   };
-  
+
   // Clear all images from canvas
   const handleClearCanvas = () => {
     if (window.confirm('Are you sure you want to clear the canvas? All images will be removed.')) {
@@ -115,14 +143,14 @@ export default function Canvas() {
       toast.success('Canvas cleared successfully');
     }
   };
-  
+
   const handleDelete = () => {
     const selectedImage = images.find(img => img.selected);
     if (selectedImage) {
       removeImage(selectedImage.id);
     }
   };
-  
+
   // Add product to canvas
   const addProductToCanvas = (product: Product) => {
     const newImage = createCanvasImageFromProduct(product);
@@ -130,20 +158,35 @@ export default function Canvas() {
       addImage(newImage);
     }
   };
-  
+
+  // Manual snapshot capture
+  const handleManualSnapshot = async () => {
+    if (images.length === 0) {
+      toast.error('Add some images to the canvas first');
+      return;
+    }
+
+    const description = window.prompt(`Enter a description for this snapshot:`,
+      `Manual snapshot - ${images.length} item${images.length !== 1 ? 's' : ''}`);
+
+    if (description !== null) {
+      await createSnapshot(description);
+    }
+  };
+
   // Handle global mouse events
   useEffect(() => {
     const handleGlobalMouseUp = () => {
       handleMouseUp();
     };
-    
+
     window.addEventListener('mouseup', handleGlobalMouseUp);
-    
+
     return () => {
       window.removeEventListener('mouseup', handleGlobalMouseUp);
     };
   }, []);
-  
+
   // Redirect if not authenticated or not admin
   if (!user) {
     return <Navigate to="/sign-in" />;
@@ -161,7 +204,7 @@ export default function Canvas() {
       </PageLayout>
     );
   }
-  
+
   return (
     <ProtectedRoute>
       <PageLayout>
@@ -185,13 +228,14 @@ export default function Canvas() {
             handleDelete={handleDelete}
             handleFileUpload={handleFileUpload}
             fileInputRef={fileInputRef}
-            saveAsImage={saveAsImage}
+            saveAsImage={handleExportAsImage}
             exportCanvasState={exportCanvasState}
             importCanvasState={importCanvasState}
             handleClearCanvas={handleClearCanvas}
+            handleManualSnapshot={handleManualSnapshot}
             hasImages={images.length > 0}
           />
-          
+
           {/* Canvas Area */}
           <CanvasArea
             canvasRef={canvasRef}
@@ -204,14 +248,14 @@ export default function Canvas() {
             handleDragLeave={handleDragLeave}
             handleDrop={handleDrop}
           />
-          
+
           <div className="mt-4 flex flex-col items-center w-full">
             <p className="text-sm text-gray-500 mb-4 text-center">
               Tip: Select an image and use the tools above to manipulate it. You can upload multiple images to create a collage.
               It's important to maintain the real sizes of products. The background will be automatically removed, and a new
-              inspiration will be generated from your arrangement.
+              inspiration will be generated from your arrangement. Canvas snapshots are captured when you export images or generate inspiration.
             </p>
-            
+
             {/* Prompt Inputs */}
             <PromptInputs
               prompt={prompt}
@@ -221,11 +265,11 @@ export default function Canvas() {
               resetPrompt={resetPrompt}
               resetNegativePrompt={resetNegativePrompt}
             />
-            
+
             <Button
               variant="default"
               size="lg"
-              onClick={generateInspiration}
+              onClick={handleGenerateInspiration}
               disabled={images.length === 0 || isGenerating}
               className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-blue-500 hover:from-purple-700 hover:to-blue-600"
             >
@@ -233,14 +277,22 @@ export default function Canvas() {
               {isGenerating ? "Generating..." : "Generate Inspiration"}
             </Button>
           </div>
+
+          {/* Canvas Snapshots */}
+          <CanvasSnapshots
+            snapshots={snapshots}
+            onDeleteSnapshot={deleteSnapshot}
+            onDownloadSnapshot={downloadSnapshot}
+            onClearAllSnapshots={clearAllSnapshots}
+          />
         </div>
-        
+
         <InspirationResultModal
           isOpen={showResultModal}
           onClose={() => setShowResultModal(false)}
           imageData={generatedImage}
         />
-        
+
       </PageLayout>
     </ProtectedRoute>
   );
