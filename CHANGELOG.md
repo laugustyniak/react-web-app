@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.3.0
+
+### Minor Changes
+
+- extraction of rames from video made better, prompt polishing and other updates
+
 ## 0.2.0
 
 ### Minor Changes
