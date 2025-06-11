@@ -18,8 +18,13 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoLoad, onAddToProcessing,
 
   // Example video URLs
   const exampleVideos = [
-    'https://www.youtube.com/watch?v=LCmYC2qeqM0',
-    'https://www.youtube.com/watch?v=8X_m6E3XEaw'
+    'https://www.youtube.com/watch?v=J6ivwIndleQ',
+    'https://www.youtube.com/watch?v=XtC0IsVsmeI',
+    'https://www.youtube.com/watch?v=znm0D7xRLPA',
+    'https://www.youtube.com/watch?v=ESVeF5Jc9ks',
+    'https://www.youtube.com/watch?v=rzyicwrySSs',
+    'https://www.youtube.com/watch?v=o0Ssqd_9KI0',
+    'https://www.youtube.com/watch?v=H5Q0xSZzPWo'
   ];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,7 +117,7 @@ const VideoInput: React.FC<VideoInputProps> = ({ onVideoLoad, onAddToProcessing,
           <div className="text-sm text-gray-600">
             <p><strong>Load Video for Extraction:</strong> Immediately load and extract frames from this video</p>
             {onAddToProcessing && (
-              <p><strong>Add Video to Processing:</strong> Queue this video for later processing (status: Queued)</p>
+              <p><strong>Add Video to Processing:</strong> Queue this video for later processing</p>
             )}
           </div>
         </div>

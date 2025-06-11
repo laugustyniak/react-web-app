@@ -1,15 +1,15 @@
-import { useRef, useState, useEffect } from 'react';
+import { DocumentSnapshot } from 'firebase/firestore';
+import { useEffect, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
 import { toast } from 'sonner';
+import VideoSelector from '~/components/ProductExtraction/VideoSelector';
 import FrameGrid from '~/components/video/FrameGrid';
 import TimeRangeSelector from '~/components/video/TimeRangeSelector';
 import VideoInput from '~/components/video/VideoInput';
-import VideoSelector from '~/components/ProductExtraction/VideoSelector';
 import type { VideoPlayerRef } from '~/components/video/VideoPlayer';
 import VideoPlayer from '~/components/video/VideoPlayer';
+import { getAllVideos, insertVideo } from '~/lib/firestoreService';
 import type { VideoData, VideoFrame } from '~/types/models';
-import { getAllVideos } from '~/lib/firestoreService';
-import { DocumentSnapshot } from 'firebase/firestore';
 
 import {
   deleteFrame as apiDeleteFrame,
@@ -69,6 +69,23 @@ const VideoFrameExtraction = () => {
     }
   };
 
+  // Refresh video list (reset and reload from beginning)
+  const refreshVideoList = async () => {
+    try {
+      setIsLoadingVideos(true);
+      setLastVideoDoc(null);
+      setHasMoreVideos(true);
+      const { documents, lastDoc, hasMore } = await getAllVideos(200, null); // Reset to first page
+      setAvailableVideos(documents); // Replace existing videos instead of appending
+      setLastVideoDoc(lastDoc);
+      setHasMoreVideos(hasMore);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to refresh videos');
+    } finally {
+      setIsLoadingVideos(false);
+    }
+  };
+
   // Load ALL videos from Firebase
   const loadAllVideos = async () => {
     if (isLoadingVideos) return;
@@ -116,7 +133,7 @@ const VideoFrameExtraction = () => {
       // Call API to load video
       const data = await apiLoadVideo(url);
       setVideoData(data);
-      
+
       // Load saved frames for this video
       const frames = await apiLoadSavedFrames(data.video_id);
       setSavedFrames(frames);
@@ -145,21 +162,31 @@ const VideoFrameExtraction = () => {
       }
 
       // Create video data with queued status
-      const videoData: Partial<VideoData> = {
+      const videoData: VideoData = {
+        video_id: (() => {
+          const match = url.match(/(?:youtube\.com\/.*v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+          return match && match[1] ? match[1] : '';
+        })(),
         video_url: url,
         is_processed: false, // Queued status
-        created_at: new Date() as any, // Will be converted to Firestore Timestamp
-        title: `Video from ${new URL(url).hostname}`,
-        description: 'Added for processing'
+        title: `Video from ${url}`,
+        description: ''
       };
 
-      // Save to Firebase (you'll need to implement this in your service)
-      // For now, we'll simulate the API call
-      toast.success('Video added to processing queue!', {
-        description: 'The video will be processed shortly.'
-      });
+      // Save to Firebase using insertVideo from firestoreService
+      const docId = await insertVideo(videoData as VideoData);
 
-      console.log('Video added to processing queue:', videoData);
+      // Check if docId is not empty and show success toast
+      if (docId && docId.trim() !== '') {
+        toast.success('Video added successfully!', {
+          description: 'Video has been added to the processing queue and will be processed shortly.'
+        });
+
+        // Refresh the video table to show the recently added video
+        await refreshVideoList();
+      } else {
+        throw new Error('Failed to get document ID after inserting video');
+      }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add video to processing queue');
