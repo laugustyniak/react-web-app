@@ -1,4 +1,3 @@
-
 import { DocumentSnapshot } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { Alert, AlertDescription } from "~/components/ui/alert";
@@ -87,7 +86,7 @@ const ProductExtraction = () => {
   const loadVideosFromFirebase = async () => {
     try {
       setIsLoadingVideos(true);
-      const { documents, lastDoc, hasMore } = await getAllVideos(10, lastVideoDoc);
+      const { documents, lastDoc, hasMore } = await getAllVideos(200, lastVideoDoc); // Load up to 200 videos by default
       setAvailableVideos(prev => [...prev, ...documents]);
       setLastVideoDoc(lastDoc);
       setHasMoreVideos(hasMore);
@@ -107,6 +106,47 @@ const ProductExtraction = () => {
   const loadMoreVideos = () => {
     if (hasMoreVideos && !isLoadingVideos) {
       loadVideosFromFirebase();
+    }
+  };
+
+  // Load ALL videos from Firebase
+  const loadAllVideos = async () => {
+    if (isLoadingVideos) return;
+
+    try {
+      setIsLoadingVideos(true);
+      setError(null);
+
+      let allVideos: VideoData[] = [...availableVideos];
+      let currentLastDoc = lastVideoDoc;
+      let hasMore = hasMoreVideos;
+
+      // Keep loading batches until we have all videos
+      while (hasMore) {
+        const { documents, lastDoc, hasMore: moreAvailable } = await getAllVideos(50, currentLastDoc);
+        allVideos = [...allVideos, ...documents];
+        currentLastDoc = lastDoc;
+        hasMore = moreAvailable;
+      }
+
+      // Update state with all videos
+      setAvailableVideos(allVideos);
+      setLastVideoDoc(currentLastDoc);
+      setHasMoreVideos(false);
+
+      // Set default video if none selected
+      if (!videoData && allVideos.length > 0) {
+        const defaultVideo = allVideos.find(v => v.video_id === DEFAULT_VIDEO_ID) || allVideos[0];
+        setVideoData(defaultVideo);
+        await loadFrames(defaultVideo.video_id);
+      }
+
+      console.log(`Loaded ${allVideos.length} videos total`);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load all videos from Firebase');
+    } finally {
+      setIsLoadingVideos(false);
     }
   };
 
@@ -288,6 +328,7 @@ const ProductExtraction = () => {
             await loadFrames(video.video_id);
           }}
           onLoadMore={loadMoreVideos}
+          onLoadAll={loadAllVideos}
         />
 
         {/* Error Alert */}

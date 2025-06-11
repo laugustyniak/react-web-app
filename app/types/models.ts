@@ -1,3 +1,5 @@
+import type { Timestamp } from "firebase/firestore";
+
 export type Product = {
     product_id: number; // Number of product in the image
     product_name: string; // Name of the product
@@ -15,13 +17,16 @@ export type MultipleProducts = {
 export interface VideoData {
     video_id: string;
     video_url: string;
-    duration_s: number;
+    duration_s?: number;
+    duration_ms?: number; // Duration in milliseconds
     title?: string;
     program?: string;
+    is_processed?: boolean; // Processing status
     description?: string;
     logo_url?: string;
-}
-
+    visibility?: Visibility; // Visibility status
+    created_at?: Timestamp; // Creation timestamp in format "June 11, 2025 at 1:47:13 AM UTC+2"
+};
 
 export interface VideoFrame {
     frame_id: string;
@@ -60,4 +65,26 @@ export interface SimilarProduct {
     image_url: string;
     product_url: string;
     similarity_score: number;
+}
+
+export class Visibility {
+    static PUBLIC = "public"; // Visible to all users
+    static PRIVATE = "private"; // Only visible to owner
+    static UNLISTED = "unlisted"; // Only visible with direct link
+    static DRAFT = "draft"; // Not yet published
+    static ARCHIVED = "archived"; // No longer active but preserved
+
+    constructor(private value: string) {
+        if (![Visibility.PUBLIC, Visibility.PRIVATE, Visibility.UNLISTED, Visibility.DRAFT, Visibility.ARCHIVED].includes(value)) {
+            throw new Error(`Invalid visibility value: ${value}`);
+        }
+    }
+
+    public getValue(): string {
+        return this.value;
+    }
+
+    public static fromString(value: string): Visibility {
+        return new Visibility(value);
+    }
 }

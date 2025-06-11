@@ -1,14 +1,8 @@
 [
     {
-    "origin": ["https://dev.buy-it.ai", "https://buy-it.ai", "https://www.buy-it.ai", "https://app.buy-it.ai", "https://prod.buy-it.ai"],
+    "origin": ["https://dev.buy-it.ai", "https://buy-it.ai", "https://www.buy-it.ai", "https://app.buy-it.ai", "https://prod.buy-it.ai", "http://localhost:5173", "http://localhost:8080", "http://localhost:3000"],
     "method": ["GET", "HEAD"],
     "responseHeader": ["Content-Type"],
-    "maxAgeSeconds": 3600
-  },
-  {
-    "origin": ["http://localhost:5173", "http://localhost:8080"],
-    "responseHeader": ["Content-Type"],
-    "method": ["GET", "HEAD", "OPTIONS"],
     "maxAgeSeconds": 3600
   }
 ]

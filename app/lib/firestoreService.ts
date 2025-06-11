@@ -1,15 +1,15 @@
-import type { Inspiration, Comment, Product, Program } from './dataTypes';
+import type { VideoData } from '../types/models';
+import type { Comment, Inspiration, Product, Program } from './dataTypes';
 
+import { DocumentSnapshot, limit, orderBy, where } from 'firebase/firestore';
 import {
+  addDocument,
+  deleteDocument,
+  getCollection,
   getDocument,
   queryDocuments,
-  getCollection,
-  addDocument,
   updateDocument,
-  deleteDocument,
 } from './firestore';
-import { orderBy, limit, where } from 'firebase/firestore';
-import { DocumentSnapshot } from 'firebase/firestore';
 
 /**
  * Fetches comments for a specific content ID
@@ -418,7 +418,7 @@ export const getRandomInspirations = async (limitCount: number = 12): Promise<In
 export const getFramesByVideoId = async (videoId: string): Promise<VideoFrame[]> => {
   try {
     const { documents } = await getCollection<VideoFrame>('frames', {
-      queryConstraints: [where('video_id', '==', videoId)],
+      queryConstraints: [where('video_id', '==', videoId), orderBy('created_at', 'desc')],
     });
 
     return documents;
@@ -435,13 +435,13 @@ export const getAllVideos = async (
   limitCount: number = 50,
   lastDoc?: DocumentSnapshot | null
 ): Promise<{
-  documents: { video_id: string; video_url: string; duration_s: number }[];
+  documents: VideoData[];
   lastDoc: DocumentSnapshot | null;
   hasMore: boolean;
 }> => {
   try {
-    return await getCollection<{ video_id: string; video_url: string; duration_s: number }>('videos', {
-      queryConstraints: [orderBy('video_id', 'desc'), limit(limitCount)],
+    return await getCollection<VideoData>('videos', {
+      queryConstraints: [orderBy('created_at', 'desc'), limit(limitCount)],
       lastDoc: lastDoc || undefined,
     });
   } catch (error) {

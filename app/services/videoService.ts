@@ -175,4 +175,4 @@ export const deleteFrame = async (frameId: string): Promise<boolean> => {
     console.error('Error deleting frame from Firestore:', error);
     return false;
   }
-}; 
+};
