@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { spawn } from 'child_process';
-import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = join(__dirname, '..');
@@ -54,16 +54,16 @@ function startProcess(command, args, name, color) {
 async function main() {
   log('🚀 Starting development servers...', 'bright');
   log('📡 Express API server will start on http://localhost:8080', 'blue');
-  log('⚡ Vite dev server will start on http://localhost:3000', 'green');
+  log('⚡ Vite dev server will start on http://localhost:8080', 'green');
   log('🔗 API calls from frontend will be proxied to Express server', 'yellow');
   log('', 'reset');
 
   // Start Express server first
   const apiServer = startProcess('npm', ['run', 'dev:api'], 'API', 'blue');
-  
+
   // Wait a bit for API server to start
   await new Promise(resolve => setTimeout(resolve, 2000));
-  
+
   // Start Vite dev server
   const viteServer = startProcess('npm', ['run', 'dev:vite'], 'VITE', 'green');
 

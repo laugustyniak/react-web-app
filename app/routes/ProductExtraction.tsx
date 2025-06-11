@@ -46,7 +46,6 @@ const ProductExtraction = () => {
   const [searchResultsByIdx, setSearchResultsByIdx] = useState<Record<number, any>>({});
   const [isSearchingByIdx, setIsSearchingByIdx] = useState<Record<number, boolean>>({});
   const [searchErrorByIdx, setSearchErrorByIdx] = useState<Record<number, string | null>>({});
-  const [showExtractedProducts, setShowExtractedProducts] = useState<boolean>(false);
   // Handler for per-product Insbuy AI search
   const handleProductSearchWithAI = async (idx: number, query: string) => {
     setIsSearchingByIdx(prev => ({ ...prev, [idx]: true }));
@@ -363,20 +362,9 @@ const ProductExtraction = () => {
               isAnalyzing={isAnalyzing}
               onAnalyze={analyzeProducts}
             />
-            {/* Add Toggle Button Here */}
-            {(extractedProducts || (rawFindImagesResults && rawFindImagesResults.length > 0)) && (
-              <Button
-                onClick={() => setShowExtractedProducts(!showExtractedProducts)}
-                variant="outline"
-                className="my-2"
-              >
-                {showExtractedProducts ? 'Hide' : 'Show'} Found Products
-                {extractedProducts && extractedProducts.products && ` (${extractedProducts.products.length})`}
-              </Button>
-            )}
 
-            {/* Conditionally render the list and raw results */}
-            {showExtractedProducts && (
+            {/* Always show found products when they exist */}
+            {(extractedProducts || (rawFindImagesResults && rawFindImagesResults.length > 0)) && (
               <>
                 <ExtractedProductsList
                   extractedProducts={extractedProducts}

@@ -6,7 +6,7 @@
   "scripts": {
     "build": "react-router build",
     "dev": "node scripts/dev.js",
-    "dev:api": "NODE_ENV=development node server.js",
+    "dev:api": "NODE_ENV=development PORT=8080 node server.js",
     "dev:vite": "react-router dev --host --port 3000",
     "dev:https": "npm run certs:generate && npm run dev",
     "certs:generate": "chmod +x generate-certs.sh && ./generate-certs.sh",
