@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.4.0
+
+### Minor Changes
+
+- better searching and video management
+
 ## 0.3.0
 
 ### Minor Changes
