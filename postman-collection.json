@@ -195,7 +195,7 @@
                             "",
                             "pm.test('Response does not contain sensitive info', function () {",
                             "    const responseText = pm.response.text();",
-                            "    pm.expect(responseText.toLowerCase()).to.not.include('insbuy_api_key');",
+                            "    pm.expect(responseText.toLowerCase()).to.not.include('buy_it_api_key');",
                             "    pm.expect(responseText.toLowerCase()).to.not.include('api_key');",
                             "});"
                         ]

@@ -14,7 +14,7 @@ This project uses Terraform for infrastructure as code to deploy the React web a
 ### 1. Set up API Key
 
 ```bash
-export TF_VAR_api_key="your-insbuy-api-key-here"
+export TF_VAR_api_key="your-buyit-api-key-here"
 ```
 
 ### 2. Initialize Terraform
@@ -75,7 +75,7 @@ You can also use the deployment script directly:
 
 The deployment requires the following environment variable:
 
-- `TF_VAR_api_key` - Your Insbuy API key for backend communication
+- `TF_VAR_api_key` - Your Buy It API key for backend communication
 
 ### Environment Files
 
@@ -107,7 +107,7 @@ Run the comprehensive test suite:
 
 ```bash
 # Set your API key first
-export TF_VAR_api_key="your-insbuy-api-key-here"
+export TF_VAR_api_key="your-buyit-api-key-here"
 
 # Run all tests
 npm run test:terraform

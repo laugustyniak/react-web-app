@@ -64,7 +64,7 @@ npm run dev        # Vite dev server only (requires API server running)
 Create a `.env` file with:
 ```env
 BACKEND_API_URL=https://your-backend-api.com
-INSBUY_API_KEY_1=your-api-key
+BUY_IT_API_KEY_1=your-api-key
 NODE_ENV=development
 PORT=5000
 ```
@@ -136,7 +136,7 @@ docker run -p 5000:5000 \
   -e NODE_ENV=production \
   -e PORT=5000 \
   -e BACKEND_API_URL=https://your-api.com \
-  -e INSBUY_API_KEY_1=your-key \
+  -e BUY_IT_API_KEY_1=your-key \
   react-web-app
 ```
 
@@ -148,7 +148,7 @@ Create a `.env` file for container deployment:
 NODE_ENV=production
 PORT=5000
 BACKEND_API_URL=https://your-backend-api.com
-INSBUY_API_KEY_1=your-api-key
+BUY_IT_API_KEY_1=your-api-key
 ```
 
 ### Health Checks

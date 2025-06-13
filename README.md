@@ -1,4 +1,4 @@
-# Insbuy React Web App
+# Buy It React Web App
 
 A modern React application for discovering and exploring TV show inspirations, products, and programs.
 
@@ -75,7 +75,7 @@ The application follows a clean separation between routes and components:
 import MyComponent from '~/components/MyComponent';
 
 export function meta() {
-  return [{ title: 'Page Title - Insbuy' }, { name: 'description', content: 'Page description' }];
+  return [{ title: 'Page Title - Buy It' }, { name: 'description', content: 'Page description' }];
 }
 
 export default function MyRoute() {

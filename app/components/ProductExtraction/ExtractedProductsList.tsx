@@ -52,7 +52,7 @@ const ExtractedProductsList: React.FC<ExtractedProductsListProps> = ({
   return (
     <div>
       {isLoading && (
-        <Alert className="mb-2"><AlertDescription>🔎 Insbuy AI is looking for products in the image...</AlertDescription></Alert>
+        <Alert className="mb-2"><AlertDescription>🔎 Buy It AI is looking for products in the image...</AlertDescription></Alert>
       )}
       {error && (
         <Alert variant="destructive" className="mb-2"><AlertDescription>{error}</AlertDescription></Alert>
@@ -104,7 +104,7 @@ const ExtractedProductsList: React.FC<ExtractedProductsListProps> = ({
                                 Edit
                               </Button>
                               <Button size="sm" variant="outline" onClick={() => onSearchWithAI(idx, prod.product_name)} disabled={isSearchingByIdx[idx]}>
-                                {isSearchingByIdx[idx] ? 'Searching...' : 'Search with Insbuy AI'}
+                                {isSearchingByIdx[idx] ? 'Searching...' : 'Search with Buy It AI'}
                               </Button>
                             </div>
                             {searchErrorByIdx[idx] && (
@@ -147,7 +147,7 @@ const ExtractedProductsList: React.FC<ExtractedProductsListProps> = ({
                                   // fallback: show raw
                                   return (
                                     <div className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-60">
-                                      <strong>Raw Insbuy AI Result:</strong>
+                                      <strong>Raw Buy It AI Result:</strong>
                                       <pre className="whitespace-pre-wrap break-all">{JSON.stringify(result, null, 2)}</pre>
                                     </div>
                                   );

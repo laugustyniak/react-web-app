@@ -1,19 +1,18 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Input } from './ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Search, AlertCircle, Grid, List } from 'lucide-react';
-import InspirationCard from './InspirationCard';
-import { getAllInspirations, getAllProducts, getAllPrograms } from '~/lib/firestoreService';
+import { DocumentSnapshot } from 'firebase/firestore';
+import { AlertCircle, Grid, List, Search } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Inspiration, Product, Program } from '~/lib/dataTypes';
+import { getAllInspirations, getAllProducts, getAllPrograms } from '~/lib/firestoreService';
+import { programIdToTitle } from '~/lib/programUtils';
+import InspirationCard from './InspirationCard';
+import InspirationModal from './InspirationModal';
 import ProductCard from './ProductCard';
+import ProductModal from './ProductModal';
 import ProgramCard from './ProgramCard';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
 import { PageLayout } from './ui/layout';
-import { DocumentSnapshot } from 'firebase/firestore';
-import { programIdToTitle } from '~/lib/programUtils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from './ui/dialog';
-import ProductModal from './ProductModal';
-import InspirationModal from './InspirationModal';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 export default function Explore() {
   const [inspirations, setInspirations] = useState<Inspiration[]>([]);
@@ -24,7 +23,7 @@ export default function Explore() {
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('inspirations');
+  const [activeTab, setActiveTab] = useState('programs');
   const [hasMoreInspirations, setHasMoreInspirations] = useState(true);
   const [hasMoreProducts, setHasMoreProducts] = useState(true);
   const [hasMorePrograms, setHasMorePrograms] = useState(true);
@@ -318,7 +317,7 @@ export default function Explore() {
         </div>
 
         <Tabs
-          defaultValue="inspirations"
+          defaultValue="programs"
           className="w-full"
           onValueChange={value => setActiveTab(value)}
         >

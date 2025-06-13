@@ -1,6 +1,6 @@
-import { Dialog, DialogContent, DialogTitle, DialogHeader, DialogFooter } from '../ui/dialog';
-import { Button } from '../ui/button';
 import { Download } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
 
 interface InspirationResultModalProps {
   isOpen: boolean;
@@ -11,25 +11,25 @@ interface InspirationResultModalProps {
 export default function InspirationResultModal({ isOpen, onClose, imageData }: InspirationResultModalProps) {
   const handleDownload = () => {
     if (!imageData) return;
-    
+
     const link = document.createElement('a');
-    link.download = `insbuy-inspiration-${new Date().toISOString().slice(0, 10)}.png`;
+    link.download = `buy-it-inspiration-${new Date().toISOString().slice(0, 10)}.png`;
     link.href = imageData;
     link.click();
   };
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle>Generated Inspiration</DialogTitle>
         </DialogHeader>
-        
+
         <div className="overflow-auto max-h-[70vh] mt-4">
           {imageData ? (
-            <img 
-              src={imageData} 
-              alt="Generated Inspiration" 
+            <img
+              src={imageData}
+              alt="Generated Inspiration"
               className="w-full object-contain rounded-md"
             />
           ) : (
@@ -38,7 +38,7 @@ export default function InspirationResultModal({ isOpen, onClose, imageData }: I
             </div>
           )}
         </div>
-        
+
         <DialogFooter className="mt-6">
           <Button variant="outline" onClick={onClose}>
             Close
@@ -51,4 +51,4 @@ export default function InspirationResultModal({ isOpen, onClose, imageData }: I
       </DialogContent>
     </Dialog>
   );
-} 
+}

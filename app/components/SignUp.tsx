@@ -1,11 +1,11 @@
+import { AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { AlertCircle } from 'lucide-react';
-import { PageLayout, ContentCard } from './ui/layout';
+import { ContentCard, PageLayout } from './ui/layout';
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -68,7 +68,7 @@ export default function SignUp() {
       <ContentCard className="w-full max-w-md">
         <CardHeader>
           <div className="flex justify-center w-full my-4">
-            <img src="/favicon.png" alt="Insbuy" className="w-20 h-20" />
+            <img src="/favicon.png" alt="Buy It" className="w-20 h-20" />
           </div>
           <CardTitle className="text-2xl font-bold text-center">Create your account</CardTitle>
           <CardDescription className="text-center">Enter your details to sign up</CardDescription>

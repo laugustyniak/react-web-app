@@ -48,7 +48,7 @@ resource "google_cloud_run_v2_service" "buy_it" {
       }
 
       env {
-        name  = "INSBUY_API_KEY_1"
+        name  = "BUY_IT_API_KEY_1"
         value = var.api_key
       }
 

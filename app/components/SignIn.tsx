@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { AlertCircle } from 'lucide-react';
 import type { FormEvent } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from './ui/card';
-import { AlertCircle } from 'lucide-react';
-import { PageLayout, ContentCard } from './ui/layout';
+import { ContentCard, PageLayout } from './ui/layout';
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -61,7 +61,7 @@ export default function SignIn() {
       <ContentCard className="max-w-md w-full">
         <CardHeader className="flex flex-col items-center">
           <div className="flex justify-center w-full my-4">
-            <img src="/favicon.png" alt="Insbuy" className="w-20 h-20" />
+            <img src="/favicon.png" alt="Buy It" className="w-20 h-20" />
           </div>
           <CardTitle className="text-center text-2xl font-bold">Sign in to your account</CardTitle>
           <CardDescription className="text-center mt-2">

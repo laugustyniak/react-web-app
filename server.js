@@ -15,8 +15,8 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 // API Configuration
 const API_CONFIG = {
-  BACKEND_URL: process.env.BACKEND_API_URL || 'https://insbuy-api.augustyniak.ai',
-  API_KEY: process.env.INSBUY_API_KEY_1 || '',
+  BACKEND_URL: process.env.BACKEND_API_URL || 'https://buy-it-api.augustyniak.ai',
+  API_KEY: process.env.BUY_IT_API_KEY_1 || '',
 };
 
 // Logging middleware for development

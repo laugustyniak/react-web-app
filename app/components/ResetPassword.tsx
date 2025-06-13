@@ -1,11 +1,11 @@
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
-import { PageLayout, ContentCard } from './ui/layout';
+import { Input } from './ui/input';
+import { ContentCard, PageLayout } from './ui/layout';
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -46,7 +46,7 @@ export default function ResetPassword() {
       <ContentCard className="max-w-md w-full">
         <CardHeader className="flex flex-col items-center">
           <div className="flex justify-center w-full my-4">
-            <img src="/favicon.png" alt="Insbuy" className="w-20 h-20" />
+            <img src="/favicon.png" alt="Buy It" className="w-20 h-20" />
           </div>
           <CardTitle className="text-center text-2xl font-bold">Reset Your Password</CardTitle>
           <CardDescription className="text-center mt-2">

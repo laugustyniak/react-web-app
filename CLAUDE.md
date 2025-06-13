@@ -66,8 +66,8 @@ Three main contexts wrap the entire application:
 - Admin user system based on Firestore user documents
 
 ### API Integration
-- Backend API at `BACKEND_API_URL` (default: https://insbuy-api.augustyniak.ai)
-- API key authentication via `INSBUY_API_KEY_1`
+- Backend API at `BACKEND_API_URL` (default: https://buyit-api.augustyniak.ai)
+- API key authentication via `BUYIT_API_KEY_1`
 - Express server proxies requests to backend with proper headers
 
 ### Konva Canvas System
@@ -112,7 +112,7 @@ The app supports both build-time and runtime configuration:
 import MyComponent from '~/components/MyComponent';
 
 export function meta() {
-  return [{ title: 'Page Title - Insbuy' }, { name: 'description', content: 'Description' }];
+  return [{ title: 'Page Title - Buy It' }, { name: 'description', content: 'Description' }];
 }
 
 export default function MyRoute() {

@@ -55,7 +55,7 @@ const ProductExtraction = () => {
     context: "",
     marketplace: ""
   });
-  // Handler for per-product Insbuy AI search
+  // Handler for per-product Buy It AI search
   const handleProductSearchWithAI = async (idx: number, query: string) => {
     setIsSearchingByIdx(prev => ({ ...prev, [idx]: true }));
     setSearchErrorByIdx(prev => ({ ...prev, [idx]: null }));
@@ -317,9 +317,9 @@ const ProductExtraction = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="py-4">
-        <h1 className="text-3xl font-bold mb-4">🎥 Insbuy - Turn Videos into Revenue</h1>
+        <h1 className="text-3xl font-bold mb-4">🎥 Buy It - Turn Videos into Revenue</h1>
         <p className="mb-4">
-          Transform any video content into a powerful sales channel. Insbuy automatically identifies products in your videos
+          Transform any video content into a powerful sales channel. Buy It automatically identifies products in your videos
           and connects them to online retailers, creating new revenue streams with zero effort.
         </p>
 
