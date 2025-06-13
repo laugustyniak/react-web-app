@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.5.1
+
+### Patch Changes
+
+- env
+
 ## 0.5.0
 
 ### Minor Changes
