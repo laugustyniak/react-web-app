@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.5.0
+
+### Minor Changes
+
+- cleaning
+
 ## 0.4.0
 
 ### Minor Changes
