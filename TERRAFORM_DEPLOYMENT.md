@@ -268,20 +268,46 @@ gcloud logs tail --follow --filter="resource.type=cloud_run_revision AND resourc
 gcloud logs tail --follow --filter="resource.type=cloud_run_revision AND resource.labels.service_name=react-web-app"
 ```
 
+## Security Updates
+
+### Service Account Configuration
+
+The Terraform configuration has been updated to use a dedicated service account with minimal permissions instead of the default Compute Engine service account:
+
+- **Service Account**: `buy-it-cloud-run-sa@insbay-b32351.iam.gserviceaccount.com`
+- **Permissions**: Only `roles/run.invoker` (minimal required)
+
+This significantly improves security by following the principle of least privilege.
+
+### Redeployment After Service Account Update
+
+If you've manually updated your Cloud Run service to use the new service account (outside of Terraform), you need to redeploy with Terraform to sync the state:
+
+```bash
+# Set your API key
+export TF_VAR_api_key="your-buyit-api-key-here"
+
+# For development
+npm run deploy:dev
+
+# For production  
+npm run deploy
+```
+
+This will ensure your Terraform state matches the actual infrastructure and future deployments use the secure service account.
+
 ## Migration from Old Scripts
 
-The old bash deployment scripts have been replaced with this Terraform setup. Key improvements:
+The old bash deployment scripts (`deploy-dev.sh` and `deploy-prod.sh`) have been removed and replaced with this Terraform setup. Key improvements:
 
-- Infrastructure as Code
+- Infrastructure as Code with state management
+- Dedicated service account with minimal permissions
 - Environment variable management
 - Consistent dev/prod environments
-- Better resource management
-- State tracking
-- Rollback capabilities
+- Better resource management and rollback capabilities
 
-To migrate from the old setup:
+To use the new deployment system:
 
-1. Remove old deployment scripts (they're kept for reference)
-2. Use the new npm scripts for deployment
-3. Set up the API key environment variable
-4. Deploy using the new Terraform workflow
+1. Set up the API key environment variable: `export TF_VAR_api_key="your-api-key"`
+2. Use the npm scripts for deployment: `npm run deploy:dev` or `npm run deploy`
+3. All infrastructure is now managed through Terraform

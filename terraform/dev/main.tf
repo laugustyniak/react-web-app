@@ -30,6 +30,8 @@ resource "google_cloud_run_v2_service" "buy_it" {
   location = var.region
 
   template {
+    service_account = "buy-it-cloud-run-sa@insbay-b32351.iam.gserviceaccount.com"
+    
     containers {
       image = var.container_image
 
