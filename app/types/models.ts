@@ -17,6 +17,7 @@ export type MultipleProducts = {
 export interface VideoData {
     video_id: string;
     video_url: string;
+    storage_url?: string; // URL to our server copy of the video for frame extraction
     duration_s?: number;
     duration_ms?: number; // Duration in milliseconds
     title?: string;
@@ -36,6 +37,8 @@ export interface VideoFrame {
     frame_path: string;
     storage_url: string;
     scene_score?: number;
+    created_at?: Timestamp; // Creation timestamp
+    updated_at?: Timestamp; // Last update timestamp
     // UI-specific optional fields
     image_url?: string;
 }

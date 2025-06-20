@@ -520,7 +520,11 @@ export const getRandomInspirations = async (limitCount: number = 12): Promise<In
 export const getFramesByVideoId = async (videoId: string): Promise<VideoFrame[]> => {
   try {
     const { documents } = await getCollection<VideoFrame>('frames', {
-      queryConstraints: [where('video_id', '==', videoId), orderBy('created_at', 'desc')],
+      queryConstraints: [
+        where('video_id', '==', videoId), 
+        orderBy('updated_at', 'desc'),
+        orderBy('created_at', 'desc')
+      ],
     });
 
     return documents;
@@ -533,6 +537,19 @@ export const getFramesByVideoId = async (videoId: string): Promise<VideoFrame[]>
 /**
  * Fetches all videos from Firestore
  */
+export const getVideoById = async (videoId: string): Promise<VideoData | null> => {
+  try {
+    const { documents } = await getCollection<VideoData>('videos', {
+      queryConstraints: [where('video_id', '==', videoId)],
+    });
+    
+    return documents.length > 0 ? documents[0] : null;
+  } catch (error) {
+    console.error('Error fetching video by ID:', error);
+    return null;
+  }
+};
+
 export const getAllVideos = async (
   limitCount: number = 50,
   lastDoc?: DocumentSnapshot | null

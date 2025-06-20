@@ -203,10 +203,24 @@ const VideoFrameExtraction = () => {
     if (!videoData) return;
 
     const duration = player.getDuration();
-    setVideoData({
+    console.log('handlePlayerReady - before update:', {
+      storage_url: videoData.storage_url,
+      video_url: videoData.video_url,
+      duration
+    });
+    
+    const updatedVideoData = {
       ...videoData,
       duration_s: duration
+    };
+    
+    console.log('handlePlayerReady - after update:', {
+      storage_url: updatedVideoData.storage_url,
+      video_url: updatedVideoData.video_url,
+      duration_s: updatedVideoData.duration_s
     });
+    
+    setVideoData(updatedVideoData);
     setTimeRange([0, duration]);
   };
 
@@ -528,7 +542,7 @@ const VideoFrameExtraction = () => {
 
             {/* Time Range Selector Component */}
             <TimeRangeSelector
-              duration={videoData.duration_s}
+              duration={videoData.duration_s || 0}
               timeRange={timeRange}
               onTimeRangeChange={setTimeRange}
               onExtractFrames={handleExtractFrames}

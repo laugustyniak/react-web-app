@@ -1,9 +1,51 @@
 import React, { useState } from 'react';
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
-import type { VideoFrame } from '~/services/videoService';
+import type { VideoFrame } from '~/types/models';
 import { formatTime } from '~/services/videoService';
 import FrameModal from './FrameModal';
+
+// Helper function to format Firestore timestamp with relative time
+const formatTimestamp = (timestamp: any): string => {
+  if (!timestamp) return 'Unknown';
+  
+  try {
+    let date: Date;
+    
+    // Handle Firestore Timestamp object
+    if (typeof timestamp === 'object' && 'toDate' in timestamp) {
+      date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
+    } else if (typeof timestamp === 'number') {
+      date = new Date(timestamp);
+    } else {
+      return 'Invalid date';
+    }
+
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMinutes / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    // Show relative time for recent timestamps
+    if (diffMinutes < 1) {
+      return 'Just now';
+    } else if (diffMinutes < 60) {
+      return `${diffMinutes}m ago`;
+    } else if (diffHours < 24) {
+      return `${diffHours}h ago`;
+    } else if (diffDays < 7) {
+      return `${diffDays}d ago`;
+    } else {
+      // Show full date for older timestamps
+      return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+  } catch (error) {
+    return 'Invalid date';
+  }
+};
 
 interface FrameCardProps {
   frame: VideoFrame;
@@ -60,6 +102,11 @@ const FrameCard: React.FC<FrameCardProps> = ({
           <p className="text-sm">
             Timestamp: {formatTime(frame.timestamp_ms / 1000)}
           </p>
+          {frame.updated_at && (
+            <p className="text-xs text-muted-foreground">
+              Updated: {formatTimestamp(frame.updated_at)}
+            </p>
+          )}
           {frame.scene_score !== undefined && (
             <p className="text-sm">
               Scene Score: {frame.scene_score.toFixed(2)}

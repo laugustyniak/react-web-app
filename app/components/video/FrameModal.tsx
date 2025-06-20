@@ -1,6 +1,29 @@
 import { Dialog, DialogContent, DialogClose } from '~/components/ui/dialog';
-import type { VideoFrame } from '~/services/videoService';
+import type { VideoFrame } from '~/types/models';
 import { formatTime } from '~/services/videoService';
+
+// Helper function to format Firestore timestamp
+const formatTimestamp = (timestamp: any): string => {
+  if (!timestamp) return 'Unknown';
+  
+  try {
+    // Handle Firestore Timestamp object
+    if (typeof timestamp === 'object' && 'toDate' in timestamp) {
+      return timestamp.toDate().toLocaleString();
+    }
+    // Handle regular Date object
+    if (timestamp instanceof Date) {
+      return timestamp.toLocaleString();
+    }
+    // Handle timestamp number (milliseconds)
+    if (typeof timestamp === 'number') {
+      return new Date(timestamp).toLocaleString();
+    }
+    return 'Invalid date';
+  } catch (error) {
+    return 'Invalid date';
+  }
+};
 
 interface FrameModalProps {
   frame: VideoFrame | null;
@@ -32,8 +55,13 @@ export default function FrameModal({ frame, onClose }: FrameModalProps) {
               }}
               className="rounded-lg"
             />
-            <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
-              {formatTime(frame.timestamp_ms / 1000)}
+            <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-lg text-sm">
+              <div>Video: {formatTime(frame.timestamp_ms / 1000)}</div>
+              {frame.updated_at && (
+                <div className="text-xs opacity-80">
+                  Updated: {formatTimestamp(frame.updated_at)}
+                </div>
+              )}
             </div>
           </div>
         ) : (

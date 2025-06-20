@@ -1,5 +1,5 @@
 import React from 'react';
-import type { VideoFrame } from '~/services/videoService';
+import type { VideoFrame } from '~/types/models';
 import FrameCard from './FrameCard';
 import { formatTime } from '~/services/videoService';
 

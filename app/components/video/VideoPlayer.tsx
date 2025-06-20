@@ -23,6 +23,17 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(({ videoData, o
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   
+  // Force use of storage_url when available for reliable frame extraction
+  const videoUrl = videoData.storage_url || videoData.video_url;
+  const isUsingStorageUrl = !!videoData.storage_url;
+  
+  // Debug logging (can be removed in production)
+  console.log('VideoPlayer URL selection:', {
+    storage_url: videoData.storage_url ? 'Available' : 'Missing',
+    using_storage_url: isUsingStorageUrl,
+    final_url_type: isUsingStorageUrl ? 'Server copy' : 'Original source'
+  });
+  
   // Expose methods to parent component
   useImperativeHandle(ref, () => ({
     seekTo: (time: number) => {
@@ -122,7 +133,18 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(({ videoData, o
     <div className="mb-4">
       <Card className="p-4">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-2xl font-semibold">Video Player</h3>
+          <div>
+            <h3 className="text-2xl font-semibold">Video Player</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              {isUsingStorageUrl ? 
+                `🟢 Using server copy: ${videoData.storage_url?.substring(0, 80)}...` : 
+                `🟡 Using original source: ${videoData.video_url.substring(0, 80)}...`
+              }
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Frame extraction: {isUsingStorageUrl ? "✅ Enabled" : "⚠️ Limited (CORS restrictions)"}
+            </p>
+          </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
               {Math.floor(currentTime / 60)}:{Math.floor(currentTime % 60).toString().padStart(2, '0')}
@@ -140,7 +162,7 @@ const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(({ videoData, o
         <div className="relative aspect-video">
           <ReactPlayer
             ref={playerRef}
-            url={videoData.video_url}
+            url={videoUrl}
             width="100%"
             height="100%"
             controls
