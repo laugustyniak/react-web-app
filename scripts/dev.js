@@ -54,7 +54,7 @@ function startProcess(command, args, name, color) {
 async function main() {
   log('🚀 Starting development servers...', 'bright');
   log('📡 Express API server will start on http://localhost:8080', 'blue');
-  log('⚡ Vite dev server will start on http://localhost:8080', 'green');
+  log('⚡ Vite dev server will start on http://localhost:3000', 'green');
   log('🔗 API calls from frontend will be proxied to Express server', 'yellow');
   log('', 'reset');
 
