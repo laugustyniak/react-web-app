@@ -46,7 +46,8 @@
       "Bash(curl:*)",
       "Bash(npm install)",
       "Bash(pkill:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(npm run build:*)"
     ],
     "deny": []
   }

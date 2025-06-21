@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.7.0
+
+### Minor Changes
+
+- security updates to the app
+
 ## 0.6.0
 
 ### Minor Changes
