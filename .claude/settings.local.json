@@ -49,7 +49,11 @@
       "Bash(true)",
       "Bash(npm run build:*)",
       "Bash(npm ls:*)",
-      "Bash(npm info:*)"
+      "Bash(npm info:*)",
+      "Bash(source .env)",
+      "Bash(./scripts/deploy-terraform.sh:*)",
+      "Bash(export:*)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": []
   }
