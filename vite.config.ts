@@ -37,7 +37,7 @@ export default defineConfig({
           if (id.includes('/components/ProductExtraction') || id.includes('/components/VideoFrameExtraction') || id.includes('/services/videoService')) {
             return 'chunk-video';
           }
-          if (id.includes('/components/Canvas') || id.includes('/hooks/useCanvas') || id.includes('/lib/') && id.includes('canvas')) {
+          if (id.includes('/components/Canvas') || id.includes('/hooks/useCanvas') || id.includes('/lib/html-canvas') || id.includes('/lib/directCanvasCapture') || id.includes('/lib/svgUtils')) {
             return 'chunk-canvas';
           }
         }

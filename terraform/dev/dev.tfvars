@@ -10,7 +10,7 @@ domain_name      = "dev.buy-it.ai"
 # Resource limits for dev (smaller than prod)
 cpu_limit     = "1"
 memory_limit  = "512Mi"
-min_instances = 0
+min_instances = 1
 max_instances = 5
 
 # API configuration
