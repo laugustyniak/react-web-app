@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.8.0
+
+### Minor Changes
+
+- optimization of loading times and componenets
+
 ## 0.7.0
 
 ### Minor Changes
