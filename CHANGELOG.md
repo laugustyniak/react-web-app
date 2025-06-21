@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.10.1
+
+### Patch Changes
+
+- cors
+
 ## 0.10.0
 
 ### Minor Changes
