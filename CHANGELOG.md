@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.9.0
+
+### Minor Changes
+
+- fix memo errors and other usesabiltiy
+
 ## 0.8.0
 
 ### Minor Changes
