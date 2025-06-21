@@ -14,6 +14,9 @@ ENVIRONMENT="dev"
 BUILD_IMAGE=true
 PUSH_IMAGE=true
 DOMAIN_MAPPING=false
+FORCE_INIT=false
+DEBUG=false
+IMPORT_EXISTING=false
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -34,6 +37,18 @@ while [[ $# -gt 0 ]]; do
       DOMAIN_MAPPING=false
       shift
       ;;
+    --force-init)
+      FORCE_INIT=true
+      shift
+      ;;
+    --debug)
+      DEBUG=true
+      shift
+      ;;
+    --import-existing)
+      IMPORT_EXISTING=true
+      shift
+      ;;
     -h|--help)
       echo "Usage: $0 [OPTIONS]"
       echo "Options:"
@@ -41,7 +56,20 @@ while [[ $# -gt 0 ]]; do
       echo "  --no-build      Skip Docker image build"
       echo "  --no-push       Skip Docker image push"
       echo "  --no-domain     Skip domain mapping"
+      echo "  --force-init    Force Terraform initialization (useful for backend changes)"
+      echo "  --debug         Enable debug mode with verbose output"
+      echo "  --import-existing Import existing GCP resources into Terraform state"
       echo "  -h, --help      Show this help message"
+      echo ""
+      echo "Environment Variables:"
+      echo "  TF_VAR_api_key  Required API key for the application"
+      echo ""
+      echo "Examples:"
+      echo "  $0                                    # Deploy to dev with all steps"
+      echo "  $0 --env prod                         # Deploy to production"
+      echo "  $0 --no-build --no-push              # Skip build/push, only deploy"
+      echo "  $0 --force-init                      # Force Terraform re-initialization"
+      echo "  $0 --import-existing                 # Import existing resources and deploy"
       exit 0
       ;;
     *)
@@ -50,6 +78,12 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+# Enable debug mode if requested
+if [[ "$DEBUG" == true ]]; then
+  set -x  # Print commands as they are executed
+  echo -e "${YELLOW}🐛 Debug mode enabled${NC}"
+fi
 
 # Validate environment
 if [[ "$ENVIRONMENT" != "dev" && "$ENVIRONMENT" != "prod" ]]; then
@@ -100,21 +134,136 @@ fi
 echo -e "${BLUE}🏗️ Step 5: Deploying infrastructure with Terraform...${NC}"
 cd terraform/$ENVIRONMENT
 
+# Function to check if Terraform needs initialization
+check_terraform_init() {
+  if [[ ! -d ".terraform" ]]; then
+    return 0  # Needs init
+  fi
+  
+  # Check if backend config has changed by attempting to validate
+  if ! terraform validate &>/dev/null; then
+    return 0  # Needs init
+  fi
+  
+  # Try a simple plan to see if backend is properly configured
+  if ! terraform plan -detailed-exitcode -var-file="${ENVIRONMENT}.tfvars" -var="enable_domain_mapping=${DOMAIN_MAPPING}" &>/dev/null; then
+    local exit_code=$?
+    if [[ $exit_code -eq 1 ]]; then  # Error (not just changes detected)
+      return 0  # Needs init
+    fi
+  fi
+  
+  return 1  # No init needed
+}
+
 # Initialize Terraform if needed
-if [[ ! -d ".terraform" ]]; then
-  echo -e "${YELLOW}🔧 Initializing Terraform...${NC}"
-  terraform init
+if [[ "$FORCE_INIT" == true ]] || check_terraform_init; then
+  if [[ "$FORCE_INIT" == true ]]; then
+    echo -e "${YELLOW}🔧 Force initializing Terraform...${NC}"
+  else
+    echo -e "${YELLOW}🔧 Initializing Terraform...${NC}"
+  fi
+  
+  # First try with -reconfigure for backend changes
+  if ! terraform init -reconfigure -upgrade; then
+    echo -e "${YELLOW}⚠️ Reconfigure failed, trying with -migrate-state...${NC}"
+    
+    # If reconfigure fails, try with migrate-state
+    if ! terraform init -migrate-state -upgrade; then
+      echo -e "${RED}❌ Terraform initialization failed!${NC}"
+      echo -e "${YELLOW}💡 Try manually running: terraform init -reconfigure${NC}"
+      echo -e "${YELLOW}💡 Or check if your backend configuration is correct${NC}"
+      exit 1
+    fi
+  fi
+  
+  echo -e "${GREEN}✅ Terraform initialized successfully${NC}"
+else
+  echo -e "${GREEN}✅ Terraform already initialized${NC}"
+fi
+
+# Validate configuration
+echo -e "${YELLOW}🔍 Validating Terraform configuration...${NC}"
+if ! terraform validate; then
+  echo -e "${RED}❌ Terraform configuration validation failed!${NC}"
+  exit 1
+fi
+
+# Function to import existing resources
+import_existing_resources() {
+  echo -e "${YELLOW}🔄 Checking for existing resources that need importing...${NC}"
+  
+  # Check if Artifact Registry repository exists but not in state
+  local repo_name=$(grep -E '^docker_repo_name\s*=' "${ENVIRONMENT}.tfvars" | cut -d'"' -f2)
+  local project_id="insbay-b32351"  # From the container image path
+  local region="us-central1"        # From the container image path
+  
+  if [[ -n "$repo_name" ]]; then
+    # Check if resource exists in GCP but not in Terraform state
+    if ! terraform state show google_artifact_registry_repository.repo &>/dev/null; then
+      echo -e "${BLUE}🔍 Checking if Artifact Registry repository '$repo_name' exists...${NC}"
+      
+      # Check if repo exists in GCP
+      if gcloud artifacts repositories describe "$repo_name" --location="$region" --project="$project_id" &>/dev/null; then
+        echo -e "${YELLOW}📥 Importing existing Artifact Registry repository...${NC}"
+        
+        # Import the existing repository
+        local import_id="projects/$project_id/locations/$region/repositories/$repo_name"
+        if terraform import google_artifact_registry_repository.repo "$import_id"; then
+          echo -e "${GREEN}✅ Successfully imported Artifact Registry repository${NC}"
+        else
+          echo -e "${RED}❌ Failed to import Artifact Registry repository${NC}"
+          echo -e "${YELLOW}💡 You may need to manually import or remove the existing repository${NC}"
+          return 1
+        fi
+      fi
+    fi
+  fi
+  
+  return 0
+}
+
+# Import existing resources if needed or requested
+if [[ "$IMPORT_EXISTING" == true ]]; then
+  echo -e "${BLUE}🔄 Force importing existing resources...${NC}"
+  if ! import_existing_resources; then
+    echo -e "${RED}❌ Resource import failed!${NC}"
+    echo -e "${YELLOW}💡 Manual fix: You can either:${NC}"
+    echo -e "${YELLOW}   1. Delete the existing repository: gcloud artifacts repositories delete buy-it-dev-repo --location=us-central1${NC}"
+    echo -e "${YELLOW}   2. Manually import: terraform import google_artifact_registry_repository.repo projects/insbay-b32351/locations/us-central1/repositories/buy-it-dev-repo${NC}"
+    exit 1
+  fi
+else
+  # Auto-import check
+  if ! import_existing_resources; then
+    echo -e "${RED}❌ Resource import failed!${NC}"
+    echo -e "${YELLOW}💡 Manual fix: You can either:${NC}"
+    echo -e "${YELLOW}   1. Delete the existing repository: gcloud artifacts repositories delete buy-it-dev-repo --location=us-central1${NC}"
+    echo -e "${YELLOW}   2. Manually import: terraform import google_artifact_registry_repository.repo projects/insbay-b32351/locations/us-central1/repositories/buy-it-dev-repo${NC}"
+    echo -e "${YELLOW}   3. Try: $0 --import-existing${NC}"
+    exit 1
+  fi
 fi
 
 # Plan and apply
 echo -e "${YELLOW}📋 Planning deployment...${NC}"
-terraform plan -var-file="${ENVIRONMENT}.tfvars" -var="enable_domain_mapping=${DOMAIN_MAPPING}"
+if ! terraform plan -var-file="${ENVIRONMENT}.tfvars" -var="enable_domain_mapping=${DOMAIN_MAPPING}"; then
+  echo -e "${RED}❌ Terraform planning failed!${NC}"
+  exit 1
+fi
 
 echo -e "${YELLOW}🚀 Applying changes...${NC}"
-terraform apply -var-file="${ENVIRONMENT}.tfvars" -var="enable_domain_mapping=${DOMAIN_MAPPING}" -auto-approve
+if ! terraform apply -var-file="${ENVIRONMENT}.tfvars" -var="enable_domain_mapping=${DOMAIN_MAPPING}" -auto-approve; then
+  echo -e "${RED}❌ Terraform apply failed!${NC}"
+  exit 1
+fi
 
 # Get service URL
-SERVICE_URL=$(terraform output -raw service_url)
+echo -e "${BLUE}📊 Getting deployment information...${NC}"
+if ! SERVICE_URL=$(terraform output -raw service_url 2>/dev/null); then
+  echo -e "${YELLOW}⚠️ Could not get service URL from Terraform output${NC}"
+  SERVICE_URL="Unknown"
+fi
 
 echo ""
 echo -e "${GREEN}✅ Deployment complete!${NC}"

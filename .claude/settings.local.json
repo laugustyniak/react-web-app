@@ -34,7 +34,9 @@
       "Bash(npm run typecheck:*)",
       "Bash(npx tsc:*)",
       "Bash(rg:*)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(bash:*)",
+      "Bash(npm audit:*)"
     ],
     "deny": []
   }
