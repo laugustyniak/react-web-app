@@ -55,7 +55,11 @@
       "Bash(export:*)",
       "Bash(npm uninstall:*)",
       "Bash(VITE_CJS_TRACE=true npm run typecheck)",
-      "Bash(VITE_CJS_IGNORE_WARNING=true npm run typecheck)"
+      "Bash(VITE_CJS_IGNORE_WARNING=true npm run typecheck)",
+      "Bash(VITE_CJS_IGNORE_WARNING=true react-router dev --host --port 3000)",
+      "Bash(VITE_CJS_IGNORE_WARNING=true npx react-router routes --json)",
+      "Bash(node:*)",
+      "Bash(npx vite build:*)"
     ],
     "deny": []
   }

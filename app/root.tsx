@@ -71,6 +71,9 @@ export const links = () => {
 // Client-side effects component to avoid SSR hook issues
 function ClientEffects() {
   useEffect(() => {
+    // Safety check for client-side only
+    if (typeof window === 'undefined') return;
+    
     initializeGoogleAds();
 
     // Register service worker for caching and PWA features

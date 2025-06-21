@@ -33,7 +33,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export class EmailNotVerifiedError extends Error {
   constructor() {
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!auth) {
       setLoading(false);
       console.error('Firebase authentication is not properly configured');
-      return () => {};
+      return () => { };
     }
 
     const unsubscribe = auth.onAuthStateChanged(async user => {
@@ -91,7 +91,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!auth) {
       throw new Error('Firebase authentication is not properly configured');
     }
-    
+
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     if (!userCredential.user.emailVerified) {
       await signOut(auth);
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!auth) {
       throw new Error('Firebase authentication is not properly configured');
     }
-    
+
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     if (userCredential.user) {
       await sendEmailVerification(userCredential.user);
@@ -130,7 +130,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!auth) {
       throw new Error('Firebase authentication is not properly configured');
     }
-    
+
     await signInWithPopup(auth, googleProvider);
     analytics.then(analyticsInstance => {
       if (analyticsInstance) {
@@ -146,7 +146,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!auth) {
       throw new Error('Firebase authentication is not properly configured');
     }
-    
+
     await signOut(auth);
     analytics.then(analyticsInstance => {
       if (analyticsInstance) {
@@ -197,7 +197,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!auth) {
       throw new Error('Firebase authentication is not properly configured');
     }
-    
+
     try {
       await sendPasswordResetEmail(auth, email);
       analytics.then(analyticsInstance => {
