@@ -229,7 +229,11 @@ const ProductExtraction = () => {
       setAvailableVideos(prev => [...prev, ...documents]);
       setLastVideoDoc(lastDoc);
       setHasMoreVideos(hasMore);
-      if (documents.length > 0 && !videoData) {
+      // Only set default video if no URL parameters are present
+      const urlVideoId = searchParams.get('video_id');
+      const urlVideoUrl = searchParams.get('video_url');
+      
+      if (documents.length > 0 && !videoData && !urlVideoId && !urlVideoUrl) {
         const defaultVideo = documents.find(v => v.video_id === DEFAULT_VIDEO_ID) || documents[0];
         setVideoData(defaultVideo);
         await loadFrames(defaultVideo.video_id);

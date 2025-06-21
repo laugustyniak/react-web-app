@@ -473,32 +473,6 @@ const VideoFrameExtraction = () => {
           to focus on the most relevant parts of your content.
         </p>
 
-        {/* Quick action to search for products */}
-        {videoData && (
-          <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
-                  🔍 Ready to find products in this video?
-                </h3>
-                <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                  Switch to product search and analysis for "{videoData.title || videoData.video_id}"
-                </p>
-              </div>
-              <Link 
-                to={`/product-extraction?video_id=${videoData.video_id}&video_url=${encodeURIComponent(videoData.video_url)}`}
-                className="flex-shrink-0 ml-4"
-              >
-                <Button 
-                  variant="default" 
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  Search for Products →
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )}
 
         {/* Video Input Component - Primary option */}
         <VideoInput
@@ -559,6 +533,31 @@ const VideoFrameExtraction = () => {
               onReady={handlePlayerReady}
               onSaveFrame={handleSaveFrameFromVideo}
             />
+
+            {/* Quick action to search for products */}
+            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+                    🔍 Ready to find products in this video?
+                  </h3>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                    Switch to product search and analysis for "{videoData.title || videoData.video_id}"
+                  </p>
+                </div>
+                <Link 
+                  to={`/product-extraction?video_id=${videoData.video_id}&video_url=${encodeURIComponent(videoData.video_url)}`}
+                  className="flex-shrink-0 ml-4"
+                >
+                  <Button 
+                    variant="default" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    Search for Products →
+                  </Button>
+                </Link>
+              </div>
+            </div>
 
             {/* Saved Frames Component */}
             <FrameGrid
