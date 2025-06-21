@@ -1,7 +1,6 @@
 // Canvas/hooks/useInspirationGeneration.ts
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { captureElementAsImage } from '~/lib/canvasUtils';
 import { captureElementDirectly } from '~/lib/directCanvasCapture';
 import { htmlToPng } from '~/lib/svgUtils';
 
@@ -39,7 +38,7 @@ export function useInspirationGeneration(
             // Small delay to ensure DOM updates
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            // Try multiple approaches in order, with fallbacks
+            // Try two capture methods in order, with fallback
             let imageData: string | null = null;
 
             // Method 1: Try the SVG-based approach first (should handle most cases)
@@ -61,18 +60,7 @@ export function useInspirationGeneration(
                 }
             }
 
-            // Method 3: If both fail, fall back to the original html2canvas method
-            if (!imageData) {
-                try {
-                    console.log("Falling back to html2canvas method");
-                    imageData = await captureElementAsImage(canvasRef.current);
-                    console.log("html2canvas capture succeeded");
-                } catch (htmlCanvasError) {
-                    console.warn("html2canvas capture failed with error:", htmlCanvasError);
-                }
-            }
-
-            if (!imageData) throw new Error('All capture methods failed - unable to capture canvas image');
+            if (!imageData) throw new Error('Both capture methods failed - unable to capture canvas image');
 
             // Validate the base64 string format
             if (!imageData.startsWith('data:image/png;base64,')) {

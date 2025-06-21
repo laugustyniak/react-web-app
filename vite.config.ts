@@ -26,9 +26,6 @@ export default defineConfig({
             if (id.includes('react-player')) {
               return 'vendor-video';
             }
-            if (id.includes('konva')) {
-              return 'vendor-canvas';
-            }
             // All other node_modules
             return 'vendor-misc';
           }

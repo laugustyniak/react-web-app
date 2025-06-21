@@ -1,6 +1,5 @@
 // Canvas/hooks/useCanvasExport.ts
 import { toast } from 'sonner';
-import { captureElementAsImage } from '~/lib/canvasUtils';
 import { htmlToPng } from '~/lib/svgUtils';
 import { captureElementDirectly } from '~/lib/directCanvasCapture';
 import type { CanvasImage } from '../types';
@@ -24,7 +23,7 @@ export function useCanvasExport(
             // Small delay to ensure DOM updates
             await new Promise(resolve => setTimeout(resolve, 100));
 
-            // Try multiple approaches in order, with fallbacks
+            // Try two capture methods in order, with fallback
             let imageData: string | null = null;
 
             // Method 1: Try the SVG-based approach first (should handle most cases)
@@ -46,19 +45,8 @@ export function useCanvasExport(
                 }
             }
 
-            // Method 3: If both fail, fall back to the original html2canvas method
             if (!imageData) {
-                try {
-                    console.log("Falling back to html2canvas method");
-                    imageData = await captureElementAsImage(canvasRef.current);
-                    console.log("html2canvas capture succeeded");
-                } catch (htmlCanvasError) {
-                    console.warn("html2canvas capture failed with error:", htmlCanvasError);
-                }
-            }
-
-            if (!imageData) {
-                throw new Error('All image capture methods failed');
+                throw new Error('Both image capture methods failed');
             }
 
             // Create and trigger download
