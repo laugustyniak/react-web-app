@@ -4,7 +4,7 @@
   "version": "0.8.0",
   "type": "module",
   "scripts": {
-    "build": "react-router build",
+    "build": "VITE_CJS_IGNORE_WARNING=true react-router build",
     "dev": "node scripts/dev.js",
     "dev:api": "NODE_ENV=development PORT=8080 node server.js",
     "dev:vite": "react-router dev --host --port 3000",
@@ -12,7 +12,7 @@
     "certs:generate": "chmod +x generate-certs.sh && ./generate-certs.sh",
     "start": "react-router-serve ./build/server/index.js",
     "start:prod": "NODE_ENV=production node server.js",
-    "typecheck": "react-router typegen && tsc",
+    "typecheck": "VITE_CJS_IGNORE_WARNING=true react-router typegen && tsc",
     "docker:build": "docker build -t react-web-app .",
     "deploy": "./scripts/deploy-terraform.sh --env prod",
     "deploy:dev": "./scripts/deploy-terraform.sh --env dev",

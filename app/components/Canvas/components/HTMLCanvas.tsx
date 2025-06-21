@@ -71,11 +71,13 @@ export default function HTMLCanvas({
         }
       }
       
-      setImageElements(prev => ({...prev, ...imgElements}));
+      if (Object.keys(imgElements).length > 0) {
+        setImageElements(prev => ({...prev, ...imgElements}));
+      }
     };
     
     loadImages();
-  }, [images, imageElements]);
+  }, [images]); // Removed imageElements to prevent infinite loop
 
   // Handle image click selection
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {

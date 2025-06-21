@@ -18,7 +18,9 @@ export function useInspirationGeneration(
     const defaultNegativePrompt = "text, watermarks, logos, poor quality, blurry, artificial lighting, cluttered space, oversaturated colors, distorted proportions, unrealistic shadows, cartoon style, illustration, digital art style";
 
     const [prompt, setPrompt] = useState<string>(defaultPrompt);
-    const [negativePrompt, setNegativePrompt] = useState<string>(defaultNegativePrompt);    const generateInspiration = async () => {
+    const [negativePrompt, setNegativePrompt] = useState<string>(defaultNegativePrompt);
+    
+    const generateInspiration = async () => {
         if (!canvasRef.current || !hasImages) {
             toast.error('Please add at least one image to the canvas');
             return;

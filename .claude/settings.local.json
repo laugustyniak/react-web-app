@@ -53,7 +53,9 @@
       "Bash(source .env)",
       "Bash(./scripts/deploy-terraform.sh:*)",
       "Bash(export:*)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(VITE_CJS_TRACE=true npm run typecheck)",
+      "Bash(VITE_CJS_IGNORE_WARNING=true npm run typecheck)"
     ],
     "deny": []
   }

@@ -68,8 +68,8 @@ export const links = () => {
   ];
 };
 
-export function Layout({ children }: { children: React.ReactNode }) {
-  // Initialize Google Ads and Service Worker when the component mounts
+// Client-side effects component to avoid SSR hook issues
+function ClientEffects() {
   useEffect(() => {
     initializeGoogleAds();
 
@@ -87,6 +87,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
     // Measure Web Vitals for performance monitoring
     measureWebVitals();
   }, []);
+
+  return null;
+}
+
+export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <html lang="en" className="antialiased" suppressHydrationWarning>
@@ -109,6 +114,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <body className={cn('min-h-screen bg-background antialiased', fontSans.variable)}>
         <ThemeProvider>
           <AuthProvider>
+            <ClientEffects />
             <div className="relative flex min-h-screen flex-col">
               <Suspense fallback={<div className="h-14 sm:h-16 border-b"></div>}>
                 <Header />
