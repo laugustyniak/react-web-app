@@ -1,5 +1,6 @@
 import { DocumentSnapshot } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router';
 import SearchOptionsPanel, { type SearchOptions } from '~/components/ProductExtraction/SearchOptionsPanel';
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { getAllVideos, getFramesByVideoId } from '~/lib/firestoreService';
@@ -14,6 +15,9 @@ const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
 
 
 const ProductExtraction = () => {
+  // URL parameters for direct video loading
+  const [searchParams] = useSearchParams();
+  
   // State for raw find_images results (must be declared before any usage)
   const [rawFindImagesResults, setRawFindImagesResults] = useState<any[]>([]);
   // State for video and frame selection
@@ -79,16 +83,143 @@ const ProductExtraction = () => {
       setIsSearchingByIdx(prev => ({ ...prev, [idx]: false }));
     }
   };
+
+  // Step 1: Detect products in frame
+  const handleProductDetection = async (frameIndex: number) => {
+    if (!frames[frameIndex]) return;
+    
+    const frame = frames[frameIndex];
+    setIsDetectingProducts(frameIndex);
+    
+    try {
+      const imageUrl = frame.storage_url || frame.image_url || frame.frame_path;
+      if (!imageUrl) {
+        throw new Error('No image URL available for this frame');
+      }
+
+      console.log(`Detecting products in frame ${frameIndex + 1}`);
+      
+      // Convert hosted image to base64 for get_product_description API
+      const imageResponse = await fetch(imageUrl);
+      const imageBlob = await imageResponse.blob();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          if (typeof reader.result === 'string') resolve(reader.result.split(',')[1]);
+          else reject('Failed to convert image to base64');
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(imageBlob);
+      });
+
+      // Call get_product_description API
+      const descResponse = await fetch('/api/get_product_description', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          base64_image: base64, 
+          language: searchOptions.language.toLowerCase() || 'english' 
+        })
+      });
+
+      if (!descResponse.ok) {
+        const errText = await descResponse.text();
+        throw new Error(`Product description API error: ${errText}`);
+      }
+
+      const descData = await descResponse.json();
+      console.log(`Frame ${frameIndex + 1} detected products:`, descData);
+      
+      // Extract products from API response
+      let products = [];
+      if (descData && Array.isArray(descData.products)) {
+        products = descData.products;
+      } else if (descData && descData.result && Array.isArray(descData.result.products)) {
+        products = descData.result.products;
+      } else {
+        throw new Error('No products found in frame');
+      }
+
+      // Store detected products
+      setFrameDetectedProducts(prev => ({
+        ...prev,
+        [frameIndex]: products
+      }));
+
+    } catch (error) {
+      console.error(`Error detecting products in frame ${frameIndex + 1}:`, error);
+      setFrameDetectedProducts(prev => ({
+        ...prev,
+        [frameIndex]: [{ error: error instanceof Error ? error.message : 'Unknown error' }]
+      }));
+    } finally {
+      setIsDetectingProducts(null);
+    }
+  };
+
+  
   // Highlighted frame for UI
   const [highlightedFrameIndex, setHighlightedFrameIndex] = useState<number | null>(null);
+  
+  // Individual frame analysis state
+  const [frameAnalysisResults, setFrameAnalysisResults] = useState<Record<number, any>>({});
+  const [isAnalyzingFrame, setIsAnalyzingFrame] = useState<number | null>(null);
+  
+  // Step-by-step analysis state
+  const [frameDetectedProducts, setFrameDetectedProducts] = useState<Record<number, any[]>>({});
+  const [isDetectingProducts, setIsDetectingProducts] = useState<number | null>(null);
+  const [frameSearchResults, setFrameSearchResults] = useState<Record<number, Record<number, any>>>({});
+  const [isSearchingProduct, setIsSearchingProduct] = useState<Record<string, boolean>>({});
 
   // Load all available videos from Firebase on component mount
   useEffect(() => {
     loadVideosFromFirebase();
-    if (videoUrl === '') {
+    
+    // Check for URL parameters for direct video loading
+    const urlVideoId = searchParams.get('video_id');
+    const urlVideoUrl = searchParams.get('video_url');
+    
+    if (urlVideoId && urlVideoUrl) {
+      console.log('Loading video from URL parameters:', { urlVideoId, urlVideoUrl });
+      setVideoUrl(decodeURIComponent(urlVideoUrl));
+      // We'll load the specific video after the videos are loaded from Firebase
+    } else if (videoUrl === '') {
       setVideoUrl('https://www.youtube.com/watch?v=8X_m6E3XEaw');
     }
   }, []);
+
+  // Handle URL parameter video loading after videos are loaded
+  useEffect(() => {
+    const urlVideoId = searchParams.get('video_id');
+    const urlVideoUrl = searchParams.get('video_url');
+    
+    if (urlVideoId && urlVideoUrl && availableVideos.length > 0 && !videoData) {
+      const decodedUrl = decodeURIComponent(urlVideoUrl);
+      console.log('Attempting to load video from URL params:', { urlVideoId, decodedUrl });
+      
+      // Try to find the video in available videos
+      const targetVideo = availableVideos.find(v => v.video_id === urlVideoId || v.video_url === decodedUrl);
+      
+      if (targetVideo) {
+        console.log('Found video in available videos:', targetVideo);
+        setVideoData(targetVideo);
+        setVideoUrl(targetVideo.video_url);
+        loadFrames(targetVideo.video_id);
+      } else {
+        console.log('Video not found in available videos, creating temporary video data');
+        // Create temporary video data for videos not in Firebase
+        const tempVideoData: VideoData = {
+          video_id: urlVideoId,
+          video_url: decodedUrl,
+          title: `Video ${urlVideoId}`,
+          is_processed: false
+        };
+        setVideoData(tempVideoData);
+        setVideoUrl(decodedUrl);
+        loadFrames(urlVideoId);
+      }
+    }
+  }, [availableVideos, searchParams]);
 
   // Load videos from Firestore
   const loadVideosFromFirebase = async () => {
@@ -256,35 +387,112 @@ const ProductExtraction = () => {
     }
   };
 
-  // Product search handler
-  const handleProductSearch = async (query: string) => {
-    setIsSearching(true);
-    setSearchError(null);
-    setSearchResults(null);
-    try {
-      // Example: call a search API endpoint (replace with your actual endpoint)
-      const response = await fetch(`/api/find_image`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query + ' ' + searchOptions.marketplace + ' ' + searchOptions.context, hl: searchOptions.hl, gl: searchOptions.gl, location: searchOptions.location })
-      });
-      if (!response.ok) {
-        const errText = await response.text();
-        setSearchError(`API error: ${errText}`);
-      } else {
-        const data = await response.json();
-        if (data && Array.isArray(data.products)) {
-          setSearchResults({ products: data.products });
-        } else if (data && data.result && Array.isArray(data.result.products)) {
-          setSearchResults({ products: data.result.products });
-        } else {
-          setSearchError('Unexpected API response format');
+  // Unified product search handler - handles both global search and per-product search
+  const handleProductSearch = async (query: string, frameIndex?: number, productIndex?: number) => {
+    // If frameIndex and productIndex are provided, this is a per-product search
+    const isPerProductSearch = frameIndex !== undefined && productIndex !== undefined;
+    
+    if (isPerProductSearch) {
+      const detectedProducts = frameDetectedProducts[frameIndex];
+      if (!detectedProducts || !detectedProducts[productIndex]) return;
+      
+      const product = detectedProducts[productIndex];
+      const searchKey = `${frameIndex}-${productIndex}`;
+      
+      setIsSearchingProduct(prev => ({ ...prev, [searchKey]: true }));
+      
+      try {
+        const searchQuery = query || `${product.product_name || ''} ${product.description_in_english || ''} ${searchOptions.marketplace} ${searchOptions.context}`.trim();
+        
+        console.log(`Searching for similar products for "${product.product_name}"`);
+        
+        const searchResponse = await fetch('/api/find_image', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: searchQuery,
+            location: searchOptions.location,
+            gl: searchOptions.gl,
+            hl: searchOptions.hl,
+            marketplace: searchOptions.marketplace,
+            context: searchOptions.context
+          })
+        });
+
+        if (!searchResponse.ok) {
+          const errText = await searchResponse.text();
+          throw new Error(`Search API error: ${errText}`);
         }
+
+        const searchData = await searchResponse.json();
+        console.log(`Found ${searchData.serpapi_response?.images_results?.length || 0} similar products`);
+        
+        // Store search results for per-product search
+        setFrameSearchResults(prev => ({
+          ...prev,
+          [frameIndex]: {
+            ...prev[frameIndex],
+            [productIndex]: {
+              search_results: searchData.serpapi_response?.images_results || [],
+              search_query: searchQuery,
+              original_product: product
+            }
+          }
+        }));
+
+      } catch (error) {
+        console.error(`Error searching for product:`, error);
+        setFrameSearchResults(prev => ({
+          ...prev,
+          [frameIndex]: {
+            ...prev[frameIndex],
+            [productIndex]: {
+              search_results: [],
+              search_query: '',
+              original_product: product,
+              error: error instanceof Error ? error.message : 'Search failed'
+            }
+          }
+        }));
+      } finally {
+        setIsSearchingProduct(prev => ({ ...prev, [searchKey]: false }));
       }
-    } catch (err) {
-      setSearchError(err instanceof Error ? err.message : 'Failed to search products');
-    } finally {
-      setIsSearching(false);
+    } else {
+      // Global search (original functionality)
+      setIsSearching(true);
+      setSearchError(null);
+      setSearchResults(null);
+      
+      try {
+        const response = await fetch(`/api/find_image`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            query: query + ' ' + searchOptions.marketplace + ' ' + searchOptions.context, 
+            hl: searchOptions.hl, 
+            gl: searchOptions.gl, 
+            location: searchOptions.location 
+          })
+        });
+        
+        if (!response.ok) {
+          const errText = await response.text();
+          setSearchError(`API error: ${errText}`);
+        } else {
+          const data = await response.json();
+          if (data && Array.isArray(data.products)) {
+            setSearchResults({ products: data.products });
+          } else if (data && data.result && Array.isArray(data.result.products)) {
+            setSearchResults({ products: data.result.products });
+          } else {
+            setSearchError('Unexpected API response format');
+          }
+        }
+      } catch (err) {
+        setSearchError(err instanceof Error ? err.message : 'Failed to search products');
+      } finally {
+        setIsSearching(false);
+      }
     }
   };
 
@@ -322,6 +530,27 @@ const ProductExtraction = () => {
           Transform any video content into a powerful sales channel. Buy It automatically identifies products in your videos
           and connects them to online retailers, creating new revenue streams with zero effort.
         </p>
+
+        {/* Notification when coming from VideoFrameExtraction */}
+        {searchParams.get('video_id') && searchParams.get('video_url') && (
+          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-green-800 dark:text-green-200">
+                  ✅ Video loaded from Frame Extraction
+                </h3>
+                <div className="mt-1 text-sm text-green-700 dark:text-green-300">
+                  <p>Successfully loaded video "{videoData?.title || videoData?.video_id || 'Unknown'}". Click "🔍 Search" on any frame to find products!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Video Selector */}
         <VideoSelector
@@ -361,6 +590,14 @@ const ProductExtraction = () => {
               setHighlightedFrameIndex(idx);
             }}
             highlightedFrameIndex={highlightedFrameIndex}
+            onDetectProducts={handleProductDetection}
+            isDetectingProducts={isDetectingProducts}
+            frameDetectedProducts={frameDetectedProducts}
+            onSearchProduct={(frameIndex: number, productIndex: number) => 
+              handleProductSearch('', frameIndex, productIndex)
+            }
+            isSearchingProduct={isSearchingProduct}
+            frameSearchResults={frameSearchResults}
           />
         )}
 
