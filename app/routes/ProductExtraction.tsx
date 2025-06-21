@@ -503,143 +503,234 @@ const ProductExtraction = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="py-4">
-        <h1 className="text-3xl font-bold mb-4">🎥 Buy It - Turn Videos into Revenue</h1>
-        <p className="mb-4">
-          Transform any video content into a powerful sales channel. Buy It automatically identifies products in your videos
-          and connects them to online retailers, creating new revenue streams with zero effort.
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      {/* Modern Header */}
+      <div className="border-b border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md sticky top-0 z-50">
+        <div className="container mx-auto px-6 py-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white text-xl font-bold shadow-lg">
+              🎥
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
+                Product Discovery
+              </h1>
+              <p className="text-sm text-slate-600 dark:text-slate-400">AI-powered product identification from video content</p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {/* Notification when coming from VideoFrameExtraction */}
+      <div className="container mx-auto px-6 py-8 space-y-8">
+
+        {/* Modern Success Notification */}
         {searchParams.get('video_id') && searchParams.get('video_url') && (
-          <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 to-green-600 p-6 text-white shadow-xl">
+            <div className="absolute inset-0 opacity-30" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+            }}></div>
+            <div className="relative flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                 </svg>
               </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-green-800 dark:text-green-200">
-                  ✅ Video loaded from Frame Extraction
-                </h3>
-                <div className="mt-1 text-sm text-green-700 dark:text-green-300">
-                  <p>Successfully loaded video "{videoData?.title || videoData?.video_id || 'Unknown'}". Click "🔍 Search" on any frame to find products!</p>
-                </div>
+              <div>
+                <h3 className="text-lg font-semibold">Video Successfully Loaded</h3>
+                <p className="text-emerald-100 text-sm">
+                  Ready to analyze "{videoData?.title || videoData?.video_id || 'Unknown'}" • Click any frame to start product discovery
+                </p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Video Selector */}
-        <VideoSelector
-          availableVideos={availableVideos}
-          videoData={videoData}
-          DEFAULT_VIDEO_ID={DEFAULT_VIDEO_ID}
-          hasMoreVideos={hasMoreVideos}
-          isLoadingVideos={isLoadingVideos}
-          onSelect={async (video) => {
-            setVideoData(video);
-            setVideoUrl(video.video_url);
-            await loadFrames(video.video_id);
-          }}
-          onLoadMore={loadMoreVideos}
-          onLoadAll={loadAllVideos}
-        />
+        {/* Video Selector Card */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">Select Video</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Choose a video to analyze for product discovery</p>
+          </div>
+          <div className="p-6">
+            <VideoSelector
+              availableVideos={availableVideos}
+              videoData={videoData}
+              DEFAULT_VIDEO_ID={DEFAULT_VIDEO_ID}
+              hasMoreVideos={hasMoreVideos}
+              isLoadingVideos={isLoadingVideos}
+              onSelect={async (video) => {
+                setVideoData(video);
+                setVideoUrl(video.video_url);
+                await loadFrames(video.video_id);
+              }}
+              onLoadMore={loadMoreVideos}
+              onLoadAll={loadAllVideos}
+            />
+          </div>
+        </div>
 
-        {/* Error Alert */}
+        {/* Modern Error Alert */}
         {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
-        {/* Video Player */}
-        {videoData && (
-          <VideoPlayer videoData={videoData} />
-        )}
-
-        {/* Search Options Panel */}
-        {videoData && (
-          <div className="mb-6">
-            <SearchOptionsPanel
-              searchOptions={searchOptions}
-              onOptionsChange={setSearchOptions}
-            />
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-500 to-rose-600 p-6 text-white shadow-xl">
+            <div className="absolute inset-0 opacity-30" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+            }}></div>
+            <div className="relative flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Something went wrong</h3>
+                <p className="text-red-100 text-sm">{error}</p>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Frame Grid */}
+        {/* Video Player Card */}
+        {videoData && (
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center text-white">
+                  ▶️
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                    {videoData.title || `Video ${videoData.video_id}`}
+                  </h2>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {videoData.video_id} • Ready for analysis
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <VideoPlayer videoData={videoData} />
+            </div>
+          </div>
+        )}
+
+        {/* Search Configuration Card */}
+        {videoData && (
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center text-white">
+                  ⚙️
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Search Configuration</h2>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">Customize location, language, and marketplace preferences</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <SearchOptionsPanel
+                searchOptions={searchOptions}
+                onOptionsChange={setSearchOptions}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Frame Analysis Card */}
         {frames.length > 0 && (
-          <FrameGrid
-            frames={frames}
-            selectedFrameIndex={selectedFrameIndex}
-            onSelect={(idx) => {
-              setSelectedFrameIndex(idx);
-              setHighlightedFrameIndex(idx);
-            }}
-            highlightedFrameIndex={highlightedFrameIndex}
-            onDetectProducts={handleProductDetection}
-            isDetectingProducts={isDetectingProducts}
-            frameDetectedProducts={frameDetectedProducts}
-            onSearchProduct={(frameIndex: number, productIndex: number) => 
-              handleProductSearch('', frameIndex, productIndex)
-            }
-            isSearchingProduct={isSearchingProduct}
-            frameSearchResults={frameSearchResults}
-          />
-        )}
-
-        {/* Analyze Products Button and Extracted Products List */}
-        {selectedFrameIndex !== null && (
-          <div className="mb-4 flex flex-col items-center">
-            <AnalyzeProductsButton
-              isAnalyzing={isAnalyzing}
-              onAnalyze={analyzeProducts}
-            />
-
-            {/* Always show found products when they exist */}
-            {(extractedProducts || (rawFindImagesResults && rawFindImagesResults.length > 0)) && (
-              <>
-                <ExtractedProductsList
-                  extractedProducts={extractedProducts}
-                  isLoading={isExtractedProductsLoading}
-                  error={extractedProductsError}
-                  editingProductIndex={editingProductIndex}
-                  editValues={editValues}
-                  onEditClick={(idx, product_name, description_in_english) => handleEditClick(idx, { product_name, description_in_english })}
-                  onEditChange={handleEditChange}
-                  onSave={handleSave}
-                  onCancel={handleCancel}
-                  onSearchWithAI={handleProductSearchWithAI}
-                  searchResultsByIdx={searchResultsByIdx}
-                  isSearchingByIdx={isSearchingByIdx}
-                  searchErrorByIdx={searchErrorByIdx}
-                />
-                {/* Raw find_images results display */}
-                {rawFindImagesResults && rawFindImagesResults.length > 0 && (
-                  <div className="mt-8">
-                    <h2 className="text-xl font-bold mb-2">Raw find_images API Results</h2>
-                    <pre className="bg-gray-100 p-2 rounded text-xs overflow-x-auto max-h-96 w-full">
-                      {JSON.stringify(rawFindImagesResults, null, 2)}
-                    </pre>
-                  </div>
-                )}
-              </>
-            )}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center text-white">
+                  🎞️
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Video Frames</h2>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {frames.length} frames available • Click any frame to start product detection
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <FrameGrid
+                frames={frames}
+                selectedFrameIndex={selectedFrameIndex}
+                onSelect={(idx) => {
+                  setSelectedFrameIndex(idx);
+                  setHighlightedFrameIndex(idx);
+                }}
+                highlightedFrameIndex={highlightedFrameIndex}
+                onDetectProducts={handleProductDetection}
+                isDetectingProducts={isDetectingProducts}
+                frameDetectedProducts={frameDetectedProducts}
+                onSearchProduct={(frameIndex: number, productIndex: number) => 
+                  handleProductSearch('', frameIndex, productIndex)
+                }
+                isSearchingProduct={isSearchingProduct}
+                frameSearchResults={frameSearchResults}
+              />
+            </div>
           </div>
         )}
 
-        {/* Product Search Panel */}
-        {/* <ProductSearchPanel
-          searchQuery={searchQuery}
-          onSearchQueryChange={(e) => setSearchQuery(e.target.value)}
-          onSearch={() => handleProductSearch(searchQuery)}
-          isSearching={isSearching}
-          searchResults={searchResults && Array.isArray(searchResults.products) ? searchResults.products : []}
-          searchError={searchError}
-        /> */}
+        {/* Product Analysis Card */}
+        {selectedFrameIndex !== null && (
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center text-white">
+                  🔍
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Product Analysis</h2>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Frame {selectedFrameIndex + 1} selected • Analyze to discover products
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="flex justify-center">
+                <AnalyzeProductsButton
+                  isAnalyzing={isAnalyzing}
+                  onAnalyze={analyzeProducts}
+                />
+              </div>
+
+              {/* Always show found products when they exist */}
+              {(extractedProducts || (rawFindImagesResults && rawFindImagesResults.length > 0)) && (
+                <div className="space-y-6">
+                  <ExtractedProductsList
+                    extractedProducts={extractedProducts}
+                    isLoading={isExtractedProductsLoading}
+                    error={extractedProductsError}
+                    editingProductIndex={editingProductIndex}
+                    editValues={editValues}
+                    onEditClick={(idx, product_name, description_in_english) => handleEditClick(idx, { product_name, description_in_english })}
+                    onEditChange={handleEditChange}
+                    onSave={handleSave}
+                    onCancel={handleCancel}
+                    onSearchWithAI={handleProductSearchWithAI}
+                    searchResultsByIdx={searchResultsByIdx}
+                    isSearchingByIdx={isSearchingByIdx}
+                    searchErrorByIdx={searchErrorByIdx}
+                  />
+                  {/* Raw API Results */}
+                  {rawFindImagesResults && rawFindImagesResults.length > 0 && (
+                    <div className="bg-slate-50 dark:bg-slate-900 rounded-xl p-4">
+                      <h3 className="text-lg font-semibold mb-3 text-slate-900 dark:text-slate-100">API Debug Results</h3>
+                      <pre className="bg-slate-800 text-slate-100 p-4 rounded-lg text-xs overflow-x-auto max-h-96 w-full">
+                        {JSON.stringify(rawFindImagesResults, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

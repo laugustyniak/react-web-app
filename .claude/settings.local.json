@@ -33,7 +33,8 @@
       "LS:*",
       "Bash(npm run typecheck:*)",
       "Bash(npx tsc:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(npm run dev:*)"
     ],
     "deny": []
   }
