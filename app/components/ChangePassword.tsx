@@ -5,9 +5,6 @@ import { Input } from './ui/input';
 import { CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { PageLayout, ContentCard } from './ui/layout';
-import Header from './Header';
-import Footer from './Footer';
-
 export default function ChangePassword() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');

@@ -8,8 +8,6 @@ import type { User } from '../lib/dataTypes';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { PageLayout, ContentCard } from './ui/layout';
-import Header from './Header';
-import Footer from './Footer';
 
 export default function EditProfile() {
   const [displayName, setDisplayName] = useState('');

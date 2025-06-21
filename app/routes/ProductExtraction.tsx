@@ -1,5 +1,5 @@
 import { DocumentSnapshot } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router';
 import SearchOptionsPanel, { type SearchOptions } from '~/components/ProductExtraction/SearchOptionsPanel';
 import { Alert, AlertDescription } from "~/components/ui/alert";
@@ -85,7 +85,7 @@ const ProductExtraction = () => {
   };
 
   // Step 1: Detect products in frame
-  const handleProductDetection = async (frameIndex: number) => {
+  const handleProductDetection = useCallback(async (frameIndex: number) => {
     if (!frames[frameIndex]) return;
     
     const frame = frames[frameIndex];
@@ -155,7 +155,7 @@ const ProductExtraction = () => {
     } finally {
       setIsDetectingProducts(null);
     }
-  };
+  }, [frames, searchOptions]);
 
   
   // Highlighted frame for UI

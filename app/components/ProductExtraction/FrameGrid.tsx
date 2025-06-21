@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { CreateProductModal } from "~/components/modals";
@@ -329,4 +329,4 @@ const FrameGrid: React.FC<FrameGridProps> = ({
   );
 };
 
-export default FrameGrid;
+export default memo(FrameGrid);

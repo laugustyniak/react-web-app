@@ -13,6 +13,7 @@ import React, { lazy, Suspense, useEffect } from 'react';
 import { cn } from './lib/utils';
 import { Toaster } from 'sonner';
 import { initializeGoogleAds } from './lib/firebase';
+import { measureWebVitals } from './lib/performance';
 
 import './app.css';
 
@@ -68,9 +69,23 @@ export const links = () => {
 };
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  // Initialize Google Ads when the component mounts
+  // Initialize Google Ads and Service Worker when the component mounts
   useEffect(() => {
     initializeGoogleAds();
+    
+    // Register service worker for caching and PWA features
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('SW registered: ', registration);
+        })
+        .catch((registrationError) => {
+          console.log('SW registration failed: ', registrationError);
+        });
+    }
+
+    // Measure Web Vitals for performance monitoring
+    measureWebVitals();
   }, []);
 
   return (
