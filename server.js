@@ -49,14 +49,17 @@ const getCorsOrigins = () => {
   if (isProduction) {
     const origins = process.env.ALLOWED_ORIGINS?.split(',') || [
       'https://dev.buy-it.ai',
-      'https://prod.buy-it.ai'
+      'https://prod.buy-it.ai',
+      'https://buy-it.ai',
     ];
     return origins.map(origin => origin.trim());
   }
   return [
     'http://localhost:3000',
+    'http://localhost:5173',
     'http://localhost:8080',
     'https://localhost:3000',
+    'https://localhost:5173',
     'https://localhost:8080'
   ];
 };
@@ -178,13 +181,13 @@ async function createServer() {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.setHeader('X-XSS-Protection', '1; mode=block');
-    
+
     // Remove server signature
     res.removeHeader('X-Powered-By');
-    
+
     // Permissions Policy
     res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=()');
-    
+
     // Content Security Policy
     const csp = [
       "default-src 'self'",
@@ -198,14 +201,14 @@ async function createServer() {
       "base-uri 'self'",
       "form-action 'self'"
     ].join('; ');
-    
+
     res.setHeader('Content-Security-Policy', csp);
-    
+
     // HTTPS enforcement in production
     if (isProduction && req.header('x-forwarded-proto') !== 'https') {
       return res.redirect(301, `https://${req.header('host')}${req.url}`);
     }
-    
+
     next();
   });
 
@@ -216,22 +219,22 @@ async function createServer() {
     const now = Date.now();
     const windowMs = 15 * 60 * 1000; // 15 minutes
     const maxRequests = 100; // Max requests per window
-    
+
     if (!global.rateLimitStore) {
       global.rateLimitStore = new Map();
     }
-    
+
     const clientData = global.rateLimitStore.get(clientIP) || { count: 0, resetTime: now + windowMs };
-    
+
     if (now > clientData.resetTime) {
       clientData.count = 1;
       clientData.resetTime = now + windowMs;
     } else {
       clientData.count++;
     }
-    
+
     global.rateLimitStore.set(clientIP, clientData);
-    
+
     if (clientData.count > maxRequests) {
       return res.status(429).json({
         error: 'Too many requests',
@@ -239,11 +242,11 @@ async function createServer() {
         retryAfter: Math.ceil((clientData.resetTime - now) / 1000)
       });
     }
-    
+
     res.setHeader('X-RateLimit-Limit', maxRequests);
     res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - clientData.count));
     res.setHeader('X-RateLimit-Reset', new Date(clientData.resetTime).toISOString());
-    
+
     next();
   };
 
@@ -252,14 +255,14 @@ async function createServer() {
 
   // CORS configuration using cors package
   const allowedOrigins = getCorsOrigins();
-  
+
   console.log('🔒 CORS allowed origins:', allowedOrigins);
 
   app.use(cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin) return callback(null, true);
-      
+
       if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       } else {
@@ -397,7 +400,7 @@ async function createServer() {
     };
 
     const httpsServer = https.createServer(httpsOptions, app);
-    
+
     httpsServer.on('error', (error) => {
       if (error.code === 'EADDRINUSE') {
         console.warn(`⚠️  HTTPS port ${httpsPort} is already in use, skipping HTTPS server`);
