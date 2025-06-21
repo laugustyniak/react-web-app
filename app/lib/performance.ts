@@ -127,7 +127,8 @@ export function measureWebVitals() {
   // Measure FID (First Input Delay)
   new PerformanceObserver((entryList) => {
     for (const entry of entryList.getEntries()) {
-      console.log('FID:', entry.processingStart - entry.startTime);
+      const fidEntry = entry as any;
+      console.log('FID:', fidEntry.processingStart - entry.startTime);
     }
   }).observe({ entryTypes: ['first-input'] });
 
@@ -135,8 +136,9 @@ export function measureWebVitals() {
   let clsValue = 0;
   new PerformanceObserver((entryList) => {
     for (const entry of entryList.getEntries()) {
-      if (!entry.hadRecentInput) {
-        clsValue += entry.value;
+      const clsEntry = entry as any;
+      if (!clsEntry.hadRecentInput) {
+        clsValue += clsEntry.value;
       }
     }
     console.log('CLS:', clsValue);

@@ -1,5 +1,5 @@
 // html-canvas-utils.ts - Utility functions for HTML Canvas
-import { CanvasImage } from "../components/Canvas/types";
+import type { CanvasImage } from "../components/Canvas/types";
 
 // Export canvas state to JSON
 export function exportCanvasState(images: CanvasImage[]): string {

@@ -1,4 +1,4 @@
-import React, { Suspense, ComponentType } from 'react';
+import React, { Suspense, type ComponentType } from 'react';
 
 interface LazyWrapperProps {
   children: React.ReactNode;
@@ -95,7 +95,7 @@ export function createLazyComponent<T extends ComponentType<any>>(
   });
 
   if (displayName) {
-    LazyComponent.displayName = displayName;
+    (LazyComponent as any).displayName = displayName;
   }
 
   return LazyComponent;
