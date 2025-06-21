@@ -13,10 +13,52 @@ dotenv.config();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Environment variable validation
+function validateEnvironment() {
+  const requiredVars = {
+    BACKEND_API_URL: process.env.BACKEND_API_URL,
+    BUY_IT_API_KEY_1: process.env.BUY_IT_API_KEY_1
+  };
+
+  const missing = Object.entries(requiredVars)
+    .filter(([key, value]) => !value)
+    .map(([key]) => key);
+
+  if (missing.length > 0) {
+    console.error('❌ Missing required environment variables:', missing);
+    console.error('Please check your .env file or environment configuration');
+    if (isProduction) {
+      process.exit(1);
+    } else {
+      console.warn('⚠️  Continuing in development mode with default values');
+    }
+  }
+}
+
+// Validate environment on startup
+validateEnvironment();
+
 // API Configuration
 const API_CONFIG = {
   BACKEND_URL: process.env.BACKEND_API_URL || 'https://buy-it-api.augustyniak.ai',
   API_KEY: process.env.BUY_IT_API_KEY_1 || '',
+};
+
+// CORS Origins Configuration
+const getCorsOrigins = () => {
+  if (isProduction) {
+    const origins = process.env.ALLOWED_ORIGINS?.split(',') || [
+      'https://dev.buy-it.ai',
+      'https://prod.buy-it.ai'
+    ];
+    return origins.map(origin => origin.trim());
+  }
+  return [
+    'http://localhost:3000',
+    'http://localhost:8080',
+    'https://localhost:3000',
+    'https://localhost:8080'
+  ];
 };
 
 // Logging middleware for development
@@ -51,10 +93,11 @@ async function handleFindImage(req, res) {
       res.send(text);
     }
   } catch (error) {
-    console.error('Direct endpoint error:', error);
+    console.error('Find image endpoint error:', error);
     res.status(500).json({
       error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: isProduction ? 'An error occurred processing your request' : error.message,
+      timestamp: new Date().toISOString()
     });
   }
 }
@@ -83,10 +126,11 @@ async function handleGetProductDescription(req, res) {
       res.send(text);
     }
   } catch (error) {
-    console.error('Direct endpoint error:', error);
+    console.error('Get product description endpoint error:', error);
     res.status(500).json({
       error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: isProduction ? 'An error occurred processing your request' : error.message,
+      timestamp: new Date().toISOString()
     });
   }
 }
@@ -115,10 +159,11 @@ async function handleInpaint(req, res) {
       res.send(text);
     }
   } catch (error) {
-    console.error('Direct endpoint error:', error);
+    console.error('Inpaint endpoint error:', error);
     res.status(500).json({
       error: 'Internal server error',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+      message: isProduction ? 'An error occurred processing your request' : error.message,
+      timestamp: new Date().toISOString()
     });
   }
 }
@@ -126,16 +171,106 @@ async function handleInpaint(req, res) {
 async function createServer() {
   const app = express();
 
+  // Security headers middleware
+  app.use((req, res, next) => {
+    // Basic security headers
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    
+    // Remove server signature
+    res.removeHeader('X-Powered-By');
+    
+    // Permissions Policy
+    res.setHeader('Permissions-Policy', 'geolocation=(), microphone=(), camera=(), payment=(), usb=()');
+    
+    // Content Security Policy
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https: http:",
+      "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://buy-it-api.augustyniak.ai wss: ws:",
+      "frame-src 'none'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'"
+    ].join('; ');
+    
+    res.setHeader('Content-Security-Policy', csp);
+    
+    // HTTPS enforcement in production
+    if (isProduction && req.header('x-forwarded-proto') !== 'https') {
+      return res.redirect(301, `https://${req.header('host')}${req.url}`);
+    }
+    
+    next();
+  });
+
+  // Rate limiting for API endpoints
+  const apiLimiter = (req, res, next) => {
+    // Simple in-memory rate limiting
+    const clientIP = req.ip || req.connection.remoteAddress;
+    const now = Date.now();
+    const windowMs = 15 * 60 * 1000; // 15 minutes
+    const maxRequests = 100; // Max requests per window
+    
+    if (!global.rateLimitStore) {
+      global.rateLimitStore = new Map();
+    }
+    
+    const clientData = global.rateLimitStore.get(clientIP) || { count: 0, resetTime: now + windowMs };
+    
+    if (now > clientData.resetTime) {
+      clientData.count = 1;
+      clientData.resetTime = now + windowMs;
+    } else {
+      clientData.count++;
+    }
+    
+    global.rateLimitStore.set(clientIP, clientData);
+    
+    if (clientData.count > maxRequests) {
+      return res.status(429).json({
+        error: 'Too many requests',
+        message: 'Please try again later',
+        retryAfter: Math.ceil((clientData.resetTime - now) / 1000)
+      });
+    }
+    
+    res.setHeader('X-RateLimit-Limit', maxRequests);
+    res.setHeader('X-RateLimit-Remaining', Math.max(0, maxRequests - clientData.count));
+    res.setHeader('X-RateLimit-Reset', new Date(clientData.resetTime).toISOString());
+    
+    next();
+  };
+
+  // Apply rate limiting to API routes
+  app.use('/api/', apiLimiter);
+
   // CORS configuration using cors package
-  const allowedOrigins = isProduction
-    ? ['https://dev.buy-it.ai', 'https://prod.buy-it.ai']
-    : ['http://localhost:8080'];
+  const allowedOrigins = getCorsOrigins();
+  
+  console.log('🔒 CORS allowed origins:', allowedOrigins);
 
   app.use(cors({
-    origin: allowedOrigins,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        console.warn('🚫 Blocked CORS request from:', origin);
+        return callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'x-api-key'],
+    optionsSuccessStatus: 200
   }));
 
   // Request logging
@@ -146,7 +281,7 @@ async function createServer() {
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
   // Health check endpoint for this Express server
-  app.get('/health', (req, res) => {
+  app.get('/health', (_req, res) => {
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -157,7 +292,7 @@ async function createServer() {
   });
 
   // API health check endpoint that forwards to backend's /healthcheck
-  app.get('/api/healthcheck', async (req, res) => {
+  app.get('/api/healthcheck', async (_req, res) => {
     try {
       const targetUrl = `${API_CONFIG.BACKEND_URL}/healthcheck`;
       const headers = {
@@ -236,7 +371,7 @@ async function createServer() {
     console.log('🔑 API Key configured:', !!API_CONFIG.API_KEY);
 
     // For development, just serve a simple message for non-API routes
-    app.get('*', (req, res) => {
+    app.get('*', (_req, res) => {
       res.json({
         message: 'Express server running in development mode',
         api_proxy: 'Available at /api/*',
@@ -261,7 +396,17 @@ async function createServer() {
       cert: fs.readFileSync(certPath)
     };
 
-    https.createServer(httpsOptions, app).listen(httpsPort, () => {
+    const httpsServer = https.createServer(httpsOptions, app);
+    
+    httpsServer.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.warn(`⚠️  HTTPS port ${httpsPort} is already in use, skipping HTTPS server`);
+      } else {
+        console.error('HTTPS server error:', error);
+      }
+    });
+
+    httpsServer.listen(httpsPort, () => {
       console.log(`🔒 HTTPS Express server with SSR running at https://localhost:${httpsPort}`);
       console.log('📱 Your React app is server-side rendered with SSL!');
       console.log('🔗 API proxy available at /api/*');
@@ -280,7 +425,7 @@ async function createServer() {
   }
 
   // HTTP server (always available as fallback)
-  app.listen(port, () => {
+  const httpServer = app.listen(port, () => {
     console.log(`🚀 HTTP Express server with SSR running at http://localhost:${port}`);
     if (!fs.existsSync(certPath) || !fs.existsSync(keyPath)) {
       console.log('💡 To enable HTTPS, run: chmod +x generate-certs.sh && ./generate-certs.sh');
@@ -288,6 +433,15 @@ async function createServer() {
     console.log('📱 Your React app is server-side rendered!');
     console.log('🔗 API proxy available at /api/*');
     console.log('📡 Backend:', API_CONFIG.BACKEND_URL);
+    console.log('🔒 Security features enabled: headers, CORS, rate limiting, CSP');
+  });
+
+  httpServer.on('error', (error) => {
+    console.error('HTTP server error:', error);
+    if (error.code === 'EADDRINUSE') {
+      console.error(`❌ Port ${port} is already in use. Please use a different port or stop the existing server.`);
+      process.exit(1);
+    }
   });
 }
 

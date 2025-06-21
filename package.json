@@ -27,6 +27,8 @@
     "infra:destroy:dev": "cd terraform && terraform destroy -var-file=dev.tfvars",
     "infra:destroy:prod": "cd terraform && terraform destroy -var-file=prod.tfvars",
     "test:terraform": "./scripts/test-terraform.sh",
+    "test:security": "node scripts/security-test.js",
+    "audit:security": "npm audit && node scripts/security-test.js",
     "shadcn": "shadcn",
     "changeset": "changeset",
     "version": "changeset version",
@@ -87,7 +89,7 @@
     "react-router-devtools": "^1.1.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2",
-    "vite": "^5.4.11",
+    "vite": "^6.3.5",
     "vite-tsconfig-paths": "^5.1.4"
   }
 }

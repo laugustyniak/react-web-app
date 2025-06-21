@@ -5,11 +5,14 @@ A modern React application for discovering and exploring TV show inspirations, p
 ## Features
 
 - 🔒 User authentication with email/password and Google sign-in
+- 🛡️ Comprehensive security headers and CORS protection
+- 🚦 Rate limiting and DDoS protection
 - 🌙 Dark mode support with consistent styling across all components
 - 📱 Responsive design for all device sizes
 - 🔍 Search and filter functionality
 - ⭐ Save favorite inspirations
 - 📊 User profile management
+- 🔐 Content Security Policy (CSP) implementation
 
 ## Getting Started
 
@@ -102,6 +105,41 @@ The app includes a complete authentication system with:
 - Password reset functionality
 - Profile management
 - Password changing
+
+## Security 🔐
+
+This application implements comprehensive security measures:
+
+### Security Features
+- **Security Headers**: X-Frame-Options, CSP, X-XSS-Protection, and more
+- **Rate Limiting**: API endpoint protection against abuse
+- **CORS Protection**: Environment-based origin validation
+- **Environment Validation**: Required variables checked at startup
+- **Error Handling**: Production-safe error messages
+- **HTTPS Enforcement**: Automatic redirects in production
+
+### Security Testing
+```bash
+# Run comprehensive security tests
+npm run test:security
+
+# Combined dependency audit and security tests
+npm run audit:security
+```
+
+### Security Documentation
+See [SECURITY.md](./SECURITY.md) for detailed security information, including:
+- Security configuration details
+- Environment setup guidelines
+- Security testing procedures
+- Incident response procedures
+- Security checklist for deployments
+
+### Regular Security Maintenance
+- Run `npm audit` weekly to check for vulnerabilities
+- Keep dependencies updated
+- Review security configurations quarterly
+- Monitor security logs and alerts
 
 ## Deployment
 
