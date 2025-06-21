@@ -90,8 +90,14 @@ function Header() {
 
   const navigateTo = useCallback(
     (path: string) => {
-      navigate(path);
-      setIsMenuOpen(false); // Close mobile menu when navigating
+      try {
+        navigate(path);
+        setIsMenuOpen(false); // Close mobile menu when navigating
+      } catch (error) {
+        console.error('Navigation error:', error);
+        // Fallback: try window location
+        window.location.href = path;
+      }
     },
     [navigate]
   );

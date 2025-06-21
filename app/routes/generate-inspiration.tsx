@@ -1,9 +1,21 @@
 import { AlertTriangle } from 'lucide-react';
 import { Navigate } from 'react-router';
-import Canvas from '~/components/Canvas/index';
+import { Suspense, lazy } from 'react';
 import { Button } from '~/components/ui/button';
 import { ContentCard, PageLayout } from '~/components/ui/layout';
 import { useAuth } from '~/contexts/AuthContext';
+
+// Lazy load Canvas component with error boundary
+const Canvas = lazy(() => import('~/components/Canvas/index').catch(() => ({
+  default: () => (
+    <div className="text-center p-8">
+      <AlertTriangle className="mx-auto h-12 w-12 text-amber-500 mb-4" />
+      <h3 className="text-lg font-semibold mb-2">Canvas Failed to Load</h3>
+      <p className="text-gray-600 mb-4">There was an issue loading the canvas component.</p>
+      <Button onClick={() => window.location.reload()}>Retry</Button>
+    </div>
+  )
+})));
 
 export function meta() {
   return [
@@ -32,5 +44,18 @@ export default function GenerateInspirationRoute() {
     );
   }
 
-  return <Canvas />;
+  return (
+    <Suspense fallback={
+      <PageLayout>
+        <ContentCard className="max-w-4xl">
+          <div className="text-center p-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-lg">Loading Canvas...</p>
+          </div>
+        </ContentCard>
+      </PageLayout>
+    }>
+      <Canvas />
+    </Suspense>
+  );
 }

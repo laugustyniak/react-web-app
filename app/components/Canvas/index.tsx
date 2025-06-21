@@ -28,6 +28,26 @@ import { createCanvasImageFromProduct, processFilesToCanvasImages } from './util
 
 export default function Canvas() {
   const { user, isAdmin } = useAuth();
+
+  // Check authentication/authorization FIRST, before any other hooks
+  if (!user) {
+    return <Navigate to="/sign-in" />;
+  }
+
+  if (!isAdmin) {
+    return (
+      <PageLayout>
+        <ContentCard className="max-w-lg text-center py-12">
+          <AlertTriangle className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold mb-4">Admin Access Only</h2>
+          <p className="mb-4">This is an internal tool restricted to administrator users only.</p>
+          <Button onClick={() => window.history.back()}>Go Back</Button>
+        </ContentCard>
+      </PageLayout>
+    );
+  }
+
+  // Now all other hooks can be called safely
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Custom hooks
@@ -178,24 +198,6 @@ export default function Canvas() {
       window.removeEventListener('mouseup', handleGlobalMouseUp);
     };
   }, []);
-
-  // Redirect if not authenticated or not admin
-  if (!user) {
-    return <Navigate to="/sign-in" />;
-  }
-
-  if (!isAdmin) {
-    return (
-      <PageLayout>
-        <ContentCard className="max-w-lg text-center py-12">
-          <AlertTriangle className="h-16 w-16 text-amber-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-4">Admin Access Only</h2>
-          <p className="mb-4">This is an internal tool restricted to administrator users only.</p>
-          <Button onClick={() => window.history.back()}>Go Back</Button>
-        </ContentCard>
-      </PageLayout>
-    );
-  }
 
   return (
     <ProtectedRoute>

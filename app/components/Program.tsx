@@ -11,18 +11,44 @@ export default function Program() {
   const navigate = useNavigate();
 
   const [program, setProgram] = useState<Program | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchProgram = async (id: string) => {
-      const program = await getProgramById(id);
-      setProgram(program);
+      try {
+        setLoading(true);
+        const program = await getProgramById(id);
+        if (program) {
+          setProgram(program);
+        } else {
+          navigate('/explore');
+        }
+      } catch (error) {
+        console.error('Error fetching program:', error);
+        navigate('/explore');
+      } finally {
+        setLoading(false);
+      }
     };
+    
     if (id) {
       fetchProgram(id);
+    } else {
+      navigate('/explore');
     }
-  }, [id]);
+  }, [id, navigate]);
+
+  if (loading) {
+    return (
+      <PageLayout fullHeight={false}>
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </PageLayout>
+    );
+  }
+
   if (!program) {
-    navigate('/explore');
     return null;
   }
 

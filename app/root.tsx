@@ -9,11 +9,9 @@ import {
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { AnalyticsProvider } from './contexts/AnalyticsContext';
-import React, { lazy, Suspense, useEffect } from 'react';
+import * as React from 'react';
 import { cn } from './lib/utils';
 import { Toaster } from 'sonner';
-import { initializeGoogleAds } from './lib/firebase';
-import { measureWebVitals } from './lib/performance';
 
 import './app.css';
 
@@ -22,9 +20,9 @@ const fontSans = {
   variable: 'font-sans',
 };
 
-// Lazy load components for better performance
-const Header = lazy(() => import('./components/Header'));
-const Footer = lazy(() => import('./components/Footer'));
+// Import components directly to avoid lazy loading issues
+import Header from './components/Header';
+import Footer from './components/Footer';
 
 export const links = () => {
   return [
@@ -69,24 +67,8 @@ export const links = () => {
 };
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  // Initialize Google Ads and Service Worker when the component mounts
-  useEffect(() => {
-    initializeGoogleAds();
-    
-    // Register service worker for caching and PWA features
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js')
-        .then((registration) => {
-          console.log('SW registered: ', registration);
-        })
-        .catch((registrationError) => {
-          console.log('SW registration failed: ', registrationError);
-        });
-    }
-
-    // Measure Web Vitals for performance monitoring
-    measureWebVitals();
-  }, []);
+  // Temporarily removed useEffect to debug React hook issues
+  // TODO: Re-add initialization logic once React issues are resolved
 
   return (
     <html lang="en" className="antialiased" suppressHydrationWarning>
@@ -110,15 +92,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <ThemeProvider>
           <AuthProvider>
             <div className="relative flex min-h-screen flex-col">
-              <Suspense fallback={<div className="h-14 sm:h-16 border-b"></div>}>
-                <Header />
-              </Suspense>
               <div className="flex-1">
                 <AnalyticsProvider>{children}</AnalyticsProvider>
               </div>
-              <Suspense fallback={null}>
-                <Footer />
-              </Suspense>
+              <Footer />
             </div>
             <Toaster richColors position="top-right" />
           </AuthProvider>
@@ -131,7 +108,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function Root() {
-  return <Outlet />;
+  return (
+    <>
+      <Header />
+      <Outlet />
+    </>
+  );
 }
 
 export function ErrorBoundary({ error }: { error: Error }) {
