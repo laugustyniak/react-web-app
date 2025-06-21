@@ -293,30 +293,6 @@ const ProductExtraction = () => {
     }
   };
 
-  // Load a specific video
-  const loadVideo = async (url: string) => {
-    try {
-      setError(null);
-      const videoByUrl = availableVideos.find(v => v.video_url === url);
-      if (videoByUrl) {
-        setVideoData(videoByUrl);
-        await loadFrames(videoByUrl.video_id);
-      } else {
-        const defaultVideo = availableVideos.find(v => v.video_id === DEFAULT_VIDEO_ID);
-        if (defaultVideo) {
-          setVideoData(defaultVideo);
-          await loadFrames(defaultVideo.video_id);
-        } else if (availableVideos.length > 0) {
-          setVideoData(availableVideos[0]);
-          await loadFrames(availableVideos[0].video_id);
-        } else {
-          throw new Error('No videos available');
-        }
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error occurred');
-    }
-  };
 
   const loadFrames = async (videoId: string) => {
     try {
@@ -584,6 +560,16 @@ const ProductExtraction = () => {
           <VideoPlayer videoData={videoData} />
         )}
 
+        {/* Search Options Panel */}
+        {videoData && (
+          <div className="mb-6">
+            <SearchOptionsPanel
+              searchOptions={searchOptions}
+              onOptionsChange={setSearchOptions}
+            />
+          </div>
+        )}
+
         {/* Frame Grid */}
         {frames.length > 0 && (
           <FrameGrid
@@ -608,14 +594,6 @@ const ProductExtraction = () => {
         {/* Analyze Products Button and Extracted Products List */}
         {selectedFrameIndex !== null && (
           <div className="mb-4 flex flex-col items-center">
-            {/* Search Options Panel */}
-            <div className="w-full max-w-md mb-4">
-              <SearchOptionsPanel
-                searchOptions={searchOptions}
-                onOptionsChange={setSearchOptions}
-              />
-            </div>
-
             <AnalyzeProductsButton
               isAnalyzing={isAnalyzing}
               onAnalyze={analyzeProducts}

@@ -70,15 +70,15 @@ const FrameGrid: React.FC<FrameGridProps> = ({
                     : 'border-gray-200 hover:border-gray-300'
             }`}
           >
-            <div className={`relative ${isExpanded ? 'aspect-video max-w-md mx-auto' : 'aspect-video'}`}>
+            <div className={`relative ${isExpanded ? 'aspect-video max-w-md mx-auto mb-4' : 'aspect-video'} overflow-hidden rounded-t`}>
               <img
                 src={frame.image_url || frame.storage_url || frame.frame_path || `https://picsum.photos/800/450?random=${idx}`}
                 alt={`Frame ${idx + 1}`}
-                className="absolute top-0 left-0 w-full h-full object-cover cursor-pointer"
+                className="w-full h-full object-cover cursor-pointer"
                 onClick={() => onSelect(idx)}
               />
               {hasDetectedProducts && (
-                <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs">
+                <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded text-xs z-10">
                   ✓ {detectedProducts.length} products
                 </div>
               )}
