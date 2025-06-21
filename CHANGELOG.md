@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.10.0
+
+### Minor Changes
+
+- konva cleanup
+
 ## 0.9.0
 
 ### Minor Changes
