@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.6.0
+
+### Minor Changes
+
+- update extraction of frames, user can save each frozen frame and start working on it, improved search for prpoducts view
+
 ## 0.5.1
 
 ### Patch Changes
