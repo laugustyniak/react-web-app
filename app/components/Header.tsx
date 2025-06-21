@@ -20,7 +20,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '~/co
 import { Menu, Plus, X, Wand2 } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { ThemeToggle } from './ui/theme-toggle';
-import { useState, useCallback, memo } from 'react';
+import { useState } from 'react';
 import {
   CreateInspirationModal,
   CreateProgramModal,
@@ -35,113 +35,76 @@ function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut, isAdmin } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [isInspirationModalOpen, setIsInspirationModalOpen] = useState<boolean>(false);
-  const [isProgramModalOpen, setIsProgramModalOpen] = useState<boolean>(false);
-  const [isProductModalOpen, setIsProductModalOpen] = useState<boolean>(false);
-  const [isEditProductModalOpen, setIsEditProductModalOpen] = useState<boolean>(false);
-  const [isDeleteProductModalOpen, setIsDeleteProductModalOpen] = useState<boolean>(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isInspirationModalOpen, setIsInspirationModalOpen] = useState(false);
+  const [isProgramModalOpen, setIsProgramModalOpen] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
+  const [isDeleteProductModalOpen, setIsDeleteProductModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  // Check if the current path matches the given path
-  const isActive = useCallback(
-    (path: string) => {
-      return location.pathname === path;
-    },
-    [location.pathname]
-  );
+  const isActive = (path: string) => location.pathname === path;
+  
+  const isInternalToolPath = (path: string) => {
+    return ['/video-frame-extraction', '/product-extraction', '/generate-inspiration'].includes(path);
+  };
 
-  // Check if the path is an internal tool path
-  const isInternalToolPath = useCallback(
-    (path: string) => {
-      return ['/video-frame-extraction', '/product-extraction', '/generate-inspiration'].includes(path);
-    },
-    []
-  );
+  const isAnyInternalToolActive = () => isInternalToolPath(location.pathname);
+  
+  const isAccountPage = () => location.pathname.startsWith('/account/');
 
-  // Check if any internal tool is active
-  const isAnyInternalToolActive = useCallback(
-    () => {
-      return isInternalToolPath(location.pathname);
-    },
-    [location.pathname, isInternalToolPath]
-  );
+  const handleSignIn = () => navigate('/sign-in');
+  
+  const handleSignUp = () => navigate('/sign-up');
 
-  // Check if the current path is an account page
-  const isAccountPage = useCallback(() => {
-    return location.pathname.startsWith('/account/');
-  }, [location.pathname]);
-
-  const handleSignIn = useCallback(() => {
-    navigate('/sign-in');
-  }, [navigate]);
-
-  const handleSignUp = useCallback(() => {
-    navigate('/sign-up');
-  }, [navigate]);
-
-  const handleSignOut = useCallback(async () => {
+  const handleSignOut = async () => {
     try {
       await signOut('/');
     } catch (error) {
       console.error('Failed to sign out');
     }
-  }, [signOut]);
+  };
 
-  const navigateTo = useCallback(
-    (path: string) => {
-      try {
-        navigate(path);
-        setIsMenuOpen(false); // Close mobile menu when navigating
-      } catch (error) {
-        console.error('Navigation error:', error);
-        // Fallback: try window location
-        window.location.href = path;
-      }
-    },
-    [navigate]
-  );
+  const navigateTo = (path: string) => {
+    try {
+      navigate(path);
+      setIsMenuOpen(false);
+    } catch (error) {
+      console.error('Navigation error:', error);
+      window.location.href = path;
+    }
+  };
 
-  const handleAddInspiration = useCallback(() => {
-    setIsInspirationModalOpen(true);
-  }, []);
+  const handleAddInspiration = () => setIsInspirationModalOpen(true);
+  const handleAddProgram = () => setIsProgramModalOpen(true);
+  const handleAddProduct = () => setIsProductModalOpen(true);
 
-  const handleAddProgram = useCallback(() => {
-    setIsProgramModalOpen(true);
-  }, []);
-
-  const handleAddProduct = useCallback(() => {
-    setIsProductModalOpen(true);
-  }, []);
-
-  // Add refresh handlers
-  const handleInspirationAdd = useCallback(() => {
+  const handleInspirationAdd = () => {
     setIsInspirationModalOpen(false);
-    // Trigger a custom event that components can listen to
     window.dispatchEvent(new CustomEvent('refreshInspirations'));
-  }, []);
+  };
 
-  const handleProgramAdd = useCallback(() => {
+  const handleProgramAdd = () => {
     setIsProgramModalOpen(false);
     window.dispatchEvent(new CustomEvent('refreshPrograms'));
-  }, []);
+  };
 
-  const handleProductAdd = useCallback(() => {
+  const handleProductAdd = () => {
     setIsProductModalOpen(false);
     window.dispatchEvent(new CustomEvent('refreshProducts'));
-  }, []);
+  };
 
-  const handleProductEdit = useCallback((product: Product) => {
+  const handleProductEdit = (product: Product) => {
     setSelectedProduct(product);
     setIsEditProductModalOpen(true);
-  }, []);
+  };
 
-  const handleProductDelete = useCallback((product: Product) => {
+  const handleProductDelete = (product: Product) => {
     setSelectedProduct(product);
     setIsDeleteProductModalOpen(true);
-  }, []);
+  };
 
-  const handleProductDeleteConfirm = useCallback(async () => {
+  const handleProductDeleteConfirm = async () => {
     if (selectedProduct) {
       try {
         await deleteProduct(selectedProduct.id);
@@ -152,9 +115,9 @@ function Header() {
         console.error('Error deleting product:', error);
       }
     }
-  }, [selectedProduct]);
+  };
 
-  const handleProductEditSubmit = useCallback(async (id: string, data: Partial<Product>) => {
+  const handleProductEditSubmit = async (id: string, data: Partial<Product>) => {
     try {
       await updateProduct(id, data);
       window.dispatchEvent(new CustomEvent('refreshProducts'));
@@ -162,308 +125,292 @@ function Header() {
     } catch (error) {
       console.error('Error updating product:', error);
     }
-  }, []);
+  };
 
-  // Memoized mobile menu component
-  const MobileMenu = useCallback(
-    () => (
-      <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle menu</span>
+  const MobileMenu = () => (
+    <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" size="icon" className="relative">
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle menu</span>
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-[80%] sm:w-[350px] pt-10">
+        <SheetHeader className="mb-6">
+          <SheetTitle className="text-left" onClick={() => navigateTo('/')}>
+            <div className="flex items-center space-x-2">
+              <img src="/buy-it-logo-light.png" alt="Buy It" className="h-8 dark:hidden" />
+              <img src="/buy-it-logo-dark.png" alt="Buy It" className="h-8 hidden dark:block" />
+            </div>
+          </SheetTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-4 top-4"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            <X className="h-5 w-5" />
           </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-[80%] sm:w-[350px] pt-10">
-          <SheetHeader className="mb-6">
-            <SheetTitle className="text-left" onClick={() => navigateTo('/')}>
-              <div className="flex items-center space-x-2">
-                <img src="/buy-it-logo-light.png" alt="Buy It" className="h-8 dark:hidden" />
-                <img src="/buy-it-logo-dark.png" alt="Buy It" className="h-8 hidden dark:block" />
-              </div>
-            </SheetTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-4 top-4"
-              onClick={() => setIsMenuOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </Button>
-          </SheetHeader>
-          <div className="flex flex-col gap-1 py-2">
-            <Button
-              variant="ghost"
-              className={cn(
-                'justify-start px-2 py-6 text-base',
-                isActive('/explore') && 'bg-accent text-accent-foreground'
-              )}
-              onClick={() => navigateTo('/explore')}
-            >
-              Explore
-            </Button>
-            <Button
-              variant="ghost"
-              className={cn(
-                'justify-start px-2 py-6 text-base',
-                isActive('/starred') && 'bg-accent text-accent-foreground'
-              )}
-              onClick={() => navigateTo('/starred')}
-            >
-              Starred
-            </Button>
-            {isAdmin && (
-              <div className="mb-1">
-                <p className="px-2 py-1 text-sm font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
-                  <Wand2 className="h-4 w-4" />
-                  Internal Tools
-                </p>
-                <div className="ml-4 flex flex-col gap-1">
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      'justify-start px-2 py-4 text-base',
-                      isActive('/video-frame-extraction') && 'bg-accent text-accent-foreground'
-                    )}
-                    onClick={() => navigateTo('/video-frame-extraction')}
-                  >
-                    🎬 Extract Frames
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      'justify-start px-2 py-4 text-base',
-                      isActive('/product-extraction') && 'bg-accent text-accent-foreground'
-                    )}
-                    onClick={() => navigateTo('/product-extraction')}
-                  >
-                    🔍 Search for Products
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      'justify-start px-2 py-4 text-base',
-                      isActive('/generate-inspiration') && 'bg-accent text-accent-foreground'
-                    )}
-                    onClick={() => navigateTo('/generate-inspiration')}
-                  >
-                    ✨ Generate Inspiration
-                  </Button>
-                </div>
-              </div>
+        </SheetHeader>
+        <div className="flex flex-col gap-1 py-2">
+          <Button
+            variant="ghost"
+            className={cn(
+              'justify-start px-2 py-6 text-base',
+              isActive('/explore') && 'bg-accent text-accent-foreground'
             )}
-            {user ? (
-              <>
-                <div className="border-t my-2 pt-2">
-                  <p className="px-2 py-1 text-sm text-muted-foreground">Account</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  className="justify-start px-2 py-6 text-base"
-                  onClick={() => navigateTo('/account/edit-profile')}
-                >
-                  Edit profile
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start px-2 py-6 text-base"
-                  onClick={() => navigateTo('/account/change-password')}
-                >
-                  Change password
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start px-2 py-6 text-base text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
-                  onClick={handleSignOut}
-                >
-                  Sign out
-                </Button>
-              </>
-            ) : (
-              <>
-                <div className="border-t my-2 pt-2">
-                  <p className="px-2 py-1 text-sm text-muted-foreground">Account</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  className="justify-start px-2 py-6 text-base"
-                  onClick={handleSignIn}
-                >
-                  Sign in
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start px-2 py-6 text-base"
-                  onClick={handleSignUp}
-                >
-                  Sign up
-                </Button>
-              </>
+            onClick={() => navigateTo('/explore')}
+          >
+            Explore
+          </Button>
+          <Button
+            variant="ghost"
+            className={cn(
+              'justify-start px-2 py-6 text-base',
+              isActive('/starred') && 'bg-accent text-accent-foreground'
             )}
-            <div className="border-t mt-4 pt-4">
-              <div className="flex items-center justify-between px-2 py-2">
-                <span className="text-sm font-medium">Toggle theme</span>
-                <ThemeToggle />
+            onClick={() => navigateTo('/starred')}
+          >
+            Starred
+          </Button>
+          {isAdmin && (
+            <div className="mb-1">
+              <p className="px-2 py-1 text-sm font-medium text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                <Wand2 className="h-4 w-4" />
+                Internal Tools
+              </p>
+              <div className="ml-4 flex flex-col gap-1">
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    'justify-start px-2 py-4 text-base',
+                    isActive('/video-frame-extraction') && 'bg-accent text-accent-foreground'
+                  )}
+                  onClick={() => navigateTo('/video-frame-extraction')}
+                >
+                  🎬 Extract Frames
+                </Button>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    'justify-start px-2 py-4 text-base',
+                    isActive('/product-extraction') && 'bg-accent text-accent-foreground'
+                  )}
+                  onClick={() => navigateTo('/product-extraction')}
+                >
+                  🔍 Search for Products
+                </Button>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    'justify-start px-2 py-4 text-base',
+                    isActive('/generate-inspiration') && 'bg-accent text-accent-foreground'
+                  )}
+                  onClick={() => navigateTo('/generate-inspiration')}
+                >
+                  ✨ Generate Inspiration
+                </Button>
               </div>
             </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-    ),
-    [isMenuOpen, navigateTo, isActive, user, handleSignIn, handleSignOut, handleSignUp, isAdmin]
-  );
-
-  // Memoized desktop menu items
-  const DesktopMenu = useCallback(
-    () => (
-      <NavigationMenu>
-        <NavigationMenuList>
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              className={cn(
-                navigationMenuTriggerStyle(),
-                isActive('/explore') && 'bg-accent text-accent-foreground'
-              )}
-              onClick={() => navigateTo('/explore')}
-            >
-              Explore
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuLink
-              className={cn(
-                navigationMenuTriggerStyle(),
-                isActive('/starred') && 'bg-accent text-accent-foreground'
-              )}
-              onClick={() => navigateTo('/starred')}
-            >
-              Starred
-            </NavigationMenuLink>
-          </NavigationMenuItem>
-          {isAdmin && (
-            <NavigationMenuItem>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className={cn(
-                      "flex items-center gap-1 px-4 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-                      isAnyInternalToolActive() && 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
-                    )}
-                  >
-                    <Wand2 className="h-4 w-4 mr-1" />
-                    Internal Tools
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center">
-                  <DropdownMenuLabel>Developer Tools</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    className={cn(
-                      "cursor-pointer",
-                      isActive('/video-frame-extraction') && 'bg-accent text-accent-foreground'
-                    )}
-                    onClick={() => navigateTo('/video-frame-extraction')}
-                  >
-                    🎬 Extract Frames
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className={cn(
-                      "cursor-pointer", 
-                      isActive('/product-extraction') && 'bg-accent text-accent-foreground'
-                    )}
-                    onClick={() => navigateTo('/product-extraction')}
-                  >
-                    🔍 Search for Products
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className={cn(
-                      "cursor-pointer",
-                      isActive('/generate-inspiration') && 'bg-accent text-accent-foreground'
-                    )}
-                    onClick={() => navigateTo('/generate-inspiration')}
-                  >
-                    ✨ Generate Inspiration
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </NavigationMenuItem>
           )}
-        </NavigationMenuList>
-      </NavigationMenu>
-    ),
-    [isActive, navigateTo, user, isAdmin, isAnyInternalToolActive]
-  );
-
-  // Memoized auth buttons
-  const AuthButtons = useCallback(
-    () => (
-      <>
-        <ThemeToggle />
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild className="cursor-pointer">
-              <Button variant={isAccountPage() ? 'default' : 'outline'}>Account</Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
+          {user ? (
+            <>
+              <div className="border-t my-2 pt-2">
+                <p className="px-2 py-1 text-sm text-muted-foreground">Account</p>
+              </div>
+              <Button
+                variant="ghost"
+                className="justify-start px-2 py-6 text-base"
                 onClick={() => navigateTo('/account/edit-profile')}
-                className="cursor-pointer"
               >
                 Edit profile
-              </DropdownMenuItem>
-              <DropdownMenuItem
+              </Button>
+              <Button
+                variant="ghost"
+                className="justify-start px-2 py-6 text-base"
                 onClick={() => navigateTo('/account/change-password')}
-                className="cursor-pointer"
               >
                 Change password
-              </DropdownMenuItem>
-              <DropdownMenuItem
+              </Button>
+              <Button
+                variant="ghost"
+                className="justify-start px-2 py-6 text-base text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
                 onClick={handleSignOut}
-                className="cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600"
               >
                 Sign out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <>
-            <Button variant="ghost" onClick={handleSignIn}>
-              Sign in
-            </Button>
-            <Button variant="default" onClick={handleSignUp}>
-              Sign up
-            </Button>
-          </>
-        )}
-      </>
-    ),
-    [user, isAccountPage, navigateTo, handleSignIn, handleSignOut, handleSignUp]
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="border-t my-2 pt-2">
+                <p className="px-2 py-1 text-sm text-muted-foreground">Account</p>
+              </div>
+              <Button
+                variant="ghost"
+                className="justify-start px-2 py-6 text-base"
+                onClick={handleSignIn}
+              >
+                Sign in
+              </Button>
+              <Button
+                variant="ghost"
+                className="justify-start px-2 py-6 text-base"
+                onClick={handleSignUp}
+              >
+                Sign up
+              </Button>
+            </>
+          )}
+          <div className="border-t mt-4 pt-4">
+            <div className="flex items-center justify-between px-2 py-2">
+              <span className="text-sm font-medium">Toggle theme</span>
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 
-  // Memoized admin buttons
-  const AdminButtons = useCallback(
-    () => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild className="cursor-pointer">
-          <Button size="sm" variant="outline" className="cursor-pointer">
-            <Plus className="h-4 w-4" />
+  const DesktopMenu = () => (
+    <NavigationMenu>
+      <NavigationMenuList>
+        <NavigationMenuItem>
+          <NavigationMenuLink
+            className={cn(
+              navigationMenuTriggerStyle(),
+              isActive('/explore') && 'bg-accent text-accent-foreground'
+            )}
+            onClick={() => navigateTo('/explore')}
+          >
+            Explore
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+        <NavigationMenuItem>
+          <NavigationMenuLink
+            className={cn(
+              navigationMenuTriggerStyle(),
+              isActive('/starred') && 'bg-accent text-accent-foreground'
+            )}
+            onClick={() => navigateTo('/starred')}
+          >
+            Starred
+          </NavigationMenuLink>
+        </NavigationMenuItem>
+        {isAdmin && (
+          <NavigationMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "flex items-center gap-1 px-4 py-2 text-sm font-medium transition-colors rounded-md hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+                    isAnyInternalToolActive() && 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
+                  )}
+                >
+                  <Wand2 className="h-4 w-4 mr-1" />
+                  Internal Tools
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center">
+                <DropdownMenuLabel>Developer Tools</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className={cn(
+                    "cursor-pointer",
+                    isActive('/video-frame-extraction') && 'bg-accent text-accent-foreground'
+                  )}
+                  onClick={() => navigateTo('/video-frame-extraction')}
+                >
+                  🎬 Extract Frames
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className={cn(
+                    "cursor-pointer", 
+                    isActive('/product-extraction') && 'bg-accent text-accent-foreground'
+                  )}
+                  onClick={() => navigateTo('/product-extraction')}
+                >
+                  🔍 Search for Products
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className={cn(
+                    "cursor-pointer",
+                    isActive('/generate-inspiration') && 'bg-accent text-accent-foreground'
+                  )}
+                  onClick={() => navigateTo('/generate-inspiration')}
+                >
+                  ✨ Generate Inspiration
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </NavigationMenuItem>
+        )}
+      </NavigationMenuList>
+    </NavigationMenu>
+  );
+
+  const AuthButtons = () => (
+    <>
+      <ThemeToggle />
+      {user ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="cursor-pointer">
+            <Button variant={isAccountPage() ? 'default' : 'outline'}>Account</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => navigateTo('/account/edit-profile')}
+              className="cursor-pointer"
+            >
+              Edit profile
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => navigateTo('/account/change-password')}
+              className="cursor-pointer"
+            >
+              Change password
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={handleSignOut}
+              className="cursor-pointer text-red-500 hover:text-red-600 focus:text-red-600"
+            >
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : (
+        <>
+          <Button variant="ghost" onClick={handleSignIn}>
+            Sign in
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleAddInspiration} className="cursor-pointer">
-            Inspiration
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleAddProduct} className="cursor-pointer">
-            Product
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleAddProgram} className="cursor-pointer">
-            Program
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
-    [handleAddInspiration, handleAddProgram, handleAddProduct]
+          <Button variant="default" onClick={handleSignUp}>
+            Sign up
+          </Button>
+        </>
+      )}
+    </>
+  );
+
+  const AdminButtons = () => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild className="cursor-pointer">
+        <Button size="sm" variant="outline" className="cursor-pointer">
+          <Plus className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={handleAddInspiration} className="cursor-pointer">
+          Inspiration
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleAddProduct} className="cursor-pointer">
+          Product
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleAddProgram} className="cursor-pointer">
+          Program
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 
   return (
@@ -534,4 +481,4 @@ function Header() {
   );
 }
 
-export default memo(Header);
+export default Header;
