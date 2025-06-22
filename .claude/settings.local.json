@@ -59,7 +59,8 @@
       "Bash(VITE_CJS_IGNORE_WARNING=true react-router dev --host --port 3000)",
       "Bash(VITE_CJS_IGNORE_WARNING=true npx react-router routes --json)",
       "Bash(node:*)",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "Bash(terraform import:*)"
     ],
     "deny": []
   }

@@ -209,7 +209,7 @@ import_existing_resources() {
         
         # Import the existing repository
         local import_id="projects/$project_id/locations/$region/repositories/$repo_name"
-        if terraform import google_artifact_registry_repository.repo "$import_id"; then
+        if terraform import -var-file="${ENVIRONMENT}.tfvars" google_artifact_registry_repository.repo "$import_id"; then
           echo -e "${GREEN}✅ Successfully imported Artifact Registry repository${NC}"
         else
           echo -e "${RED}❌ Failed to import Artifact Registry repository${NC}"
