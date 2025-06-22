@@ -3,7 +3,7 @@
 # Development environment configuration
 service_name     = "buy-it-dev"
 docker_repo_name = "buy-it-dev-repo"
-container_image  = "us-central1-docker.pkg.dev/insbay-b32351/buy-it-dev-repo/buy-it:0.10.2"
+container_image  = "us-central1-docker.pkg.dev/insbay-b32351/buy-it-dev-repo/buy-it:0.10.3"
 environment      = "dev"
 domain_name      = "dev.buy-it.ai"
 

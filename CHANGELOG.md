@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.10.3
+
+### Patch Changes
+
+- next idea to fix app
+
 ## 0.10.2
 
 ### Patch Changes
