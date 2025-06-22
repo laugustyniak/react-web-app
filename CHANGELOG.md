@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.11.1
+
+### Patch Changes
+
+- fix api key for prod
+
 ## 0.11.0
 
 ### Minor Changes
