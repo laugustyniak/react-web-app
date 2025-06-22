@@ -146,7 +146,7 @@ export const getStarredInspirations = async (userId: string): Promise<Inspiratio
  * Fetches all products from Firestore
  */
 export const getAllProducts = async (
-  limitCount: number = 50,
+  limitCount: number = 100,
   lastDoc?: DocumentSnapshot | null
 ): Promise<{
   documents: Product[];
@@ -521,7 +521,7 @@ export const getFramesByVideoId = async (videoId: string): Promise<VideoFrame[]>
   try {
     const { documents } = await getCollection<VideoFrame>('frames', {
       queryConstraints: [
-        where('video_id', '==', videoId), 
+        where('video_id', '==', videoId),
         orderBy('updated_at', 'desc'),
         orderBy('created_at', 'desc')
       ],
@@ -542,7 +542,7 @@ export const getVideoById = async (videoId: string): Promise<VideoData | null> =
     const { documents } = await getCollection<VideoData>('videos', {
       queryConstraints: [where('video_id', '==', videoId)],
     });
-    
+
     return documents.length > 0 ? documents[0] : null;
   } catch (error) {
     console.error('Error fetching video by ID:', error);

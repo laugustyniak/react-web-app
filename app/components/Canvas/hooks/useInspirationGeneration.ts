@@ -7,7 +7,8 @@ import { htmlToPng } from '~/lib/svgUtils';
 export function useInspirationGeneration(
     canvasRef: React.RefObject<HTMLDivElement | null>,
     deselectAllImages: () => void,
-    hasImages: boolean
+    hasImages: boolean,
+    addSessionInspiration?: (imageData: string, prompt: string, negativePrompt: string, canvasSnapshot?: string) => string
 ) {
     const [isGenerating, setIsGenerating] = useState(false);
     const [showResultModal, setShowResultModal] = useState(false);
@@ -20,7 +21,7 @@ export function useInspirationGeneration(
     const [prompt, setPrompt] = useState<string>(defaultPrompt);
     const [negativePrompt, setNegativePrompt] = useState<string>(defaultNegativePrompt);
     
-    const generateInspiration = async () => {
+    const generateInspiration = async (canvasSnapshot?: any) => {
         if (!canvasRef.current || !hasImages) {
             toast.error('Please add at least one image to the canvas');
             return;
@@ -100,6 +101,16 @@ export function useInspirationGeneration(
             // The API returns a base64 encoded image
             setGeneratedImage(result.image);
             setShowResultModal(true);
+
+            // Add to session inspirations if function is provided
+            if (addSessionInspiration) {
+                addSessionInspiration(
+                    result.image,
+                    prompt,
+                    negativePrompt,
+                    canvasSnapshot?.imageData
+                );
+            }
 
             toast.success('Inspiration generated successfully', {
                 id: 'generate-inspiration',

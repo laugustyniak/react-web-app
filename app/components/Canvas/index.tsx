@@ -18,9 +18,11 @@ import CanvasArea from './components/CanvasArea';
 import CanvasSnapshots from './components/CanvasSnapshots';
 import CanvasToolbar from './components/CanvasToolbar';
 import PromptInputs from './components/PromptInputs';
+import SessionInspirations from './components/SessionInspirations';
 import { useCanvasExport } from './hooks/useCanvasExport';
 import { useCanvasImages } from './hooks/useCanvasImages';
 import { useCanvasSnapshots } from './hooks/useCanvasSnapshots';
+import { useSessionInspirations } from './hooks/useSessionInspirations';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { useImageManipulation } from './hooks/useImageManipulation';
 import { useInspirationGeneration } from './hooks/useInspirationGeneration';
@@ -86,6 +88,15 @@ export default function Canvas() {
     canvasRef
   });
 
+  // Session inspirations functionality
+  const {
+    sessionInspirations,
+    addSessionInspiration,
+    deleteSessionInspiration,
+    clearAllSessionInspirations,
+    downloadSessionInspiration
+  } = useSessionInspirations();
+
   // Add images to canvas from files
   const addImagesToCanvas = (files: File[]) => {
     processFilesToCanvasImages(files, images.length, addImage);
@@ -117,12 +128,12 @@ export default function Canvas() {
     showResultModal,
     setShowResultModal,
     generatedImage
-  } = useInspirationGeneration(canvasRef, deselectAllImages, images.length > 0);
+  } = useInspirationGeneration(canvasRef, deselectAllImages, images.length > 0, addSessionInspiration);
 
-  // Wrapper function for inspiration generation that creates a snapshot
+  // Wrapper function for inspiration generation that creates a snapshot and adds to session
   const handleGenerateInspiration = async () => {
-    await createInspirationSnapshot();
-    await generateInspiration();
+    const canvasSnapshot = await createInspirationSnapshot();
+    await generateInspiration(canvasSnapshot);
   };
 
   // Product search state
@@ -277,6 +288,14 @@ export default function Canvas() {
             onDeleteSnapshot={deleteSnapshot}
             onDownloadSnapshot={downloadSnapshot}
             onClearAllSnapshots={clearAllSnapshots}
+          />
+
+          {/* Session Inspirations */}
+          <SessionInspirations
+            inspirations={sessionInspirations}
+            onDeleteInspiration={deleteSessionInspiration}
+            onDownloadInspiration={downloadSessionInspiration}
+            onClearAllInspirations={clearAllSessionInspirations}
           />
         </div>
 
