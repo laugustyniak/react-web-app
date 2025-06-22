@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.11.0
+
+### Minor Changes
+
+- app againa working
+
 ## 0.10.3
 
 ### Patch Changes
