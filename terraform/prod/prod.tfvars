@@ -14,3 +14,5 @@ max_instances = 10
 # API configuration
 backend_api_url = "https://buy-it-api-prod-731225278324.us-central1.run.app"
 # api_key should be set via environment variable: TF_VAR_api_key
+
+enable_domain_mapping = false
