@@ -1,14 +1,14 @@
 # Production environment configuration
 service_name     = "buy-it-prod"
 docker_repo_name = "buy-it-prod-repo"
-container_image  = "us-central1-docker.pkg.dev/insbay-b32351/buy-it-prod-repo/buy-it:latest"
+container_image  = "us-central1-docker.pkg.dev/insbay-b32351/buy-it-prod-repo/buy-it:0.10.1"
 environment      = "prod"
 domain_name      = "prod.buy-it.ai"
 
 # Resource limits for production
 cpu_limit     = "1"
 memory_limit  = "512Mi"
-min_instances = 0
+min_instances = 1
 max_instances = 10
 
 # API configuration
