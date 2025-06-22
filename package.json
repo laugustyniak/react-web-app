@@ -1,7 +1,7 @@
 {
   "name": "react-web-app",
   "private": true,
-  "version": "0.10.1",
+  "version": "0.10.2",
   "type": "module",
   "scripts": {
     "build": "VITE_CJS_IGNORE_WARNING=true react-router build",
