@@ -1,5 +1,5 @@
 import type { Application, Request, Response } from 'express';
-import { requireAuth, requireAdmin, requireAuthAndAdmin } from '../middleware/index.js';
+import { requireAuth, requireAdmin, requireAuthAndAdmin } from '../middleware/index';
 
 export const setupAuthTestRoutes = (app: Application): void => {
   // Test route for authentication only

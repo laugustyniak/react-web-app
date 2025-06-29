@@ -37,6 +37,7 @@ export const CORS_CONFIG: CorsConfig = {
         'https://dev.product.app',
         'https://prod.product.app',
         'https://product.app',
+        'https://buy-it.ai',
         'https://app-dev-wxmkjx3j4a-uc.a.run.app',
         'https://app-prod-731225278324.us-central1.run.app'
       ]

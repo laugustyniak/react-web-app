@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import { getFirebaseAdmin } from '../config/firebase.js';
+import { getFirebaseAdmin } from '../config/firebase';
 
 interface UserData {
   uid: string;

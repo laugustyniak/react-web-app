@@ -1,2 +1,2 @@
-export { validateEnvironment } from './validation.js';
-export { createHttpsServer, setupHttpsRedirect, checkSslCerts } from './ssl.js';
+export { validateEnvironment } from './validation';
+export { createHttpsServer, setupHttpsRedirect, checkSslCerts } from './ssl';

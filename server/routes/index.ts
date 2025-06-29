@@ -1,9 +1,9 @@
 import type { Application } from 'express';
-import { healthCheck, apiHealthCheck } from './health.js';
-import { handleFindImage, handleGetProductDescription, handleInpaint } from './api.js';
-import { setupProtectedRoutes } from './protected-api.js';
-import { setupAuthTestRoutes } from './auth-test.js';
-import { requireAuthAndAdmin } from '../middleware/index.js';
+import { healthCheck, apiHealthCheck } from './health';
+import { handleFindImage, handleGetProductDescription, handleInpaint } from './api';
+import { setupProtectedRoutes } from './protected-api';
+import { setupAuthTestRoutes } from './auth-test';
+import { requireAuthAndAdmin } from '../middleware/index';
 
 export const setupRoutes = (app: Application): void => {
   // Health check endpoints

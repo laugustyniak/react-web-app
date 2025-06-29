@@ -1,6 +1,6 @@
 import type { Application } from 'express';
-import { requireAuthAndAdmin } from '../middleware/index.js';
-import { handleFindImage, handleGetProductDescription, handleInpaint } from './api.js';
+import { requireAuthAndAdmin } from '../middleware/index';
+import { handleFindImage, handleGetProductDescription, handleInpaint } from './api';
 
 export const setupProtectedRoutes = (app: Application): void => {
   // Protected API endpoints - require authentication and admin access

@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { API_CONFIG } from '../config/index.js';
+import { API_CONFIG } from '../config/index';
 
 export const healthCheck = (req: Request, res: Response): void => {
   res.json({

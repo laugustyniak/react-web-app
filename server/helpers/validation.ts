@@ -1,4 +1,4 @@
-import { isProduction } from '../config/index.js';
+import { isProduction } from '../config/index';
 
 export function validateEnvironment(): void {
   const requiredVars: Record<string, string | undefined> = {

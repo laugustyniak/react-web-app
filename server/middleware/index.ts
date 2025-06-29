@@ -1,6 +1,6 @@
 import { createRequire } from 'module';
 import express, { type Request, type Response, type NextFunction } from 'express';
-import { CORS_CONFIG, isProduction } from '../config/index.js';
+import { CORS_CONFIG, isProduction } from '../config/index';
 
 const require = createRequire(import.meta.url);
 const cors = require('cors/lib');
@@ -22,4 +22,4 @@ export const logRequest = (req: Request, res: Response, next: NextFunction): voi
 export const jsonParser = express.json({ limit: '10mb' });
 export const urlEncodedParser = express.urlencoded({ extended: true, limit: '10mb' });
 
-export { requireAuth, requireAdmin, requireAuthAndAdmin } from './auth.js';
+export { requireAuth, requireAdmin, requireAuthAndAdmin } from './auth';
