@@ -1,6 +1,6 @@
 terraform {
   backend "gcs" {
-    bucket = "buy-it-terraform-state"
+    bucket = "product-app-terraform-state"
     prefix = "prod"
   }
 }

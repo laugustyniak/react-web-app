@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the security measures implemented in the Buy It React web application and provides guidelines for maintaining security best practices.
+This document outlines the security measures implemented in the React web application and provides guidelines for maintaining security best practices.
 
 ## Security Features Implemented
 
@@ -27,7 +27,7 @@ script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com
 style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
 font-src 'self' https://fonts.gstatic.com;
 img-src 'self' data: blob: https: http:;
-connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://buy-it-api.augustyniak.ai wss: ws:;
+connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com https://analytics.google.com https://product-api.example.com wss: ws:;
 frame-src 'none';
 object-src 'none';
 base-uri 'self';
@@ -150,7 +150,7 @@ The security test suite covers:
 ```env
 NODE_ENV=production
 BACKEND_API_URL=https://your-api-domain.com
-BUY_IT_API_KEY_1=your-secure-api-key
+PRODUCT_API_KEY_1=your-secure-api-key
 ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 ```
 
@@ -159,7 +159,7 @@ ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 ```env
 NODE_ENV=development
 BACKEND_API_URL=http://localhost:3001
-BUY_IT_API_KEY_1=dev-api-key
+PRODUCT_API_KEY_1=dev-api-key
 ```
 
 ### Firebase Configuration

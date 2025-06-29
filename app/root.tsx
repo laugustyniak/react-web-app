@@ -116,9 +116,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </head>
       <body className={cn('min-h-screen bg-background antialiased', fontSans.variable)}>
         <ThemeProvider>
-          <AuthProvider>
-            <ClientEffects />
-            <div className="relative flex min-h-screen flex-col">
+          <ClientEffects />
+          <div className="relative flex min-h-screen flex-col">
+            <AuthProvider>
               <Suspense fallback={<div className="h-14 sm:h-16 border-b"></div>}>
                 <Header />
               </Suspense>
@@ -128,9 +128,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Suspense fallback={null}>
                 <Footer />
               </Suspense>
-            </div>
-            <Toaster richColors position="top-right" />
-          </AuthProvider>
+            </AuthProvider>
+          </div>
+          <Toaster richColors position="top-right" />
         </ThemeProvider>
         <ScrollRestoration />
         <Scripts />

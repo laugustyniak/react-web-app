@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { captureElementDirectly } from '~/lib/directCanvasCapture';
 import { htmlToPng } from '~/lib/svgUtils';
+import { apiClient } from '~/lib/apiClient';
 
 export function useInspirationGeneration(
     canvasRef: React.RefObject<HTMLDivElement | null>,
@@ -79,24 +80,12 @@ export function useInspirationGeneration(
             }
 
             // Send only the canvas image to the inpainting API
-            const response = await fetch('/api/inpaint', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    base64_image: base64Data,
-                    prompt,
-                    negative_prompt: negativePrompt,
-                    internal_model: false,
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error(`API returned ${response.status}: ${await response.text()}`);
-            }
-
-            const result = await response.json();
+            const result = await apiClient.post('/api/inpaint', {
+                base64_image: base64Data,
+                prompt,
+                negative_prompt: negativePrompt,
+                internal_model: false,
+            }, { requireAuth: true });
 
             // The API returns a base64 encoded image
             setGeneratedImage(result.image);

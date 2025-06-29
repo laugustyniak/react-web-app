@@ -9,14 +9,21 @@
 
 const SERVER_URL = 'http://localhost:8080';
 
-async function testSecurityHeaders() {
+interface SecurityTest {
+  name: string;
+  header: string;
+  expected: string | null;
+  description: string;
+}
+
+async function testSecurityHeaders(): Promise<boolean> {
   console.log('🔍 Testing security headers...\n');
 
   try {
     const response = await fetch(`${SERVER_URL}/health`);
     const headers = response.headers;
 
-    const securityTests = [
+    const securityTests: SecurityTest[] = [
       {
         name: 'X-Frame-Options',
         header: 'x-frame-options',
@@ -84,18 +91,18 @@ async function testSecurityHeaders() {
     
     return passedTests === totalTests + 1;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Failed to test security headers:', error.message);
     return false;
   }
 }
 
-async function testRateLimit() {
-  console.log('\n🚦 Testing rate limiting...\n');
+async function testRateLimit(): Promise<boolean> {
+  console.log('\n🙦 Testing rate limiting...\n');
 
   try {
     // Make multiple requests quickly to test rate limiting
-    const requests = [];
+    const requests: Promise<Response>[] = [];
     for (let i = 0; i < 5; i++) {
       requests.push(fetch(`${SERVER_URL}/api/healthcheck`));
     }
@@ -121,20 +128,26 @@ async function testRateLimit() {
 
     return rateLimitHeadersFound;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Failed to test rate limiting:', error.message);
     return false;
   }
 }
 
-async function testHealthEndpoint() {
+interface HealthData {
+  status?: string;
+  timestamp?: string;
+  uptime?: number;
+}
+
+async function testHealthEndpoint(): Promise<boolean> {
   console.log('\n🏥 Testing health endpoint...\n');
 
   try {
     const response = await fetch(`${SERVER_URL}/health`);
-    const data = await response.json();
+    const data: HealthData = await response.json();
 
-    const hasRequiredFields = data.status && data.timestamp && data.uptime !== undefined;
+    const hasRequiredFields = Boolean(data.status && data.timestamp && data.uptime !== undefined);
     
     console.log(`${hasRequiredFields ? '✅' : '❌'} Health endpoint structure`);
     console.log(`   Status: ${data.status}`);
@@ -143,17 +156,17 @@ async function testHealthEndpoint() {
 
     return hasRequiredFields && response.status === 200;
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Failed to test health endpoint:', error.message);
     return false;
   }
 }
 
-async function main() {
+async function main(): Promise<void> {
   console.log('🔐 Security Test Suite for Buy It React App\n');
   console.log('=' .repeat(50));
 
-  const results = [];
+  const results: boolean[] = [];
   
   results.push(await testSecurityHeaders());
   results.push(await testRateLimit());
@@ -175,6 +188,6 @@ async function main() {
 }
 
 // Only run if this script is executed directly
-if (process.argv[1].includes('security-test.js')) {
+if (process.argv[1].includes('security-test.ts')) {
   main().catch(console.error);
 }

@@ -2,18 +2,18 @@ import { useAnalytics } from '~/contexts/AnalyticsContext';
 import { trackEvent } from '../lib/analytics';
 import { Button } from './ui/button';
 
-interface BuyItButtonProps {
+interface ProductButtonProps {
   affiliateLink: string;
   productId: string;
   productTitle: string;
 }
 
-export default function BuyItButton({ affiliateLink, productTitle, productId }: BuyItButtonProps) {
+export default function ProductButton({ affiliateLink, productTitle, productId }: ProductButtonProps) {
   const analytics = useAnalytics();
 
   const handleClick = () => {
     if (analytics) {
-      trackEvent(analytics, 'buy_it', {
+      trackEvent(analytics, 'product_click', {
         product_id: productId,
         product_title: productTitle,
         affiliate_link: affiliateLink,

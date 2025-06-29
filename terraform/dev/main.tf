@@ -20,17 +20,17 @@ data "google_project" "project" {}
 resource "google_artifact_registry_repository" "repo" {
   location      = var.region
   repository_id = var.docker_repo_name
-  description   = "Docker repository for Buy-It React web app (${var.environment})"
+  description   = "Docker repository for Product React web app (${var.environment})"
   format        = "DOCKER"
 }
 
 # Cloud Run Service
-resource "google_cloud_run_v2_service" "buy_it" {
+resource "google_cloud_run_v2_service" "product" {
   name     = var.service_name
   location = var.region
 
   template {
-    service_account = "buy-it-cloud-run-sa@insbay-b32351.iam.gserviceaccount.com"
+    service_account = "product-cloud-run-sa@insbay-b32351.iam.gserviceaccount.com"
     
     containers {
       image = var.container_image
@@ -50,7 +50,7 @@ resource "google_cloud_run_v2_service" "buy_it" {
       }
 
       env {
-        name  = "BUY_IT_API_KEY_1"
+        name  = "PRODUCT_API_KEY_1"
         value = var.api_key
       }
 
@@ -78,8 +78,8 @@ resource "google_cloud_run_v2_service" "buy_it" {
 
 # IAM binding to allow unauthenticated access
 resource "google_cloud_run_service_iam_binding" "public_access" {
-  location = google_cloud_run_v2_service.buy_it.location
-  service  = google_cloud_run_v2_service.buy_it.name
+  location = google_cloud_run_v2_service.product.location
+  service  = google_cloud_run_v2_service.product.name
   role     = "roles/run.invoker"
   members  = ["allUsers"]
 }
@@ -94,6 +94,6 @@ resource "google_cloud_run_domain_mapping" "default" {
     namespace = var.project_id
   }
   spec {
-    route_name = google_cloud_run_v2_service.buy_it.name
+    route_name = google_cloud_run_v2_service.product.name
   }
 }

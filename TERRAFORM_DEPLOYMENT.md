@@ -14,7 +14,7 @@ This project uses Terraform for infrastructure as code to deploy the React web a
 ### 1. Set up API Key
 
 ```bash
-export TF_VAR_api_key="your-buyit-api-key-here"
+export TF_VAR_API_KEY="your-product-api-key-here"
 ```
 
 ### 2. Initialize Terraform
@@ -75,7 +75,7 @@ You can also use the deployment script directly:
 
 The deployment requires the following environment variable:
 
-- `TF_VAR_api_key` - Your Buy It API key for backend communication
+- `TF_VAR_API_KEY` - Your Buy It API key for backend communication
 
 ### Environment Files
 
@@ -107,7 +107,7 @@ Run the comprehensive test suite:
 
 ```bash
 # Set your API key first
-export TF_VAR_api_key="your-buyit-api-key-here"
+export TF_VAR_API_KEY="your-product-api-key-here"
 
 # Run all tests
 npm run test:terraform
@@ -146,7 +146,7 @@ npm run infra:plan:prod
 
 ```bash
 # Deploy to dev first
-export TF_VAR_api_key="your-api-key"
+export TF_VAR_API_KEY="your-api-key"
 npm run deploy:dev
 
 # Test the deployed service
@@ -231,7 +231,7 @@ For production use, consider setting up remote state storage:
 1. **API Key Not Set**
 
    ```bash
-   Error: TF_VAR_api_key environment variable is not set
+   Error: TF_VAR_API_KEY environment variable is not set
    ```
 
    Solution: Set the API key environment variable before deployment.
@@ -274,7 +274,7 @@ gcloud logs tail --follow --filter="resource.type=cloud_run_revision AND resourc
 
 The Terraform configuration has been updated to use a dedicated service account with minimal permissions instead of the default Compute Engine service account:
 
-- **Service Account**: `buy-it-cloud-run-sa@insbay-b32351.iam.gserviceaccount.com`
+- **Service Account**: `product-cloud-run-sa@insbay-b32351.iam.gserviceaccount.com`
 - **Permissions**: Only `roles/run.invoker` (minimal required)
 
 This significantly improves security by following the principle of least privilege.
@@ -285,7 +285,7 @@ If you've manually updated your Cloud Run service to use the new service account
 
 ```bash
 # Set your API key
-export TF_VAR_api_key="your-buyit-api-key-here"
+export TF_VAR_API_KEY="your-product-api-key-here"
 
 # For development
 npm run deploy:dev
@@ -308,6 +308,6 @@ The old bash deployment scripts (`deploy-dev.sh` and `deploy-prod.sh`) have been
 
 To use the new deployment system:
 
-1. Set up the API key environment variable: `export TF_VAR_api_key="your-api-key"`
+1. Set up the API key environment variable: `export TF_VAR_API_KEY="your-api-key"`
 2. Use the npm scripts for deployment: `npm run deploy:dev` or `npm run deploy`
 3. All infrastructure is now managed through Terraform

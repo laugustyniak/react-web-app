@@ -5,7 +5,7 @@ export const CONFIG = {
     // Always use the proxy route to hide API keys
     URL: '/api',
     // API key should never be exposed on the client
-    KEY: typeof window !== 'undefined' ? '' : (process.env.BUY_IT_API_KEY_1 || ''),
+    KEY: typeof window !== 'undefined' ? '' : (process.env.PRODUCT_API_KEY_1 || ''),
   },
 
   // Inspiration generation

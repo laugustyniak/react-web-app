@@ -1,4 +1,7 @@
 import type { VideoData, VideoFrame } from '~/types/models';
+import { getVideoById, getFramesByVideoId } from '~/lib/firestoreService';
+import { addDocument, updateDocument, deleteDocument } from '~/lib/firestore';
+import { serverTimestamp } from 'firebase/firestore';
 
 // Format time in mm:ss
 export const formatTime = (seconds: number) => {
@@ -27,7 +30,6 @@ export const loadVideo = async (url: string): Promise<VideoData> => {
   try {
     // First, try to load existing video data from Firestore
     console.log('Checking Firestore for existing video with ID:', videoId);
-    const { getVideoById } = await import('../lib/firestoreService');
     const existingVideo = await getVideoById(videoId);
     
     if (existingVideo) {
@@ -63,9 +65,6 @@ export const loadSavedFrames = async (videoId: string): Promise<VideoFrame[]> =>
   console.log(`Fetching frames for video_id=${videoId}`);
 
   try {
-    // Import dynamically to avoid circular dependency
-    const { getFramesByVideoId } = await import('../lib/firestoreService');
-
     // Get frames from Firestore
     const frames = await getFramesByVideoId(videoId);
 
@@ -128,10 +127,6 @@ export const extractFrames = async (
     // Simulate processing time
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Import Firestore functions dynamically to avoid circular dependency
-    const { addDocument } = await import('../lib/firestore');
-    const { serverTimestamp } = await import('firebase/firestore');
-
     // Generate frames based on the time range
     const [startTime, endTime] = timeRange;
     const framesCount = 8;
@@ -152,8 +147,8 @@ export const extractFrames = async (
         frame_path: `https://picsum.photos/800/450?random=${idx + 10}`, // This would be the real image URL in production
         storage_url: `https://picsum.photos/800/450?random=${idx + 10}`, // This would be the real storage URL in production
         scene_score: Math.random(), // In production, this would come from analysis
-        created_at: now,
-        updated_at: now
+        created_at: now as any,
+        updated_at: now as any
       };
 
       // Save the frame to Firestore
@@ -187,10 +182,6 @@ export const extractFrames = async (
 export const saveFrame = async (frame: VideoFrame): Promise<boolean> => {
   console.log('Saving frame to Firestore:', frame.frame_id);
   try {
-    // Import firestore functions dynamically to avoid circular dependency
-    const { addDocument, updateDocument } = await import('../lib/firestore');
-    const { serverTimestamp } = await import('firebase/firestore');
-
     // Check if this is a temporary ID that needs to create a new document
     const isTempId = !frame.frame_id || 
                      frame.frame_id.startsWith('frame_') || 
@@ -206,8 +197,8 @@ export const saveFrame = async (frame: VideoFrame): Promise<boolean> => {
       const { frame_id, ...frameWithoutId } = frame;
       const frameData = {
         ...frameWithoutId,
-        created_at: now,
-        updated_at: now
+        created_at: now as any,
+        updated_at: now as any
       };
       
       const newFrameId = await addDocument('frames', frameData);
@@ -238,9 +229,6 @@ export const saveFrame = async (frame: VideoFrame): Promise<boolean> => {
 export const deleteFrame = async (frameId: string): Promise<boolean> => {
   console.log(`Deleting frame from Firestore: ${frameId}`);
   try {
-    // Import firestore functions dynamically to avoid circular dependency
-    const { deleteDocument } = await import('../lib/firestore');
-
     // Check if this is a temporary ID that shouldn't be deleted from Firestore
     const isTempId = !frameId || 
                      frameId.startsWith('frame_') || 

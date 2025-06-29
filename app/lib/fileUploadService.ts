@@ -1,3 +1,5 @@
+import { apiClient } from './apiClient';
+
 export interface UploadFileResponse {
   success: boolean;
   message: string;
@@ -27,19 +29,16 @@ export async function uploadFile(
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch(
+  return apiClient.post(
     `https://us-central1-insbay-b32351.cloudfunctions.net/uploadFile?type=${type}`,
-    {
-      method: 'POST',
-      body: formData,
+    formData,
+    { 
+      requireAuth: false,
+      headers: {
+        // Remove Content-Type to let browser set it with boundary for FormData
+      }
     }
   );
-
-  if (!response.ok) {
-    throw new Error('Failed to upload file');
-  }
-
-  return response.json();
 }
 
 /**

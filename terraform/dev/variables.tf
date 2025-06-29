@@ -5,7 +5,7 @@ variable "project_id" {
 }
 
 variable "docker_repo_name" {
-  description = "Name of the Docker Artifact Registry repository (e.g., buy-it-dev-repo or buy-it-prod-repo)"
+  description = "Name of the Docker Artifact Registry repository (e.g., product-dev-repo or product-prod-repo)"
   type        = string
 }
 
@@ -34,7 +34,7 @@ variable "api_key" {
   description = "API key for backend service"
   type        = string
   sensitive   = true
-  default     = null # Will be loaded from TF_VAR_api_key environment variable
+  default     = null # Will be loaded from TF_VAR_API_KEY environment variable
 }
 
 variable "cpu_limit" {
@@ -67,7 +67,7 @@ variable "environment" {
 }
 
 variable "domain_name" {
-  description = "Domain name for the service (e.g., dev.buy-it.ai, prod.buy-it.ai)"
+  description = "Domain name for the service (e.g., dev.product.ai, prod.product.ai)"
   type        = string
 }
 

@@ -80,8 +80,8 @@ Three main contexts wrap the entire application:
 
 ### API Integration
 
-- Backend API at `BACKEND_API_URL` (default: <https://buyit-api.augustyniak.ai>)
-- API key authentication via `BUYIT_API_KEY_1`
+- Backend API at `BACKEND_API_URL` (default: <https://product-api.example.com>)
+- API key authentication via `PRODUCT_API_KEY_1`
 - Express server proxies requests to backend with proper headers
 
 ## Key Development Notes
@@ -118,6 +118,22 @@ The app supports both build-time and runtime configuration:
 - React Router type generation via `react-router typegen`
 - No lint scripts currently configured
 
+## Git Commit Guidelines
+
+**IMPORTANT**: When the user says "commit", this means:
+
+1. **Run build check** (`npm run build`) to ensure no build errors
+2. **Add all files** to the repository (`git add .`)
+3. **Commit all unsaved changes** in the repository (`git commit`)
+
+When creating commits, do NOT add any automatic information such as:
+
+- Co-authored-by tags
+- Generated with [tool name] messages
+- Any automated signatures or metadata
+
+Keep commit messages clean and focused only on describing all uncommitted changes made.
+
 ## Common Patterns
 
 ### Route Creation
@@ -126,7 +142,7 @@ The app supports both build-time and runtime configuration:
 import MyComponent from '~/components/MyComponent';
 
 export function meta() {
-  return [{ title: 'Page Title - Buy It' }, { name: 'description', content: 'Description' }];
+  return [{ title: 'Page Title - Product App' }, { name: 'description', content: 'Description' }];
 }
 
 export default function MyRoute() {

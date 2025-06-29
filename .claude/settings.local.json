@@ -60,7 +60,8 @@
       "Bash(VITE_CJS_IGNORE_WARNING=true npx react-router routes --json)",
       "Bash(node:*)",
       "Bash(npx vite build:*)",
-      "Bash(terraform import:*)"
+      "Bash(terraform import:*)",
+      "Bash(npx react-router:*)"
     ],
     "deny": []
   }

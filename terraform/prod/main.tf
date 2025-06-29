@@ -20,7 +20,7 @@ data "google_project" "project" {}
 resource "google_artifact_registry_repository" "repo" {
   location      = var.region
   repository_id = var.docker_repo_name
-  description   = "Docker repository for Buy-It React web app (${var.environment})"
+  description   = "Docker repository for Product React web app (${var.environment})"
   format        = "DOCKER"
 }
 
@@ -50,7 +50,7 @@ resource "google_cloud_run_v2_service" "buy_it" {
       }
 
       env {
-        name  = "BUY_IT_API_KEY_1"
+        name  = "PRODUCT_API_KEY_1"
         value = var.api_key
       }
 

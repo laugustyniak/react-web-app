@@ -38,6 +38,9 @@ function StarButton({ inspirationId, starredBy, starsCount, onStarUpdate }: Star
 
       try {
         setIsLoading(true);
+        if (!db) {
+          throw new Error('Database not initialized');
+        }
         const inspirationRef = doc(db, 'inspirations', inspirationId);
 
         if (isStarred) {

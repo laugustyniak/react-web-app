@@ -1,15 +1,15 @@
-// Affiliate link generator utility for Buy It
+// Affiliate link generator utility for Product
 // Similar to the provided Python logic
 
-const BUY_IT_AFFILIATE_UTM = "buy-it.ai";
+const PRODUCT_AFFILIATE_UTM = "product.app";
 
 /**
  * Generate a UTM affiliate link, ensuring the base link is valid and properly formatted.
  * @param {string} baseLink - The original product link.
- * @param {string} utmSource - The UTM source to append (default: BUY_IT_AFFILIATE_UTM).
+ * @param {string} utmSource - The UTM source to append (default: PRODUCT_AFFILIATE_UTM).
  * @returns {string|null} - The affiliate link with UTM parameter, or null if invalid.
  */
-export function generateAffiliateLink(baseLink: string, utmSource: string = BUY_IT_AFFILIATE_UTM): string | null {
+export function generateAffiliateLink(baseLink: string, utmSource: string = PRODUCT_AFFILIATE_UTM): string | null {
     try {
         console.log(`[generateAffiliateLink] Input baseLink: ${baseLink}, utmSource: ${utmSource}`);
         const url = new URL(baseLink);
@@ -30,4 +30,4 @@ export function generateAffiliateLink(baseLink: string, utmSource: string = BUY_
     }
 }
 
-export { BUY_IT_AFFILIATE_UTM };
+export { PRODUCT_AFFILIATE_UTM };

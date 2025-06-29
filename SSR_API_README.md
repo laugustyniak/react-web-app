@@ -20,7 +20,7 @@ The Express server includes middleware that:
    Edit `.env` with your actual values:
    ```
    BACKEND_API_URL=http://localhost:8000
-   BUY_IT_API_KEY_1=your_actual_api_key
+   PRODUCT_API_KEY_1=your_actual_api_key
    PORT=5000
    ```
 
@@ -60,7 +60,7 @@ All your existing API routes work automatically. The proxy will handle:
 
 ## Security Benefits
 
-1. **API Key Protection**: Your `BUY_IT_API_KEY_1` is never exposed to the client
+1. **API Key Protection**: Your `PRODUCT_API_KEY_1` is never exposed to the client
 2. **Server-Side Authentication**: All backend requests are authenticated server-side
 3. **CORS Handling**: Proxy handles cross-origin requests cleanly
 4. **Request Sanitization**: Sensitive headers are filtered out

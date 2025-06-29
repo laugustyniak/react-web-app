@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawn } from 'child_process';
+import { spawn, ChildProcess } from 'child_process';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -17,29 +17,31 @@ const colors = {
   blue: '\x1b[34m',
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
-};
+} as const;
 
-function log(message, color = 'reset') {
+type ColorName = keyof typeof colors;
+
+function log(message: string, color: ColorName = 'reset'): void {
   console.log(`${colors[color]}${message}${colors.reset}`);
 }
 
-function startProcess(command, args, name, color) {
+function startProcess(command: string, args: string[], name: string, color: ColorName): ChildProcess {
   const process = spawn(command, args, {
     cwd: projectRoot,
     stdio: 'pipe',
     shell: true,
   });
 
-  process.stdout.on('data', (data) => {
-    const lines = data.toString().split('\n').filter(line => line.trim());
-    lines.forEach(line => {
+  process.stdout?.on('data', (data) => {
+    const lines = data.toString().split('\n').filter((line: string) => line.trim());
+    lines.forEach((line: string) => {
       log(`[${name}] ${line}`, color);
     });
   });
 
-  process.stderr.on('data', (data) => {
-    const lines = data.toString().split('\n').filter(line => line.trim());
-    lines.forEach(line => {
+  process.stderr?.on('data', (data) => {
+    const lines = data.toString().split('\n').filter((line: string) => line.trim());
+    lines.forEach((line: string) => {
       log(`[${name}] ${line}`, 'red');
     });
   });
@@ -51,7 +53,7 @@ function startProcess(command, args, name, color) {
   return process;
 }
 
-async function main() {
+async function main(): Promise<void> {
   log('🚀 Starting development servers...', 'bright');
   log('📡 Express API server will start on http://localhost:8080', 'blue');
   log('⚡ Vite dev server will start on http://localhost:3000', 'green');
