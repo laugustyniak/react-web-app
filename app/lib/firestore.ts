@@ -36,6 +36,9 @@ const collectionRefCache = new Map<string, CollectionReference>();
 
 // Get a cached collection reference
 const getCollectionRef = (collectionName: string): CollectionReference => {
+  if (!db) {
+    throw new Error('Firestore is not initialized');
+  }
   if (!collectionRefCache.has(collectionName)) {
     collectionRefCache.set(collectionName, collection(db, collectionName));
   }
@@ -315,6 +318,9 @@ export const batchWrite = async (
   }>
 ): Promise<void> => {
   try {
+    if (!db) {
+      throw new Error('Firestore is not initialized');
+    }
     const batch = writeBatch(db);
 
     for (const op of operations) {

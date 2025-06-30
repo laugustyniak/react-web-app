@@ -1,7 +1,7 @@
 // Canvas/index.tsx
 import { AlertTriangle, Wand2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
-import { Navigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 import ProductSearchPanel from '~/components/ProductSearchPanel';
 import ProtectedRoute from '~/components/ProtectedRoute';
@@ -30,10 +30,17 @@ import { createCanvasImageFromProduct, processFilesToCanvasImages } from './util
 
 export default function Canvas() {
   const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
 
   // Check authentication/authorization FIRST, before any other hooks
+  useEffect(() => {
+    if (!user) {
+      navigate('/sign-in', { replace: true });
+    }
+  }, [user, navigate]);
+
   if (!user) {
-    return <Navigate to="/sign-in" />;
+    return null;
   }
 
   if (!isAdmin) {

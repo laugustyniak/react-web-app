@@ -11,12 +11,13 @@ import { useAuth } from '~/contexts/AuthContext';
 import { EditInspirationModal, DeleteConfirmationModal } from './modals';
 import { usePrograms } from '../hooks/usePrograms';
 import { programIdToTitle } from '~/lib/programUtils';
+import { Cache } from '~/lib/cache';
 
 interface InspirationCardProps {
   inspiration: Inspiration;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
-  onImageClick?: () => void; // Add this prop
+  onImageClick?: () => void;
 }
 
 function InspirationCard({ inspiration, onEdit, onDelete, onImageClick }: InspirationCardProps) {
@@ -77,6 +78,7 @@ function InspirationCard({ inspiration, onEdit, onDelete, onImageClick }: Inspir
   const handleEditSubmit = useCallback(
     async (id: string, data: Partial<Inspiration>) => {
       await updateInspiration(id, data);
+      Cache.clear('random_inspirations_12');
       onEdit?.(id);
     },
     [onEdit]
@@ -84,6 +86,7 @@ function InspirationCard({ inspiration, onEdit, onDelete, onImageClick }: Inspir
 
   const handleDeleteConfirm = useCallback(async () => {
     await deleteInspiration(inspiration.id);
+    Cache.clear('random_inspirations_12');
     onDelete?.(inspiration.id);
   }, [inspiration.id, onDelete]);
 

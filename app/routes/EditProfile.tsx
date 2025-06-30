@@ -1,6 +1,7 @@
 import EditProfile from '~/components/EditProfile';
 import { useAuth } from '~/contexts/AuthContext';
-import { Navigate } from 'react-router';
+import { useNavigate } from 'react-router';
+import { useEffect } from 'react';
 
 namespace Route {
   export type MetaArgs = Record<string, unknown>;
@@ -15,9 +16,16 @@ export function meta({}: Route.MetaArgs) {
 
 export default function EditProfileRoute() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/sign-in', { replace: true });
+    }
+  }, [user, navigate]);
 
   if (!user) {
-    return <Navigate to="/sign-in" />;
+    return null;
   }
 
   return <EditProfile />;

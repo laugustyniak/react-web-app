@@ -37,6 +37,9 @@ export default function EditProfile() {
           };
 
           // Get user document from Firestore
+          if (!db) {
+            throw new Error('Database not initialized');
+          }
           const userDocRef = doc(db, 'users', authUser.uid);
           const userDocSnap = await getDoc(userDocRef);
 
@@ -90,6 +93,9 @@ export default function EditProfile() {
       setLoading(true);
 
       // Update the user profile in Firestore
+      if (!db) {
+        throw new Error('Database not initialized');
+      }
       const userDocRef = doc(db, 'users', authUser.uid);
       const updatedUserData: Partial<User> = {
         displayName,

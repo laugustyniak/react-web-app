@@ -26,7 +26,8 @@ export default function SignIn() {
     try {
       setError('');
       setIsLoading(true);
-      await signIn(email, password, '/');
+      await signIn(email, password);
+      navigate('/');
     } catch (err) {
       console.error('Sign in error:', err);
       setError('Failed to sign in. Please check your credentials and try again.');
@@ -39,7 +40,8 @@ export default function SignIn() {
     try {
       setError('');
       setIsLoading(true);
-      await signInWithGoogle('/');
+      await signInWithGoogle();
+      navigate('/');
     } catch (err) {
       console.error('Google sign in error:', err);
       setError('Failed to sign in with Google. Please try again.');

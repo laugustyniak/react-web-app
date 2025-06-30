@@ -1,9 +1,11 @@
 import { ChevronDown, ChevronUp, Globe, Info, MapPin } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
+import { useAuth } from "~/contexts/AuthContext";
+import { updateDocument } from "~/lib/firestore";
 
 export interface SearchOptions {
   location: string; // City/country names for location parameter
@@ -26,6 +28,25 @@ const SearchOptionsPanel: React.FC<SearchOptionsPanelProps> = ({
   className = ""
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const { user } = useAuth();
+
+  // Save search options to Firestore whenever they change
+  useEffect(() => {
+    if (!user) return;
+
+    // Debounce the save operation
+    const timeoutId = setTimeout(() => {
+      updateDocument('users', user.uid, {
+        config: {
+          searchOptions: searchOptions
+        }
+      }).catch(error => {
+        console.error('Failed to save search options:', error);
+      });
+    }, 1000); // Save after 1 second of no changes
+
+    return () => clearTimeout(timeoutId);
+  }, [searchOptions, user]);
 
   const handleOptionChange = (key: keyof SearchOptions, value: string) => {
     onOptionsChange({

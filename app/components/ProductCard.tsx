@@ -1,6 +1,6 @@
 import { memo, useState, useCallback } from 'react';
 import { Card, CardContent, CardFooter } from './ui/card';
-import BuyItButton from './BuyItButton';
+import ProductButton from './ProductButton';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 import { Pencil, Trash2 } from 'lucide-react';
@@ -103,7 +103,7 @@ function ProductCard({
         </CardContent>
         <CardFooter className="p-3 pt-0 mt-auto flex justify-between">
           {affiliateLink && (
-            <BuyItButton affiliateLink={affiliateLink} productId={id} productTitle={title} />
+            <ProductButton affiliateLink={affiliateLink} productId={id} productTitle={title} />
           )}
           {isAdmin && (
             <div className="flex space-x-2 ml-2">

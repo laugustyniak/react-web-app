@@ -1,6 +1,6 @@
 import { AlertTriangle } from 'lucide-react';
-import { Navigate } from 'react-router';
-import { Suspense, lazy } from 'react';
+import { useNavigate } from 'react-router';
+import { Suspense, lazy, useEffect } from 'react';
 import { Button } from '~/components/ui/button';
 import { ContentCard, PageLayout } from '~/components/ui/layout';
 import { useAuth } from '~/contexts/AuthContext';
@@ -26,9 +26,16 @@ export function meta() {
 
 export default function GenerateInspirationRoute() {
   const { user, isAdmin } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/sign-in', { replace: true });
+    }
+  }, [user, navigate]);
 
   if (!user) {
-    return <Navigate to="/sign-in" />;
+    return null;
   }
 
   if (!isAdmin) {

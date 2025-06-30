@@ -62,7 +62,7 @@ while [[ $# -gt 0 ]]; do
       echo "  -h, --help      Show this help message"
       echo ""
       echo "Environment Variables:"
-      echo "  TF_VAR_api_key  Required API key for the application"
+      echo "  TF_VAR_API_KEY  Required API key for the application"
       echo ""
       echo "Examples:"
       echo "  $0                                    # Deploy to dev with all steps"
@@ -92,15 +92,15 @@ if [[ "$ENVIRONMENT" != "dev" && "$ENVIRONMENT" != "prod" ]]; then
 fi
 
 # Check if API key is set
-if [[ -z "$TF_VAR_api_key" ]]; then
-  echo -e "${RED}❌ TF_VAR_api_key environment variable is not set${NC}"
-  echo -e "${YELLOW}💡 Set it with: export TF_VAR_api_key='your-api-key-here'${NC}"
+if [[ -z "$TF_VAR_API_KEY" ]]; then
+  echo -e "${RED}❌ TF_VAR_API_KEY environment variable is not set${NC}"
+  echo -e "${YELLOW}💡 Set it with: export TF_VAR_API_KEY='your-api-key-here'${NC}"
   exit 1
 fi
 
 # Get version from package.json
 VERSION=$(jq -r .version package.json)
-IMAGE_NAME="us-central1-docker.pkg.dev/insbay-b32351/buy-it-$ENVIRONMENT-repo/buy-it"
+IMAGE_NAME="us-central1-docker.pkg.dev/insbay-b32351/app-$ENVIRONMENT-repo/app"
 
 echo -e "${BLUE}🚀 Deploying React Web App${NC}"
 echo -e "${YELLOW}📦 Version: $VERSION${NC}"

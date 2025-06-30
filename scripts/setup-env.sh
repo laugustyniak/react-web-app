@@ -15,22 +15,22 @@ echo -e "${BLUE}🔧 React Web App - Environment Setup${NC}"
 echo ""
 
 # Check if API key is set
-if [ -n "$TF_VAR_api_key" ]; then
+if [ -n "$TF_VAR_API_KEY" ]; then
     echo -e "${GREEN}✅ API key is already set${NC}"
-    echo -e "Key preview: ${TF_VAR_api_key:0:8}..."
+    echo -e "Key preview: ${TF_VAR_API_KEY:0:8}..."
 else
-    echo -e "${YELLOW}⚠️  TF_VAR_api_key is not set${NC}"
+    echo -e "${YELLOW}⚠️  TF_VAR_API_KEY is not set${NC}"
     echo ""
     echo "Please set your API key using one of these methods:"
     echo ""
     echo "1. Export it in your current shell:"
-    echo -e "   ${BLUE}export TF_VAR_api_key='your-api-key-here'${NC}"
+    echo -e "   ${BLUE}export TF_VAR_API_KEY='your-api-key-here'${NC}"
     echo ""
     echo "2. Add it to your shell profile (~/.bashrc or ~/.zshrc):"
-    echo -e "   ${BLUE}echo 'export TF_VAR_api_key=\"your-api-key-here\"' >> ~/.bashrc${NC}"
+    echo -e "   ${BLUE}echo 'export TF_VAR_API_KEY=\"your-api-key-here\"' >> ~/.bashrc${NC}"
     echo ""
     echo "3. Create a .env file (not recommended for production):"
-    echo -e "   ${BLUE}echo 'TF_VAR_api_key=your-api-key-here' >> .env${NC}"
+    echo -e "   ${BLUE}echo 'TF_VAR_API_KEY=your-api-key-here' >> .env${NC}"
     echo ""
 fi
 
@@ -87,7 +87,7 @@ fi
 echo ""
 echo -e "${GREEN}🚀 Environment check complete!${NC}"
 
-if [ -n "$TF_VAR_api_key" ] && [ -n "$PROJECT_ID" ]; then
+if [ -n "$TF_VAR_API_KEY" ] && [ -n "$PROJECT_ID" ]; then
     echo ""
     echo -e "${BLUE}Ready to deploy:${NC}"
     echo -e "  Development: ${BLUE}npm run deploy:dev${NC}"

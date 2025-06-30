@@ -1,15 +1,18 @@
-import { DocumentSnapshot } from 'firebase/firestore';
+import type { DocumentSnapshot } from 'firebase/firestore';
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router';
 import SearchOptionsPanel, { type SearchOptions } from '~/components/ProductExtraction/SearchOptionsPanel';
 import { Alert, AlertDescription } from "~/components/ui/alert";
 import { getAllVideos, getFramesByVideoId } from '~/lib/firestoreService';
+import { apiClient } from '~/lib/apiClient';
 import AnalyzeProductsButton from "../components/ProductExtraction/AnalyzeProductsButton";
 import ExtractedProductsList from "../components/ProductExtraction/ExtractedProductsList";
 import FrameGrid from "../components/ProductExtraction/FrameGrid";
 import VideoPlayer from "../components/ProductExtraction/VideoPlayer";
 import VideoSelector from "../components/ProductExtraction/VideoSelector";
 import type { MultipleProducts, VideoData, VideoFrame } from '../types/models';
+import { useAuth } from '~/contexts/AuthContext';
+import { getDocument } from '~/lib/firestore';
 
 const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
 
@@ -17,6 +20,7 @@ const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
 const ProductExtraction = () => {
   // URL parameters for direct video loading
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   
   // State for raw find_images results (must be declared before any usage)
   const [rawFindImagesResults, setRawFindImagesResults] = useState<any[]>([]);
@@ -65,18 +69,14 @@ const ProductExtraction = () => {
     setSearchErrorByIdx(prev => ({ ...prev, [idx]: null }));
     setSearchResultsByIdx(prev => ({ ...prev, [idx]: null }));
     try {
-      const response = await fetch(`/api/find_image`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query + ' ' + searchOptions.marketplace + ' ' + searchOptions.context, hl: searchOptions.hl, gl: searchOptions.gl, location: searchOptions.location })
-      });
-      if (!response.ok) {
-        const errText = await response.text();
-        setSearchErrorByIdx(prev => ({ ...prev, [idx]: `API error: ${errText}` }));
-      } else {
-        const data = await response.json();
-        setSearchResultsByIdx(prev => ({ ...prev, [idx]: data }));
-      }
+      const data = await apiClient.post('/api/find_image', {
+        query: query + ' ' + searchOptions.marketplace + ' ' + searchOptions.context,
+        hl: searchOptions.hl,
+        gl: searchOptions.gl,
+        location: searchOptions.location
+      }, { requireAuth: true });
+      
+      setSearchResultsByIdx(prev => ({ ...prev, [idx]: data }));
     } catch (err) {
       setSearchErrorByIdx(prev => ({ ...prev, [idx]: err instanceof Error ? err.message : 'Failed to search products' }));
     } finally {
@@ -113,21 +113,10 @@ const ProductExtraction = () => {
       });
 
       // Call get_product_description API
-      const descResponse = await fetch('/api/get_product_description', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          base64_image: base64, 
-          language: searchOptions.language.toLowerCase() || 'english' 
-        })
-      });
-
-      if (!descResponse.ok) {
-        const errText = await descResponse.text();
-        throw new Error(`Product description API error: ${errText}`);
-      }
-
-      const descData = await descResponse.json();
+      const descData = await apiClient.post('/api/get_product_description', {
+        base64_image: base64,
+        language: searchOptions.language.toLowerCase() || 'english'
+      }, { requireAuth: true });
       console.log(`Frame ${frameIndex + 1} detected products:`, descData);
       
       // Extract products from API response
@@ -175,6 +164,19 @@ const ProductExtraction = () => {
   useEffect(() => {
     loadVideosFromFirebase();
     
+    // Load saved search options from user config
+    if (user) {
+      getDocument('users', user.uid)
+        .then(userDoc => {
+          if (userDoc?.config?.searchOptions) {
+            setSearchOptions(userDoc.config.searchOptions);
+          }
+        })
+        .catch(error => {
+          console.error('Failed to load saved search options:', error);
+        });
+    }
+    
     // Check for URL parameters for direct video loading
     const urlVideoId = searchParams.get('video_id');
     const urlVideoUrl = searchParams.get('video_url');
@@ -186,7 +188,7 @@ const ProductExtraction = () => {
     } else if (videoUrl === '') {
       setVideoUrl('https://www.youtube.com/watch?v=8X_m6E3XEaw');
     }
-  }, []);
+  }, [user]);
 
   // Handle URL parameter video loading after videos are loaded
   useEffect(() => {
@@ -341,23 +343,17 @@ const ProductExtraction = () => {
         reader.onerror = reject;
         reader.readAsDataURL(imageBlob);
       });
-      const descResponse = await fetch(`/api/get_product_description`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ base64_image: base64, language: 'english' })
-      });
-      if (!descResponse.ok) {
-        const errText = await descResponse.text();
-        setExtractedProductsError(`API error: ${errText}`);
+      const descData = await apiClient.post('/api/get_product_description', {
+        base64_image: base64,
+        language: 'english'
+      }, { requireAuth: true });
+      
+      if (descData && Array.isArray(descData.products)) {
+        setExtractedProducts({ products: descData.products });
+      } else if (descData && descData.result && Array.isArray(descData.result.products)) {
+        setExtractedProducts({ products: descData.result.products });
       } else {
-        const descData = await descResponse.json();
-        if (descData && Array.isArray(descData.products)) {
-          setExtractedProducts({ products: descData.products });
-        } else if (descData && descData.result && Array.isArray(descData.result.products)) {
-          setExtractedProducts({ products: descData.result.products });
-        } else {
-          setExtractedProductsError('Unexpected API response format');
-        }
+        setExtractedProductsError('Unexpected API response format');
       }
     } catch (err) {
       setExtractedProductsError(err instanceof Error ? err.message : 'Failed to get product description');
@@ -386,25 +382,14 @@ const ProductExtraction = () => {
         
         console.log(`Searching for similar products for "${product.product_name}"`);
         
-        const searchResponse = await fetch('/api/find_image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            query: searchQuery,
-            location: searchOptions.location,
-            gl: searchOptions.gl,
-            hl: searchOptions.hl,
-            marketplace: searchOptions.marketplace,
-            context: searchOptions.context
-          })
-        });
-
-        if (!searchResponse.ok) {
-          const errText = await searchResponse.text();
-          throw new Error(`Search API error: ${errText}`);
-        }
-
-        const searchData = await searchResponse.json();
+        const searchData = await apiClient.post('/api/find_image', {
+          query: searchQuery,
+          location: searchOptions.location,
+          gl: searchOptions.gl,
+          hl: searchOptions.hl,
+          marketplace: searchOptions.marketplace,
+          context: searchOptions.context
+        }, { requireAuth: true });
         console.log(`Found ${searchData.serpapi_response?.images_results?.length || 0} similar products`);
         
         // Store search results for per-product search
@@ -444,29 +429,19 @@ const ProductExtraction = () => {
       setSearchResults(null);
       
       try {
-        const response = await fetch(`/api/find_image`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            query: query + ' ' + searchOptions.marketplace + ' ' + searchOptions.context, 
-            hl: searchOptions.hl, 
-            gl: searchOptions.gl, 
-            location: searchOptions.location 
-          })
-        });
+        const data = await apiClient.post('/api/find_image', {
+          query: query + ' ' + searchOptions.marketplace + ' ' + searchOptions.context,
+          hl: searchOptions.hl,
+          gl: searchOptions.gl,
+          location: searchOptions.location
+        }, { requireAuth: true });
         
-        if (!response.ok) {
-          const errText = await response.text();
-          setSearchError(`API error: ${errText}`);
+        if (data && Array.isArray(data.products)) {
+          setSearchResults({ products: data.products });
+        } else if (data && data.result && Array.isArray(data.result.products)) {
+          setSearchResults({ products: data.result.products });
         } else {
-          const data = await response.json();
-          if (data && Array.isArray(data.products)) {
-            setSearchResults({ products: data.products });
-          } else if (data && data.result && Array.isArray(data.result.products)) {
-            setSearchResults({ products: data.result.products });
-          } else {
-            setSearchError('Unexpected API response format');
-          }
+          setSearchError('Unexpected API response format');
         }
       } catch (err) {
         setSearchError(err instanceof Error ? err.message : 'Failed to search products');

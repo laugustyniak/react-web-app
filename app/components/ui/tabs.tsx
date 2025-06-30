@@ -1,15 +1,18 @@
 import type { ComponentProps } from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
+import { DirectionProvider } from '@radix-ui/react-direction';
 
 import { cn } from '~/lib/utils';
 
 function Tabs({ className, ...props }: ComponentProps<typeof TabsPrimitive.Root>) {
   return (
-    <TabsPrimitive.Root
-      data-slot="tabs"
-      className={cn('flex flex-col gap-2', className)}
-      {...props}
-    />
+    <DirectionProvider dir="ltr">
+      <TabsPrimitive.Root
+        data-slot="tabs"
+        className={cn('flex flex-col gap-2', className)}
+        {...props}
+      />
+    </DirectionProvider>
   );
 }
 

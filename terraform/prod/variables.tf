@@ -28,7 +28,7 @@ variable "api_key" {
   description = "API key for backend service"
   type        = string
   sensitive   = true
-  default     = null # Will be loaded from TF_VAR_api_key environment variable
+  default     = null # Will be loaded from TF_VAR_API_KEY environment variable
 }
 
 variable "cpu_limit" {
@@ -61,7 +61,7 @@ variable "environment" {
 }
 
 variable "domain_name" {
-  description = "Domain name for the service (e.g., dev.buy-it.ai, prod.buy-it.ai)"
+  description = "Domain name for the service (e.g., dev.product.app, prod.product.app)"
   type        = string
 }
 

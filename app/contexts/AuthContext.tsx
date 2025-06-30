@@ -13,7 +13,6 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import { analytics, auth, googleProvider, db } from '../lib/firebase';
-import { useNavigate } from 'react-router';
 import { logEvent } from 'firebase/analytics';
 import { doc, getDoc } from 'firebase/firestore';
 
@@ -22,10 +21,10 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   isFirebaseConfigured: boolean;
-  signIn: (email: string, password: string, path?: string) => Promise<void>;
-  signUp: (email: string, password: string, path?: string) => Promise<void>;
-  signInWithGoogle: (path?: string) => Promise<void>;
-  signOut: (path?: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<User>;
+  signUp: (email: string, password: string) => Promise<User>;
+  signInWithGoogle: () => Promise<User>;
+  signOut: () => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
   isEmailVerified: boolean;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
@@ -49,7 +48,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [isFirebaseConfigured, setIsFirebaseConfigured] = useState<boolean>(!!auth);
 
-  const navigate = useNavigate();
 
   useEffect(() => {
     // Early return if Firebase auth is not configured
@@ -87,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return unsubscribe;
   }, []);
 
-  const signIn = async (email: string, password: string, path: string = '/') => {
+  const signIn = async (email: string, password: string) => {
     if (!auth) {
       throw new Error('Firebase authentication is not properly configured');
     }
@@ -104,10 +102,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     });
-    navigate(path);
+    return userCredential.user;
   };
 
-  const signUp = async (email: string, password: string, path: string = '/') => {
+  const signUp = async (email: string, password: string) => {
     if (!auth) {
       throw new Error('Firebase authentication is not properly configured');
     }
@@ -123,15 +121,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     });
-    navigate(path);
+    return userCredential.user;
   };
 
-  const signInWithGoogle = async (path: string = '/') => {
+  const signInWithGoogle = async () => {
     if (!auth) {
       throw new Error('Firebase authentication is not properly configured');
     }
 
-    await signInWithPopup(auth, googleProvider);
+    const userCredential = await signInWithPopup(auth, googleProvider);
     analytics.then(analyticsInstance => {
       if (analyticsInstance) {
         logEvent(analyticsInstance, 'sign_in', {
@@ -139,10 +137,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     });
-    navigate(path);
+    return userCredential.user;
   };
 
-  const localSignOut = async (path: string = '/') => {
+  const localSignOut = async () => {
     if (!auth) {
       throw new Error('Firebase authentication is not properly configured');
     }
@@ -153,7 +151,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         logEvent(analyticsInstance, 'sign_out');
       }
     });
-    navigate(path);
   };
 
   const sendVerificationEmail = async () => {

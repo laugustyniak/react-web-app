@@ -37,7 +37,8 @@ export default function SignUp() {
     try {
       setError('');
       setIsLoading(true);
-      await signUp(email, password, '/');
+      await signUp(email, password);
+      navigate('/');
     } catch (err) {
       console.error('Sign up error:', err);
       setError('Failed to create an account. This email may already be in use.');
@@ -50,7 +51,8 @@ export default function SignUp() {
     try {
       setError('');
       setIsLoading(true);
-      await signInWithGoogle('/');
+      await signInWithGoogle();
+      navigate('/');
     } catch (err) {
       console.error('Google sign up error:', err);
       setError('Failed to sign up with Google. Please try again.');

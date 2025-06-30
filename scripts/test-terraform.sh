@@ -22,9 +22,9 @@ print_error() {
 }
 
 # Check if API key is set
-if [ -z "$TF_VAR_api_key" ]; then
-    print_error "TF_VAR_api_key environment variable is not set"
-    echo "Please set it with: export TF_VAR_api_key=\"your-api-key\""
+if [ -z "$TF_VAR_API_KEY" ]; then
+    print_error "TF_VAR_API_KEY environment variable is not set"
+    echo "Please set it with: export TF_VAR_API_KEY=\"your-api-key\""
     exit 1
 fi
 

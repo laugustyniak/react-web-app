@@ -1,13 +1,13 @@
 [
   {
     "origin": [
-      "https://dev.buy-it.ai",
-      "https://buy-it-dev-wxmkjx3j4a-uc.a.run.app",
-      "https://buy-it-prod-731225278324.us-central1.run.app",
-      "https://buy-it.ai",
-      "https://www.buy-it.ai",
-      "https://app.buy-it.ai",
-      "https://prod.buy-it.ai",
+      "https://dev.product.app",
+      "https://app-dev-wxmkjx3j4a-uc.a.run.app",
+      "https://app-prod-731225278324.us-central1.run.app",
+      "https://product.app",
+      "https://www.product.app",
+      "https://app.product.app",
+      "https://prod.product.app",
       "http://localhost:5173",
       "http://localhost:8080",
       "http://localhost:3000"
