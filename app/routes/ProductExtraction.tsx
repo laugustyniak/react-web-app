@@ -11,6 +11,8 @@ import FrameGrid from "../components/ProductExtraction/FrameGrid";
 import VideoPlayer from "../components/ProductExtraction/VideoPlayer";
 import VideoSelector from "../components/ProductExtraction/VideoSelector";
 import type { MultipleProducts, VideoData, VideoFrame } from '../types/models';
+import { useAuth } from '~/contexts/AuthContext';
+import { getDocument } from '~/lib/firestore';
 
 const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
 
@@ -18,6 +20,7 @@ const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
 const ProductExtraction = () => {
   // URL parameters for direct video loading
   const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   
   // State for raw find_images results (must be declared before any usage)
   const [rawFindImagesResults, setRawFindImagesResults] = useState<any[]>([]);
@@ -161,6 +164,19 @@ const ProductExtraction = () => {
   useEffect(() => {
     loadVideosFromFirebase();
     
+    // Load saved search options from user config
+    if (user) {
+      getDocument('users', user.uid)
+        .then(userDoc => {
+          if (userDoc?.config?.searchOptions) {
+            setSearchOptions(userDoc.config.searchOptions);
+          }
+        })
+        .catch(error => {
+          console.error('Failed to load saved search options:', error);
+        });
+    }
+    
     // Check for URL parameters for direct video loading
     const urlVideoId = searchParams.get('video_id');
     const urlVideoUrl = searchParams.get('video_url');
@@ -172,7 +188,7 @@ const ProductExtraction = () => {
     } else if (videoUrl === '') {
       setVideoUrl('https://www.youtube.com/watch?v=8X_m6E3XEaw');
     }
-  }, []);
+  }, [user]);
 
   // Handle URL parameter video loading after videos are loaded
   useEffect(() => {

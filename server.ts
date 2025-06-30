@@ -63,6 +63,9 @@ async function createServer(): Promise<void> {
       process.exit(1);
     }
   } else {
+    // Development mode - serve static files from public directory
+    app.use(express.static(path.resolve(__dirname, 'public')));
+    
     console.log('🔧 Development mode: API proxy enabled at /api/*');
     console.log('📡 Backend URL:', API_CONFIG.BACKEND_URL);
     console.log('🔑 API Key configured:', !!API_CONFIG.API_KEY);
