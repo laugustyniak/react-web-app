@@ -1,5 +1,6 @@
 import type { VideoData, VideoFrame } from '../types/models';
 import type { Comment, Inspiration, Product, Program } from './dataTypes';
+import { Cache, CACHE_DURATIONS } from './cache';
 
 import { limit, orderBy, where } from 'firebase/firestore';
 import type { DocumentSnapshot } from 'firebase/firestore';
@@ -511,6 +512,66 @@ export const getRandomInspirations = async (limitCount: number = 12): Promise<In
     return Array.from(indices).map(i => collectionRef.documents[i]);
   } catch (error) {
     console.error('Error fetching random inspirations:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches random inspirations with 12-hour caching
+ */
+export const getCachedRandomInspirations = async (limitCount: number = 12): Promise<Inspiration[]> => {
+  const cacheKey = `random_inspirations_${limitCount}`;
+  
+  // Try to get from cache first
+  const cached = Cache.get<Inspiration[]>(cacheKey);
+  if (cached) {
+    return cached;
+  }
+  
+  // If not in cache or expired, fetch fresh data with deterministic randomness
+  try {
+    // Get all inspirations first
+    const collectionRef = await getCollection<Inspiration>('inspirations', {
+      queryConstraints: [limit(200)], // Set a reasonable max limit
+    });
+
+    const total = collectionRef.documents.length;
+
+    // If we have fewer docs than requested, return them all
+    if (total <= limitCount) {
+      Cache.set(cacheKey, collectionRef.documents, CACHE_DURATIONS.TWELVE_HOURS);
+      return collectionRef.documents;
+    }
+
+    // Create a deterministic seed based on current 12-hour period
+    const now = new Date();
+    const seed = Math.floor(now.getTime() / CACHE_DURATIONS.TWELVE_HOURS);
+    
+    // Simple seeded random function
+    const seededRandom = (seed: number) => {
+      const x = Math.sin(seed) * 10000;
+      return x - Math.floor(x);
+    };
+
+    // Choose deterministic "random" indices
+    const indices = new Set<number>();
+    let currentSeed = seed;
+    
+    while (indices.size < limitCount) {
+      const randomValue = seededRandom(currentSeed);
+      const index = Math.floor(randomValue * total);
+      indices.add(index);
+      currentSeed++; // Increment seed for next iteration
+    }
+
+    // Get the selected documents
+    const selectedInspirations = Array.from(indices).map(i => collectionRef.documents[i]);
+    
+    // Cache for 12 hours
+    Cache.set(cacheKey, selectedInspirations, CACHE_DURATIONS.TWELVE_HOURS);
+    return selectedInspirations;
+  } catch (error) {
+    console.error('Error fetching cached random inspirations:', error);
     throw error;
   }
 };

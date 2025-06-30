@@ -12,6 +12,7 @@ import { Loader2 } from 'lucide-react';
 import { MultiCombobox, SingleCombobox } from '~/components/ui/combobox';
 import { useProducts } from '~/hooks/useProducts';
 import { usePrograms } from '~/hooks/usePrograms';
+import { Cache } from '~/lib/cache';
 
 interface CreateInspirationModalProps {
   open: boolean;
@@ -89,6 +90,8 @@ export function CreateInspirationModal({
         commentCount: 0,
         date: new Date().toISOString(),
       });
+      // Clear the random inspirations cache so new content is visible
+      Cache.clear('random_inspirations_12');
       toast.success('Inspiration created successfully');
       onSuccess?.();
       onOpenChange(false);

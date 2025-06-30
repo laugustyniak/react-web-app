@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import InspirationCard from './InspirationCard';
-import { getRandomInspirations } from '~/lib/firestoreService';
+import { getCachedRandomInspirations } from '~/lib/firestoreService';
 import type { Inspiration } from '~/lib/dataTypes';
 import { PageLayout } from './ui/layout';
 
@@ -8,11 +8,17 @@ export default function Home() {
   const [inspirations, setInspirations] = useState<Inspiration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Set mounted state after hydration
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const fetchInspirations = async () => {
     try {
       setLoading(true);
-      const data = await getRandomInspirations(12);
+      const data = await getCachedRandomInspirations(12);
       setInspirations(data);
     } catch (err) {
       console.error('Failed to fetch inspirations:', err);
@@ -23,24 +29,27 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchInspirations();
+    if (isMounted) {
+      fetchInspirations();
 
-    // Add event listener for refresh events
-    const handleInspirationRefresh = () => fetchInspirations();
-    window.addEventListener('refreshInspirations', handleInspirationRefresh);
+      // Add event listener for refresh events
+      const handleInspirationRefresh = () => fetchInspirations();
+      window.addEventListener('refreshInspirations', handleInspirationRefresh);
 
-    // Cleanup event listener
-    return () => {
-      window.removeEventListener('refreshInspirations', handleInspirationRefresh);
-    };
+      // Cleanup event listener
+      return () => {
+        window.removeEventListener('refreshInspirations', handleInspirationRefresh);
+      };
+    }
+  }, [isMounted]);
+
+  const handleEdit = useCallback((id: string) => {
+    // Cache is already cleared in InspirationCard
   }, []);
 
-  const handleEdit = useCallback(() => {
-    fetchInspirations();
-  }, []);
-
-  const handleDelete = useCallback(() => {
-    fetchInspirations();
+  const handleDelete = useCallback((id: string) => {
+    // Remove the deleted inspiration from current state and clear cache
+    setInspirations(prev => prev.filter(inspiration => inspiration.id !== id));
   }, []);
 
   return (
