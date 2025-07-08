@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.12.0
+
+### Minor Changes
+
+- logo
+
 ## 0.11.1
 
 ### Patch Changes
