@@ -9,11 +9,13 @@ import {
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { AnalyticsProvider } from './contexts/AnalyticsContext';
+import { DomainConfigProvider } from './contexts/DomainConfigContext';
 import React, { lazy, Suspense, useEffect } from 'react';
 import { cn } from './lib/utils';
 import { Toaster } from 'sonner';
 import { initializeGoogleAds } from './lib/firebase';
 import { measureWebVitals } from './lib/performance';
+import { DomainTitleUpdater } from './components/DomainTitleUpdater';
 
 import './app.css';
 
@@ -111,27 +113,31 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="apple-mobile-web-app-title" content="Buy It" />
+        <title>Buy It</title>
         <Meta />
         <Links />
       </head>
       <body className={cn('min-h-screen bg-background antialiased', fontSans.variable)}>
-        <ThemeProvider>
-          <AuthProvider>
-            <ClientEffects />
-            <div className="relative flex min-h-screen flex-col">
-              <Suspense fallback={<div className="h-14 sm:h-16 border-b"></div>}>
-                <Header />
-              </Suspense>
-              <div className="flex-1">
-                <AnalyticsProvider>{children}</AnalyticsProvider>
+        <DomainConfigProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <ClientEffects />
+              <DomainTitleUpdater />
+              <div className="relative flex min-h-screen flex-col">
+                <Suspense fallback={<div className="h-14 sm:h-16 border-b"></div>}>
+                  <Header />
+                </Suspense>
+                <div className="flex-1">
+                  <AnalyticsProvider>{children}</AnalyticsProvider>
+                </div>
+                <Suspense fallback={null}>
+                  <Footer />
+                </Suspense>
               </div>
-              <Suspense fallback={null}>
-                <Footer />
-              </Suspense>
-            </div>
-            <Toaster richColors position="top-right" />
-          </AuthProvider>
-        </ThemeProvider>
+              <Toaster richColors position="top-right" />
+            </AuthProvider>
+          </ThemeProvider>
+        </DomainConfigProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

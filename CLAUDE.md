@@ -26,6 +26,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run deploy` - Deploy directly to Google Cloud Run
 - `npm run deploy:local_build_docker` - Build Docker image and deploy to Google Cloud Run
 
+## Git Commit Guidelines
+
+**IMPORTANT**: When the user says "commit", this means:
+
+1. **Check what has changed** using git commands:
+   - `git status` - to see which files are modified, added, or deleted
+   - `git diff` - to review exact changes in modified files
+   - `git diff --cached` - to review staged changes (if any files are already staged)
+   - `git diff --name-only` - to get a quick list of changed files
+2. **Run build check** (`npm run build`) to ensure no build errors
+3. **Add all files** to the repository (`git add .`)
+4. **Commit all unsaved changes** in the repository (`git commit`)
+
+**ALWAYS review the changes before committing** to ensure you understand what is being committed and can write an accurate commit message describing all modifications.
+
+When creating commits, do NOT add any automatic information such as:
+- Co-authored-by tags
+- Generated with [tool name] messages
+- Any automated signatures or metadata
+
+Keep commit messages clean and focused only on describing all uncommitted changes made.
+
 ## Architecture Overview
 
 ### Dual Server Architecture
@@ -98,6 +120,12 @@ The app supports both build-time and runtime configuration:
 
 - Build-time: `VITE_*` variables in `.env`
 - Runtime: `window.RUNTIME_CONFIG` object for Docker deployments
+
+### Package Management
+- **Before installing new packages**: ALWAYS check `package.json` first to see if similar packages are already installed
+- **Use existing packages**: Prefer using packages already in the project over adding new ones
+- **Check for duplicates**: Avoid installing packages that provide similar functionality to existing ones
+- **Review dependencies**: Understand what packages are already available before adding new ones
 
 ### Styling
 

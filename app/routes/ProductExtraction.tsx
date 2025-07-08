@@ -1,8 +1,6 @@
-import { DocumentSnapshot } from 'firebase/firestore';
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router';
 import SearchOptionsPanel, { type SearchOptions } from '~/components/ProductExtraction/SearchOptionsPanel';
-import { Alert, AlertDescription } from "~/components/ui/alert";
 import { getAllVideos, getFramesByVideoId } from '~/lib/firestoreService';
 import AnalyzeProductsButton from "../components/ProductExtraction/AnalyzeProductsButton";
 import ExtractedProductsList from "../components/ProductExtraction/ExtractedProductsList";
@@ -10,6 +8,7 @@ import FrameGrid from "../components/ProductExtraction/FrameGrid";
 import VideoPlayer from "../components/ProductExtraction/VideoPlayer";
 import VideoSelector from "../components/ProductExtraction/VideoSelector";
 import type { MultipleProducts, VideoData, VideoFrame } from '../types/models';
+import type { DocumentSnapshot } from 'firebase/firestore';
 
 const DEFAULT_VIDEO_ID = '8X_m6E3XEaw';
 

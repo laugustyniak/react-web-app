@@ -1,7 +1,7 @@
 import type { VideoData, VideoFrame } from '../types/models';
 import type { Comment, Inspiration, Product, Program } from './dataTypes';
 
-import { DocumentSnapshot, limit, orderBy, where } from 'firebase/firestore';
+import { limit, orderBy, where, type DocumentSnapshot } from 'firebase/firestore';
 import {
   addDocument,
   deleteDocument,

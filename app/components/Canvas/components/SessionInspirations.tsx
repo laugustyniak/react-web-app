@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { ContentCard } from '~/components/ui/layout';
 import { Button } from '~/components/ui/button';
-import { Download, Trash2, Eye, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Download, Trash2, Eye, ChevronDown, ChevronUp} from 'lucide-react';
 import { cn } from '~/lib/utils';
 
 export interface SessionInspiration {

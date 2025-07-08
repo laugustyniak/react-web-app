@@ -1,9 +1,9 @@
-import { DocumentSnapshot } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import ReactPlayer from 'react-player';
 import { toast } from 'sonner';
 import { Link } from 'react-router';
 import VideoSelector from '~/components/ProductExtraction/VideoSelector';
+import type { DocumentSnapshot } from 'firebase/firestore';
 import FrameGrid from '~/components/video/FrameGrid';
 import TimeRangeSelector from '~/components/video/TimeRangeSelector';
 import VideoInput from '~/components/video/VideoInput';
