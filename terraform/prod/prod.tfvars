@@ -1,7 +1,7 @@
 # Production environment configuration
 service_name     = "buy-it-prod"
 docker_repo_name = "buy-it-prod-repo"
-container_image  = "us-central1-docker.pkg.dev/insbay-b32351/buy-it-prod-repo/buy-it:0.11.1"
+container_image  = "us-central1-docker.pkg.dev/insbay-b32351/buy-it-prod-repo/buy-it:0.12.0"
 environment      = "prod"
 domain_name      = "prod.buy-it.ai"
 

@@ -1,5 +1,11 @@
 # react-web-app
 
+## 0.13.0
+
+### Minor Changes
+
+- logos
+
 ## 0.12.0
 
 ### Minor Changes
