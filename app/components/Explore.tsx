@@ -1,8 +1,8 @@
-import { DocumentSnapshot } from 'firebase/firestore';
 import { AlertCircle, Grid, List, Search } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import type { Inspiration, Product, Program } from '~/lib/dataTypes';
 import { getAllInspirations, getAllProducts, getAllPrograms } from '~/lib/firestoreService';
+import type { DocumentSnapshot } from 'firebase/firestore';
 import { programIdToTitle } from '~/lib/programUtils';
 import InspirationCard from './InspirationCard';
 import InspirationModal from './InspirationModal';

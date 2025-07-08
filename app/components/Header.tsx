@@ -21,6 +21,8 @@ import { Menu, Plus, X, Wand2 } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { ThemeToggle } from './ui/theme-toggle';
 import { useState } from 'react';
+import { useDomainConfigContext } from '~/contexts/DomainConfigContext';
+import { useTheme } from '~/contexts/ThemeContext';
 import {
   CreateInspirationModal,
   CreateProgramModal,
@@ -35,6 +37,8 @@ function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, signOut, isAdmin } = useAuth();
+  const { config } = useDomainConfigContext();
+  const { theme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isInspirationModalOpen, setIsInspirationModalOpen] = useState(false);
   const [isProgramModalOpen, setIsProgramModalOpen] = useState(false);
@@ -139,8 +143,8 @@ function Header() {
         <SheetHeader className="mb-6">
           <SheetTitle className="text-left" onClick={() => navigateTo('/')}>
             <div className="flex items-center space-x-2">
-              <img src="/buy-it-logo-light.png" alt="Buy It" className="h-8 dark:hidden" />
-              <img src="/buy-it-logo-dark.png" alt="Buy It" className="h-8 hidden dark:block" />
+              <img src={config.logo_light || "/buy-it-logo-light.png"} alt={config.title || "Buy It"} className="h-8 dark:hidden" />
+              <img src={config.logo_dark || "/buy-it-logo-dark.png"} alt={config.title || "Buy It"} className="h-8 hidden dark:block" />
             </div>
           </SheetTitle>
           <Button
@@ -428,8 +432,8 @@ function Header() {
             onClick={() => navigateTo('/')}
             className="flex items-center space-x-2 focus:outline-none cursor-pointer"
           >
-            <img src="/buy-it-logo-light.png" alt="Buy It" className="h-8 dark:hidden" />
-            <img src="/buy-it-logo-dark.png" alt="Buy It" className="h-8 hidden dark:block" />
+            <img src={config.logo_light || "/buy-it-logo-light.png"} alt={config.title || "Buy It"} className="h-8 dark:hidden" />
+            <img src={config.logo_dark || "/buy-it-logo-dark.png"} alt={config.title || "Buy It"} className="h-8 hidden dark:block" />
           </button>
         </div>
 

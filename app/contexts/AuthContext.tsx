@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!auth) {
       setLoading(false);
       console.error('Firebase authentication is not properly configured');
-      return () => { };
+      return () => {};
     }
 
     const unsubscribe = auth.onAuthStateChanged(async user => {
